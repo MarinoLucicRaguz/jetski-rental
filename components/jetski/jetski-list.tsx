@@ -32,7 +32,7 @@ export const ListJetski =() => {
     return (
        <div>
             {jetskiData?.map((jetski) => (
-                        <li key={jetski.jetski_id}>{jetski.jetski_registration} {jetski.jetski_status}</li>
+                        <li key={jetski.jetski_id}>{jetski.jetski_registration} {jetski.jetski_status} </li>
                 ))}
        </div>
         
