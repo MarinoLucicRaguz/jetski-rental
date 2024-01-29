@@ -1,0 +1,79 @@
+// prisma/schema.prisma
+// npx prisma migrate reset
+// npx prisma db push      
+// npx prisma generate     
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum statusJetski {
+  AVAILABLE
+  NOT_AVAILABLE
+  OUT_OF_FUEL
+}
+
+enum UserRole {
+  ADMIN
+  MODERATOR
+  USER
+  GUEST
+}
+
+model Location {
+  location_id            Int          @id @default(autoincrement())
+  location_name          String       @unique
+
+  user_location_list     User[]
+  jetski_location_list   Jetski[]
+  reservations_list      Reservation[]
+}
+
+model User {
+  user_id            String       @id @default(cuid())
+  name               String?
+  email              String?      @unique
+  password           String?
+  
+  user_role          UserRole     @default(GUEST)
+  user_location      Location?     @relation(fields: [user_location_id], references: [location_id])
+  user_location_id   Int?
+
+  user_reservations  Reservation[]
+}
+
+model Jetski {
+  jetski_id              Int          @id @default(autoincrement())
+  jetski_registration    String       @unique
+
+  jetski_status          statusJetski @default(AVAILABLE)
+  jetski_location        Location?    @relation(fields: [jetski_location_id], references: [location_id])
+  jetski_location_id     Int?
+
+  // Reservation reference - many-to-many
+  jetski_reservations     Reservation[]
+
+}
+
+model Reservation {
+  reservation_id         Int        @id @default(autoincrement())
+  startTime              DateTime
+  endTime                DateTime
+  jetskiCount            Int
+  safariTour             Boolean
+  createdAt              DateTime   @default(now())
+
+  // Relationships
+  reservation_user            User       @relation(fields: [reservation_user_id], references: [user_id])
+  reservation_user_id         String
+  reservation_location        Location   @relation(fields: [reservation_location_id], references: [location_id])
+  reservation_location_id     Int
+  reservation_jetski_list     Jetski[] //many-to-many
+
+}
