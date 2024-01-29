@@ -2,17 +2,17 @@
 
 import { useRouter } from "next/navigation";
 
-interface CreateLocationButtonProps {
+interface ListJetskiButton {
     children: React.ReactNode;
     mode?: "modal" | "redirect";
     asChild?: boolean;
 }
 
-export const CreateLocationButton = ({ children, mode = "redirect", asChild }: CreateLocationButtonProps) => {
+export const ListJetskiButton = ({ children, mode = "redirect", asChild }: ListJetskiButton) => {
     const router = useRouter();
 
     const onClick = () => {
-        router.push("/location/createlocation");
+        router.push("/jetski/listjetski");
     };
 
     if (mode === "modal") {

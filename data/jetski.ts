@@ -42,3 +42,15 @@ export const fetchJetskis = async () => {
         return null
     }
 }
+
+
+export const fetchLocations = async () => {
+    try {
+        const locations = await db.location.findMany();
+        console.log(locations);
+        return locations;
+    } catch(error) {
+        console.log(error)
+        return null
+    }
+}
