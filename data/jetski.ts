@@ -9,7 +9,6 @@ export const getJetskiById =async (jetski_id:number) => {
     }
 }
 
-
 export const getJetskiByName =async (jetski_registration:string) => {
     try{
         const jetSki = await db.jetski.findUnique({where:{jetski_registration}});

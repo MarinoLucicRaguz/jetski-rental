@@ -25,6 +25,7 @@ export const JetskiSchema = z.object({
         message: "Registration is required!"
     }),
     jetski_status: z.enum(["available", "taken"]),
+    jetski_location_id: z.number().nullable(),
 });
 
 export const LocationSchema = z.object({
