@@ -12,7 +12,7 @@ const DashboardPage =async ()=>{
     return (
         <main className="flex h-full flex-col items-center justify-top bg-sky-500">
             <div className="flex justify-between w-full p-4">
-                <div className="bg-white rounded-sm text-center w-full margin-right-50">
+                <div className="bg-white rounded-lg text-center w-full margin-right-50 p-1">
                     Welcome to the dashboard
                 </div>
                 <CreateJetskiButton>

@@ -32,7 +32,6 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
         resolver: zodResolver(JetskiSchema),
         defaultValues: {
             jetski_registration: jetskiData?.jetski_registration,
-            jetski_status: "available",
             jetski_location_id: jetskiData?.jetski_location_id,
         },
     });
@@ -79,7 +78,9 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
     const onSubmit = async (values: z.infer<typeof JetskiSchema>) => {
         setError("");
         setSuccess("");
-        console.log(values)
+    
+        values.jetski_registration = values.jetski_registration.toUpperCase()
+
         try {
             const data = await editJetski(jetskiId, values);
             setError(data.error || "");
@@ -93,7 +94,7 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
         <CardWrapper headerLabel="Edit Jetski" backButtonLabel="Go back to jetski list" backButtonHref="/jetski/listjetski">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="space-y-4">
+                    <div className="space-y-4 flex-row justify-between">
                         <FormField control={form.control} name="jetski_registration" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Registration Name</FormLabel>
@@ -103,21 +104,13 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
                                 <FormMessage />
                             </FormItem>
                         )} />
-                        <FormItem>
-                            <FormLabel>Status</FormLabel>
-                            <FormControl>
-                                <Input value={jetskiData?.jetski_status} disabled={true} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
                         <FormField control={form.control} name="jetski_location_id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Location</FormLabel>
-                                <FormControl>
+                            <FormItem className="flex justify-between">
+                                <FormLabel className="border-solid sans-serif text-bold text-center p-3">LOCATION: </FormLabel>
+                                <FormControl className="rounded-sm text-center bg-black text-white border-solid p-2">
                                     <select {...form.register("jetski_location_id",{valueAsNumber:true, })}disabled={isPending}>
-                                        {/* Map over available locations and render options */}
                                         {locationData.map(location => (
-                                            <option key={location.location_id} value={location.location_id}>{location.location_name}</option>
+                                            <option key={location.location_id} value={location.location_id}>{location.location_name.toUpperCase()}</option>
                                         ))}
                                     </select>
                                 </FormControl>

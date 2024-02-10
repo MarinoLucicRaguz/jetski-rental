@@ -33,8 +33,8 @@ export const JetskiForm = () => {
     const form = useForm<z.infer<typeof JetskiSchema>>({
         resolver: zodResolver(JetskiSchema),
         defaultValues: {
+            jetski_id: 0, //useles value - its a workaround
             jetski_registration: "",
-            jetski_status: "available",
             jetski_location_id: null, // Change default value to undefined
         },
     });
@@ -52,7 +52,7 @@ export const JetskiForm = () => {
     const onSubmit = (values: z.infer<typeof JetskiSchema>) => {
         setError("");
         setSuccess("");
-        console.log(values)
+        
         startTransition(() => {
             createJetski(values)
                 .then((data) => {
@@ -97,7 +97,7 @@ export const JetskiForm = () => {
                                 <FormItem>
                                     <div className="flex justify-between">
                                         <FormLabel className="sans-serif text-bold text-center p-3">CHOOSE LOCATION: </FormLabel>
-                                        <FormControl className="rounded-sm text-center bg-black text-white border-solid p-1">
+                                        <FormControl className="rounded-sm text-center bg-black text-white border-solid p-2">
                                             <select {...form.register("jetski_location_id",{valueAsNumber:true, })}disabled={isPending}>
                                                 <option value="" disabled hidden>Select a location</option>
                                                 {locations.map((location)=>(

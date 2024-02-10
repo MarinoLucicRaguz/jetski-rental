@@ -33,7 +33,6 @@ export const ListJetski =() => {
     }, [startTransition]);
 
     const handleEditJetskiClick = (jetskiId: number) => {
-        // Redirect to the edit location page
         router.push(`/jetski/${jetskiId}/editjetski`);
     };
 
@@ -56,6 +55,7 @@ export const ListJetski =() => {
                         <div className="space-x-2">
                             <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>
                             <Button variant="destructive" onClick={() => handleDeleteJetskiClick(jetski.jetski_id)}>Delete</Button>
+                            {/* are you sure button */}
                         </div>
                     </div>
                 ))}

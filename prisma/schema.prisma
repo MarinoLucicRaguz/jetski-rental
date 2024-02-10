@@ -44,8 +44,6 @@ model User {
   user_role          UserRole     @default(GUEST)
   user_location      Location?     @relation(fields: [user_location_id], references: [location_id])
   user_location_id   Int?
-
-  user_reservations  Reservation[]
 }
 
 model Jetski {
@@ -70,8 +68,6 @@ model Reservation {
   createdAt              DateTime   @default(now())
 
   // Relationships
-  reservation_user            User       @relation(fields: [reservation_user_id], references: [user_id])
-  reservation_user_id         String
   reservation_location        Location   @relation(fields: [reservation_location_id], references: [location_id])
   reservation_location_id     Int
   reservation_jetski_list     Jetski[] //many-to-many
