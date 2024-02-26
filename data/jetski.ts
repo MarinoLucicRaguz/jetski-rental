@@ -11,7 +11,11 @@ export const getJetskiById =async (jetski_id:number) => {
 
 export const getJetskiByName =async (jetski_registration:string) => {
     try{
-        const jetSki = await db.jetski.findUnique({where:{jetski_registration}});
+        const jetSki = await db.jetski.findUnique(
+            {
+                where:{
+                    jetski_registration
+                }});
         return jetSki;
     } catch{
         return null;
@@ -79,6 +83,32 @@ export const fetchLocations = async () => {
         return null
     }
 }
+
+
+export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
+    try {
+        const availableJetskis = await db.jetski.findMany({
+            where: {
+                NOT: {
+                    jetski_reservations: {
+                        some: {
+                            OR: [
+                                { startTime: { lte: startTime }, endTime: { gte: startTime } },
+                                { startTime: { lte: endTime }, endTime: { gte: endTime } }
+                            ]
+                        }
+                    }
+                }
+            }
+        });
+
+        return availableJetskis;
+    } catch (error) {
+        console.error('Error fetching available jet skis:', error);
+        throw error;
+    }
+};
+
 
 export const fetchUsers =async (user_id:string) => {
     try{

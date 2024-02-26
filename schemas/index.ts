@@ -47,5 +47,5 @@ export const JetskiReservationSchema = z.object({
     jetSkiCount: z.string().nullable(), 
     safariTour: z.enum(["yes","no"]).nullable(),
     reservation_location_id: z.number().nullable(),
-    reservation_jetski_list: z.array(JetskiSchema).nullable(),
+    reservation_jetski_list: z.array(JetskiSchema),
 })

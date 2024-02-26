@@ -17,13 +17,15 @@ import {
 } from "@/components/ui/form";
 import { CardWrapper } from "@/components/auth/card-wrapper"
 import { Button } from "../ui/button";
-import { DateTime } from "luxon"
+import { DateTime, Duration } from "luxon"
 import { format,add } from "date-fns"
 import { Calendar } from "../ui/calendar";
 import { Popover,PopoverContent,PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Jetski, Reservation } from "@prisma/client";
 import { createReservation } from "@/actions/createReservation";
+import { listAvailableJetskis } from "@/actions/listAvailableJetskis";
+import { start } from "repl";
 
 enum RentDuration {
     "20 minutes" = "20 minutes",
@@ -71,8 +73,8 @@ export const JetSkiReservationForm =() => {
     const [rentDate,setRentDate] = useState<Date>()
     const [startTime, setStartTime] = useState<Date>(); 
     const [endTime, setEndTime] = useState<Date>(calculateEndTime(DateTime.now(), duration));
-
-    const [jetskisData, setJetskisData] = useState<Jetski[]>([]);
+    const [availableJetskis, setAvailableJetskis]=useState<Jetski[]>([]);
+    const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
 
     const handleStartTimeChange = (selectedStartTime: Date) => {
         setStartTime(selectedStartTime);
@@ -81,6 +83,29 @@ export const JetSkiReservationForm =() => {
     const handleRentDateTimeChange = (selectedRentDate: Date)=>{
         setRentDate(selectedRentDate);
     };
+    
+    const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
+        if (isChecked) {
+            setSelectedJetski([...selectedJetski, jetski]);
+        } else {
+            setSelectedJetski(selectedJetski.filter(j => j.jetski_id !== jetski.jetski_id));
+        }
+    };
+    
+    useEffect(() => {
+        const fetchJetskis = async () => {
+            if (startTime && duration){
+                try {
+                    const data = await listAvailableJetskis(startTime,endTime);
+                    setAvailableJetskis(data);
+                } catch (error) {
+                    setError("Error fetching locations");
+                }
+            }
+        };
+
+        fetchJetskis();
+    },[startTime,duration]);
 
     useEffect(() => {
         if (startTime && duration) {
@@ -88,6 +113,12 @@ export const JetSkiReservationForm =() => {
             setEndTime(calculatedEndTime);
         }
     }, [startTime, duration]);
+
+    useEffect(() => {
+        form.setValue("reservation_jetski_list", selectedJetski);
+        console.log("Selected jetskis: ", selectedJetski);
+    }, [selectedJetski]);
+    
 
     const form = useForm<z.infer<typeof JetskiReservationSchema>>({
         resolver: zodResolver(JetskiReservationSchema),
@@ -98,7 +129,7 @@ export const JetSkiReservationForm =() => {
             jetSkiCount: "0",
             safariTour: "no",
             reservation_location_id: null,
-            reservation_jetski_list: [],
+            reservation_jetski_list: selectedJetski,
         },
     })
 
@@ -249,6 +280,25 @@ export const JetSkiReservationForm =() => {
                         {/* Hidden input field to pass endTime value to the form */}
                         <input type="hidden" {...form.register("endTime")} value={endTime?.toISOString()} />
                     </div>
+                    <div className="space-y-6 justify-between flex">
+                        Select jetskis:
+                        <FormControl className="rounded-sm text-center border-solid p-1">
+                            <div>
+                                {availableJetskis.map((jetski) => (
+                                    <div key={jetski.jetski_id} className="block">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                onChange={(e) => handleCheckboxChange(jetski, e.target.checked)}
+                                            />
+                                            {jetski.jetski_registration}
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                        </FormControl>
+                    </div>
+                    <input type="hidden" {...form.register("reservation_jetski_list")} value={JSON.stringify(selectedJetski)} />
                     <FormField control={form.control}
                     name="jetSkiCount"
                     render={({ field }) => (
@@ -261,9 +311,6 @@ export const JetSkiReservationForm =() => {
                                     value={field.value ?? ''} // Ensure value is always a string
                                 />
                             </FormControl>
-                            <FormDescription>
-                                This is your public display name.
-                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
