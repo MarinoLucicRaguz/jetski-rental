@@ -4,7 +4,7 @@ import * as z from "zod";
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { JetskiReservationSchema } from "@/schemas";
 import {
     Form,
@@ -17,8 +17,6 @@ import {
 } from "@/components/ui/form";
 import { CardWrapper } from "@/components/auth/card-wrapper"
 import { Button } from "../ui/button";
-import { FormError } from "../form-error";
-import { FormSuccess } from "../form-success";
 import { DateTime } from "luxon"
 import { format,add } from "date-fns"
 import { Calendar } from "../ui/calendar";
@@ -26,7 +24,6 @@ import { Popover,PopoverContent,PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Jetski, Reservation } from "@prisma/client";
 import { createReservation } from "@/actions/createReservation";
-import { Input } from "../ui/input";
 
 enum RentDuration {
     "20 minutes" = "20 minutes",
@@ -55,16 +52,14 @@ function getDurationInMinutes(duration: RentDuration): number {
         case RentDuration["3 hours"]:
             return 180;
         default:
-            throw new Error("Invalid rental duration");
+            throw new Error("Invalid rental duration"); //Should absolutely never happen
     }
 }
-
 
 function calculateEndTime(startTime: DateTime, duration: RentDuration): Date {
     const minutes = getDurationInMinutes(duration);
     return startTime.plus({ minutes }).toJSDate();
 }
-
 
 export const JetSkiReservationForm =() => {
     const [error, setError] = useState<string | undefined>("");
@@ -75,23 +70,9 @@ export const JetSkiReservationForm =() => {
 
     const [rentDate,setRentDate] = useState<Date>()
     const [startTime, setStartTime] = useState<Date>(); 
-    const [endTime, setEndTime] = useState<Date>(); 
+    const [endTime, setEndTime] = useState<Date>(calculateEndTime(DateTime.now(), duration));
 
     const [jetskisData, setJetskisData] = useState<Jetski[]>([]);
-
-
-    const form = useForm<z.infer<typeof JetskiReservationSchema>>({
-        resolver: zodResolver(JetskiReservationSchema),
-        defaultValues:{
-            rentDate: rentDate,
-            startTime: startTime,
-            endTime: null,
-            jetSkiCount: "0",
-            safariTour: "no",
-            reservation_location_id: null,
-            reservation_jetski_list: [],
-        },
-    })
 
     const handleStartTimeChange = (selectedStartTime: Date) => {
         setStartTime(selectedStartTime);
@@ -101,14 +82,25 @@ export const JetSkiReservationForm =() => {
         setRentDate(selectedRentDate);
     };
 
-    const handleDurationChange = (selectedDuration: RentDuration) => {
-        setDuration(selectedDuration);
-        if (startTime) {
-            const newEndTime = calculateEndTime(DateTime.fromJSDate(startTime), selectedDuration);
-            setEndTime(newEndTime);
-            console.log(newEndTime)
+    useEffect(() => {
+        if (startTime && duration) {
+            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
+            setEndTime(calculatedEndTime);
         }
-    };
+    }, [startTime, duration]);
+
+    const form = useForm<z.infer<typeof JetskiReservationSchema>>({
+        resolver: zodResolver(JetskiReservationSchema),
+        defaultValues:{
+            rentDate: rentDate,
+            startTime: startTime,
+            endTime: endTime,
+            jetSkiCount: "0",
+            safariTour: "no",
+            reservation_location_id: null,
+            reservation_jetski_list: [],
+        },
+    })
 
     const getTimes = () => {
         if (!rentDate) return [];
@@ -135,21 +127,22 @@ export const JetSkiReservationForm =() => {
     const onSubmit = (values: z.infer<typeof JetskiReservationSchema>) => {
         setError("");
         setSuccess("");
-        console.log(startTime)
-        if (startTime && duration) {
-            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
-            form.setValue('endTime', calculatedEndTime);
-        }
-        console.log(values)
-
-        startTransition(()=>{
+    
+        console.log("Submitting form with values:", values); // Add this line
+    
+        startTransition(() => {
             createReservation(values)
-                .then((data)=>{
-                    setError(data.error),
+                .then((data) => {
+                    console.log("Response from createReservation:", data); // Add this line
+                    setError(data.error);
                     setSuccess(data.success);
                 })
-        })
-    };        
+                .catch((error) => {
+                    setError("An error occurred while submitting the form.");
+                    console.error(error);
+                });
+        });
+    };
 
     return (
         <CardWrapper headerLabel="Create a reservation" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
@@ -226,10 +219,20 @@ export const JetSkiReservationForm =() => {
                     </Popover>
                     </FormItem>
                     )}/>
-                    <div className="space-y-6 justify-between flex ">
+                    <div className="space-y-6 justify-between flex">
                         Select duration: 
-                        <FormControl className="rounded-sm text-center border-solid p-1 ">
-                        <select onChange={(event) => handleDurationChange(event.target.value as RentDuration)}>
+                        <FormControl className="rounded-sm text-center border-solid p-1">
+                            <select value={duration} onChange={(event) => {
+                                const selectedDuration = event.target.value as RentDuration;
+                                setDuration(selectedDuration);
+                                // Calculate and set the endTime based on the selected duration
+                                if (startTime) {
+                                    const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), selectedDuration);
+                                    setEndTime(calculatedEndTime);
+                                    // Update the hidden input field value
+                                    form.setValue("endTime", calculatedEndTime);
+                                }
+                            }}>
                                 {Object.entries(RentDuration).map(([key, value]) => (
                                     <option key={key} value={key}>
                                         {value}
@@ -237,6 +240,14 @@ export const JetSkiReservationForm =() => {
                                 ))}
                             </select>
                         </FormControl>
+                    </div>
+                    <div className="flex justify-between">
+                        <span>End time:</span>
+                        {endTime && (
+                            <span>{format(endTime, "HH:mm")}</span>
+                        )}
+                        {/* Hidden input field to pass endTime value to the form */}
+                        <input type="hidden" {...form.register("endTime")} value={endTime?.toISOString()} />
                     </div>
                     <FormField control={form.control}
                     name="jetSkiCount"
