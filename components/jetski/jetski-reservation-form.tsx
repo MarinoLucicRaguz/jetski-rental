@@ -22,10 +22,10 @@ import { format,add } from "date-fns"
 import { Calendar } from "../ui/calendar";
 import { Popover,PopoverContent,PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Jetski, Reservation } from "@prisma/client";
+import { Jetski, Location, Reservation } from "@prisma/client";
 import { createReservation } from "@/actions/createReservation";
 import { listAvailableJetskis } from "@/actions/listAvailableJetskis";
-import { start } from "repl";
+import { listLocation } from "@/actions/listLocations";
 
 enum RentDuration {
     "20 minutes" = "20 minutes",
@@ -75,6 +75,8 @@ export const JetSkiReservationForm =() => {
     const [endTime, setEndTime] = useState<Date>(calculateEndTime(DateTime.now(), duration));
     const [availableJetskis, setAvailableJetskis]=useState<Jetski[]>([]);
     const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
+    const [availableLocations, setAvailableLocations] = useState<Location[]| null>([]);
+    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
     const handleStartTimeChange = (selectedStartTime: Date) => {
         setStartTime(selectedStartTime);
@@ -83,7 +85,31 @@ export const JetSkiReservationForm =() => {
     const handleRentDateTimeChange = (selectedRentDate: Date)=>{
         setRentDate(selectedRentDate);
     };
+
+    const handleLocationCheckboxChange = (location: Location, isChecked: boolean) => {
+        if (isChecked) {
+            setSelectedLocation(location);
+            form.setValue("reservation_location_id", location.location_id);
+        } else {
+            setSelectedLocation(null);
+            form.setValue("reservation_location_id", null);
+        }
+    };
     
+    useEffect(() => {
+        const getListLocation = async () => {
+            try {
+                const data = await listLocation();
+                    setAvailableLocations(data);
+                } catch (error) {
+                setError("Error fetching locations");
+            }
+        };
+
+        getListLocation();
+    },[]);
+
+
     const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
         if (isChecked) {
             setSelectedJetski([...selectedJetski, jetski]);
@@ -92,6 +118,7 @@ export const JetSkiReservationForm =() => {
         }
     };
     
+
     useEffect(() => {
         const fetchJetskis = async () => {
             if (startTime && duration){
@@ -116,7 +143,9 @@ export const JetSkiReservationForm =() => {
 
     useEffect(() => {
         form.setValue("reservation_jetski_list", selectedJetski);
+        form.setValue("jetSkiCount",selectedJetski.length);
         console.log("Selected jetskis: ", selectedJetski);
+        console.log(selectedJetski.length)
     }, [selectedJetski]);
     
 
@@ -126,7 +155,7 @@ export const JetSkiReservationForm =() => {
             rentDate: rentDate,
             startTime: startTime,
             endTime: endTime,
-            jetSkiCount: "0",
+            jetSkiCount: selectedJetski.length,
             safariTour: "no",
             reservation_location_id: null,
             reservation_jetski_list: selectedJetski,
@@ -250,9 +279,9 @@ export const JetSkiReservationForm =() => {
                     </Popover>
                     </FormItem>
                     )}/>
-                    <div className="space-y-6 justify-between flex">
-                        Select duration: 
-                        <FormControl className="rounded-sm text-center border-solid p-1">
+                    <div className="justify-between flex">
+                        <strong>Duration of rental: </strong>
+                        <FormControl className="w-40 bg-black text-white rounded-sm text-center border-solid p-1">
                             <select value={duration} onChange={(event) => {
                                 const selectedDuration = event.target.value as RentDuration;
                                 setDuration(selectedDuration);
@@ -273,25 +302,24 @@ export const JetSkiReservationForm =() => {
                         </FormControl>
                     </div>
                     <div className="flex justify-between">
-                        <span>End time:</span>
+                        <strong>Reservation until:</strong>
                         {endTime && (
-                            <span>{format(endTime, "HH:mm")}</span>
+                            <span className="bg-black text-white w-40 text-center">{format(endTime, "HH:mm")}</span>
                         )}
-                        {/* Hidden input field to pass endTime value to the form */}
                         <input type="hidden" {...form.register("endTime")} value={endTime?.toISOString()} />
                     </div>
-                    <div className="space-y-6 justify-between flex">
-                        Select jetskis:
-                        <FormControl className="rounded-sm text-center border-solid p-1">
+                    <div>
+                        <strong>Choose jetskis:</strong>
+                        <FormControl className="rounded-sm border-solid p-1 flex-col justify-between">
                             <div>
                                 {availableJetskis.map((jetski) => (
                                     <div key={jetski.jetski_id} className="block">
-                                        <label>
+                                        <label style={{ fontWeight: 'bold', fontFamily: 'TimesNewRoman'}}>
                                             <input
                                                 type="checkbox"
                                                 onChange={(e) => handleCheckboxChange(jetski, e.target.checked)}
                                             />
-                                            {jetski.jetski_registration}
+                                            {" " + jetski.jetski_registration}
                                         </label>
                                     </div>
                                 ))}
@@ -299,41 +327,46 @@ export const JetSkiReservationForm =() => {
                         </FormControl>
                     </div>
                     <input type="hidden" {...form.register("reservation_jetski_list")} value={JSON.stringify(selectedJetski)} />
-                    <FormField control={form.control}
-                    name="jetSkiCount"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>jetSkiCount</FormLabel>
-                            <FormControl>
-                                <input
-                                    placeholder="jetSkiCount"
-                                    {...field}
-                                    value={field.value ?? ''} // Ensure value is always a string
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField control={form.control}
-                        name="safariTour"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>safariTour</FormLabel>
-                            <FormControl>
-                                <input
-                                    placeholder="safariTour"
-                                    {...field}
-                                    value={field.value ?? ''} // Ensure value is always a string
-                                />
-                            </FormControl>
-                            <FormDescription>
-                                This is your public display name.
-                            </FormDescription>
-                            <FormMessage />
+                    <input type="hidden" {...form.register("jetSkiCount")} value={selectedJetski.length} />
+                    <FormField name="safariTour" render={({field})=>(
+                            <FormItem className="flex justify-between items-center">
+                                <FormLabel className="text-sm font-bold">Is it Safari Tour: </FormLabel>
+                                <FormControl className="w-40 bg-black text-white text-center rounded-mb border-solid">
+                                    <select {...field} value={field.value ?? '' } className="w-full bg-black text-white text-center rounded-md border-solid">
+                                        <option value="no" >
+                                            No
+                                        </option>
+                                        <option value="yes" >
+                                            Yes
+                                        </option>
+                                    </select>
+                                </FormControl>
                             </FormItem>
-                        )}
-                        />
+                    )}/>
+                    
+                    <FormField name="reservation_location_id" render={({field})=>(
+                        <FormItem className="flex">
+                            <FormLabel className="text-sm font-bold">
+                                Location of reservation: 
+                            </FormLabel>
+                            <FormControl>
+                                <div>
+                                    {availableLocations && availableLocations.map((location) => (
+                                        <div key={location.location_id} className="block">
+                                            <label style={{ fontWeight: 'bold', fontFamily: 'TimesNewRoman'}}>
+                                                <input
+                                                    type="checkbox"
+                                                    onChange={(e) => handleLocationCheckboxChange(location, e.target.checked)}
+                                                    checked={selectedLocation?.location_id === location.location_id}
+                                                />
+                                                {" " + location.location_name}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                    )}/>
                     <Button type="submit" className="w-full">
                         Confirm the reservation!
                     </Button>

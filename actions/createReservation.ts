@@ -15,7 +15,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     }
 
     // Destructure the validated data
-    const { startTime, endTime, reservation_jetski_list } = validatedFields.data;
+    const { startTime, endTime, reservation_jetski_list, jetSkiCount } = validatedFields.data;
 
     // Calculate the number of jetskis
     const count = reservation_jetski_list.length;
@@ -26,7 +26,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     }
 
     // Check if jetskis have been selected
-    if (!reservation_jetski_list.length) {
+    if (!jetSkiCount) {
         return { error: "No jetskis have been selected." }
     }
 
@@ -40,7 +40,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
                 startTime,
                 endTime,
                 safariTour: false,
-                jetskiCount: count,
+                jetskiCount: jetSkiCount,
                 reservation_jetski_list: {
                     connect: reservation_jetski_list.map(jetski => ({ jetski_id: jetski.jetski_id }))
                 },
