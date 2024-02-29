@@ -120,3 +120,19 @@ export const fetchUsers =async (user_id:string) => {
     }
 }
 
+export const fetchReservations = async() =>{
+    try{
+        const reservations = await db.reservation.findMany({
+            include: {
+                reservation_jetski_list: true,
+                reservation_location: true,
+            }
+        });
+        console.log(reservations)
+        return reservations;
+    } catch(error)
+    {
+        console.log(error);
+        return null;
+    }
+}

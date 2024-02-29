@@ -5,6 +5,7 @@ import { CreateReservationButton } from "@/components/auth/create-reservation-bu
 import { CreateLocationButton } from "@/components/auth/create-location-button";
 import { ListJetskiButton } from "@/components/auth/list-jetski-button";
 import { ListLocationButton } from "@/components/auth/list-locations-button";
+import { ListReservationButton } from "@/components/auth/list-reservation-button";
 
 const DashboardPage =async ()=>{
     const session = await auth()
@@ -40,6 +41,11 @@ const DashboardPage =async ()=>{
                         Create a reservation
                     </Button>
                 </CreateReservationButton>
+                <ListReservationButton>
+                    <Button className="w-full margin-right-5" type="submit" variant="secondary">
+                        List of reservations
+                    </Button>
+                </ListReservationButton>
                 <form action={async ()=>{
                     "use server";
                     

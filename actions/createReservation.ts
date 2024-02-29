@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 import { JetskiReservationSchema } from "@/schemas";
+import { DateTime } from "luxon";
+import { listAvailableJetskis } from "./listAvailableJetskis";
 
 export const createReservation = async (values: z.infer<typeof JetskiReservationSchema>) => {
     // Validate the input values
@@ -16,12 +18,29 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     // Destructure the validated data
     const { startTime, endTime, reservation_jetski_list, jetSkiCount, reservation_location_id, safariTour } = validatedFields.data;
 
+    const currentTime = DateTime.now().toJSDate();
+
+    if(currentTime>startTime)
+    {
+        return { error: "You have selected a starting time that has already passed!"}
+    }
+
     // Calculate the number of jetskis
     const count = reservation_jetski_list.length;
 
     // Check if endTime is provided
     if (!endTime) {
-        return { error: "Error while calculating when the tour should finish. Please check the start time and duration." }
+        return { error: "Error while calculating when the rent should finish. Please check the start time and duration." }
+    }
+
+    const dataList = await listAvailableJetskis(startTime,endTime);
+
+    const allJetskisAvailable = reservation_jetski_list.every(jetskiId =>
+        dataList.some(jetski => jetski.jetski_id === jetskiId.jetski_id)
+    );
+    
+    if (!allJetskisAvailable) {
+        return { error: "Selected jetskis are not available at selected time."}
     }
 
     // Check if jetskis have been selected
@@ -37,7 +56,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
 
     if(!safariTour)
     {
-        return {error: "No info is it safari tour."}
+        return {error: "You have not selected safari tour status."}
     }
 
     let isSafari;
@@ -49,7 +68,6 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
         isSafari=false;
     }
 
-    
     try {
         // Create the reservation in the database
         const reservation = await db.reservation.create({

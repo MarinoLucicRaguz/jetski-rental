@@ -26,6 +26,8 @@ import { Jetski, Location, Reservation } from "@prisma/client";
 import { createReservation } from "@/actions/createReservation";
 import { listAvailableJetskis } from "@/actions/listAvailableJetskis";
 import { listLocation } from "@/actions/listLocations";
+import { FormError } from "../form-error";
+import { FormSuccess } from "../form-success";
 
 enum RentDuration {
     "20 minutes" = "20 minutes",
@@ -368,6 +370,8 @@ export const JetSkiReservationForm =() => {
                         </FormItem>
                     )}/>
                     </div>
+                    <FormError message={error}/>
+                    <FormSuccess message={success}/>
                     <Button type="submit" className="w-full">
                         Confirm the reservation!
                     </Button>
