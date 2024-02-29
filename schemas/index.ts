@@ -45,7 +45,7 @@ export const JetskiReservationSchema = z.object({
     startTime: z.date(),
     endTime: z.date().nullable(),
     jetSkiCount: z.number(), 
-    safariTour: z.enum(["yes","no"]).nullable(),
-    reservation_location_id: z.number().nullable(),
+    safariTour: z.string(),
+    reservation_location_id: z.number(),
     reservation_jetski_list: z.array(JetskiSchema),
 })

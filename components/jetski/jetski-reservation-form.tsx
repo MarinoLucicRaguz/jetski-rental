@@ -75,8 +75,9 @@ export const JetSkiReservationForm =() => {
     const [endTime, setEndTime] = useState<Date>(calculateEndTime(DateTime.now(), duration));
     const [availableJetskis, setAvailableJetskis]=useState<Jetski[]>([]);
     const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
-    const [availableLocations, setAvailableLocations] = useState<Location[]| null>([]);
-    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+    const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
+    const [selectedLocation, setSelectedLocation] = useState<Location>();
+    const [safariTour, setSafariTour] = useState<string>(""); 
 
     const handleStartTimeChange = (selectedStartTime: Date) => {
         setStartTime(selectedStartTime);
@@ -85,22 +86,15 @@ export const JetSkiReservationForm =() => {
     const handleRentDateTimeChange = (selectedRentDate: Date)=>{
         setRentDate(selectedRentDate);
     };
-
-    const handleLocationCheckboxChange = (location: Location, isChecked: boolean) => {
-        if (isChecked) {
-            setSelectedLocation(location);
-            form.setValue("reservation_location_id", location.location_id);
-        } else {
-            setSelectedLocation(null);
-            form.setValue("reservation_location_id", null);
-        }
-    };
     
     useEffect(() => {
         const getListLocation = async () => {
             try {
                 const data = await listLocation();
-                    setAvailableLocations(data);
+                if(data)
+                    {
+                        setAvailableLocations(data);
+                    }
                 } catch (error) {
                 setError("Error fetching locations");
             }
@@ -146,6 +140,8 @@ export const JetSkiReservationForm =() => {
         form.setValue("jetSkiCount",selectedJetski.length);
         console.log("Selected jetskis: ", selectedJetski);
         console.log(selectedJetski.length)
+        console.log(selectedLocation)
+        console.log(safariTour)
     }, [selectedJetski]);
     
 
@@ -156,8 +152,8 @@ export const JetSkiReservationForm =() => {
             startTime: startTime,
             endTime: endTime,
             jetSkiCount: selectedJetski.length,
-            safariTour: "no",
-            reservation_location_id: null,
+            safariTour: safariTour,
+            reservation_location_id: selectedLocation?.location_id,
             reservation_jetski_list: selectedJetski,
         },
     })
@@ -196,6 +192,7 @@ export const JetSkiReservationForm =() => {
                     console.log("Response from createReservation:", data); // Add this line
                     setError(data.error);
                     setSuccess(data.success);
+                    window.location.reload();
                 })
                 .catch((error) => {
                     setError("An error occurred while submitting the form.");
@@ -332,7 +329,11 @@ export const JetSkiReservationForm =() => {
                             <FormItem className="flex justify-between items-center">
                                 <FormLabel className="text-sm font-bold">Is it Safari Tour: </FormLabel>
                                 <FormControl className="w-40 bg-black text-white text-center rounded-mb border-solid">
-                                    <select {...field} value={field.value ?? '' } className="w-full bg-black text-white text-center rounded-md border-solid">
+                                    <select {...field} value={field.value ?? '' } className="w-full bg-black text-white text-center rounded-md border-solid" onChange={(event)=>{
+                                        const selectedValue = event.target.value;
+                                        setSafariTour(selectedValue);
+                                        field.onChange(selectedValue);
+                                    }}>
                                         <option value="no" >
                                             No
                                         </option>
@@ -343,30 +344,30 @@ export const JetSkiReservationForm =() => {
                                 </FormControl>
                             </FormItem>
                     )}/>
-                    
+                    <div>
                     <FormField name="reservation_location_id" render={({field})=>(
-                        <FormItem className="flex">
+                        <FormItem className="flex justify-between">
                             <FormLabel className="text-sm font-bold">
                                 Location of reservation: 
                             </FormLabel>
-                            <FormControl>
-                                <div>
-                                    {availableLocations && availableLocations.map((location) => (
-                                        <div key={location.location_id} className="block">
-                                            <label style={{ fontWeight: 'bold', fontFamily: 'TimesNewRoman'}}>
-                                                <input
-                                                    type="checkbox"
-                                                    onChange={(e) => handleLocationCheckboxChange(location, e.target.checked)}
-                                                    checked={selectedLocation?.location_id === location.location_id}
-                                                />
-                                                {" " + location.location_name}
-                                            </label>
-                                        </div>
+                            <FormControl className="w-40 bg-black text-white rounded-sm text-center border-solid p-1">
+                                <select value={selectedLocation ? selectedLocation.location_id : ''} onChange={(event) => {
+                                    const selectedLocationId = event.target.value;
+                                    const selectedLocation = availableLocations.find(location => location.location_id.toString() === selectedLocationId);
+                                    setSelectedLocation(selectedLocation);
+                                    form.setValue("reservation_location_id", selectedLocationId !== '' ? Number(selectedLocationId) : 0);
+                                }}>
+                                    <option value="">Select a location</option>
+                                    {availableLocations && availableLocations.map(location => (
+                                        <option key={location.location_id} value={location.location_id}>
+                                            {location.location_name}
+                                        </option>
                                     ))}
-                                </div>
+                                </select>
                             </FormControl>
                         </FormItem>
                     )}/>
+                    </div>
                     <Button type="submit" className="w-full">
                         Confirm the reservation!
                     </Button>
