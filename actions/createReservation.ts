@@ -25,12 +25,17 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
         return { error: "You have selected a starting time that has already passed!"}
     }
 
+
     // Calculate the number of jetskis
     const count = reservation_jetski_list.length;
 
     // Check if endTime is provided
     if (!endTime) {
         return { error: "Error while calculating when the rent should finish. Please check the start time and duration." }
+    }
+
+    if(startTime>endTime){
+        return { error: "End time is before start time. Please refresh page and try again."}
     }
 
     const dataList = await listAvailableJetskis(startTime,endTime);

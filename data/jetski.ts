@@ -93,8 +93,34 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
                     jetski_reservations: {
                         some: {
                             OR: [
-                                { startTime: { lte: startTime }, endTime: { gte: startTime } },
-                                { startTime: { lte: endTime }, endTime: { gte: endTime } }
+                                { 
+                                    // Check if the new reservation's start time is between existing reservation's start and end time
+                                    AND: [
+                                        { startTime: { lte: startTime } },
+                                        { endTime: { gt: startTime } } // Use gt instead of gte
+                                    ]
+                                },
+                                { 
+                                    // Check if the new reservation's end time is between existing reservation's start and end time
+                                    AND: [
+                                        { startTime: { lt: endTime } }, // Use lt instead of lte
+                                        { endTime: { gte: endTime } }
+                                    ]
+                                },
+                                { 
+                                    // Check if the existing reservation's start time is between new reservation's start and end time
+                                    AND: [
+                                        { startTime: { gte: startTime } },
+                                        { startTime: { lt: endTime } } // Use lt instead of lte
+                                    ]
+                                },
+                                { 
+                                    // Check if the existing reservation's end time is between new reservation's start and end time
+                                    AND: [
+                                        { endTime: { gt: startTime } }, // Use gt instead of gte
+                                        { endTime: { lte: endTime } }
+                                    ]
+                                }
                             ]
                         }
                     }
@@ -128,11 +154,64 @@ export const fetchReservations = async() =>{
                 reservation_location: true,
             }
         });
-        console.log(reservations)
         return reservations;
     } catch(error)
     {
         console.log(error);
         return null;
     }
+}
+
+export const fetchReservationsByDate = async (date: Date) => {
+    try {
+        console.log('Fetching reservations for date:', date);
+
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0); // Set time to start of the day (midnight)
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999); // Set time to end of the day (just before midnight)
+
+        console.log('Start of day:', startOfDay);
+        console.log('End of day:', endOfDay);
+
+        const reservations = await db.reservation.findMany({
+            where: {
+                AND: [
+                    { startTime: { lte: endOfDay } }, // Reservations that start before or at the end of the provided day
+                    { endTime: { gte: startOfDay } } // Reservations that end after or at the start of the provided day
+                ]
+            },
+            include: {
+                reservation_jetski_list: true,
+                reservation_location: true,
+            }
+            
+        });
+
+        console.log('Fetched reservations:', reservations);
+        return reservations;
+    } catch (error) {
+        console.error('Error fetching reservations:', error);
+        return null;
+    }
+}
+
+
+export type Reservation = {
+    reservation_id: number;
+    startTime: Date;
+    endTime: Date;
+    jetskiCount: number;
+    safariTour: boolean;
+    createdAt: Date;
+    reservation_location_id: number;
+    reservation_location: {
+        location_id: number;
+        location_name: string;
+    };
+    reservation_jetski_list?: {
+        jetski_id: number;
+        jetski_registration: string;
+    }[];
 }

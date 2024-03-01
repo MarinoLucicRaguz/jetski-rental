@@ -73,21 +73,27 @@ export const JetSkiReservationForm =() => {
     const [duration, setDuration] = useState<RentDuration>(RentDuration["20 minutes"]);
 
     const [rentDate,setRentDate] = useState<Date>()
-    const [startTime, setStartTime] = useState<Date>(); 
-    const [endTime, setEndTime] = useState<Date>(calculateEndTime(DateTime.now(), duration));
+    const [startTime, setStartTime] = useState<Date>(new Date()); 
+    const [endTime, setEndTime] = useState<Date>(calculateEndTime(DateTime.fromJSDate(startTime), duration));
+
     const [availableJetskis, setAvailableJetskis]=useState<Jetski[]>([]);
     const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
+
     const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<Location>();
-    const [safariTour, setSafariTour] = useState<string>(""); 
-
-    const handleStartTimeChange = (selectedStartTime: Date) => {
-        setStartTime(selectedStartTime);
-    };
-
+    
+    const [safariTour, setSafariTour] = useState<string>("no"); 
+    
     const handleRentDateTimeChange = (selectedRentDate: Date)=>{
         setRentDate(selectedRentDate);
     };
+
+    const handleStartTimeChange = (selectedStartTime: Date) => {
+        setStartTime(selectedStartTime);
+        const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(selectedStartTime), duration);
+        setEndTime(calculatedEndTime);
+    };
+
     
     useEffect(() => {
         const getListLocation = async () => {
@@ -131,19 +137,13 @@ export const JetSkiReservationForm =() => {
     },[startTime,duration]);
 
     useEffect(() => {
-        if (startTime && duration) {
-            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
-            setEndTime(calculatedEndTime);
-        }
+        const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
+        setEndTime(calculatedEndTime);
     }, [startTime, duration]);
 
     useEffect(() => {
         form.setValue("reservation_jetski_list", selectedJetski);
         form.setValue("jetSkiCount",selectedJetski.length);
-        console.log("Selected jetskis: ", selectedJetski);
-        console.log(selectedJetski.length)
-        console.log(selectedLocation)
-        console.log(safariTour)
     }, [selectedJetski]);
     
 
@@ -194,7 +194,9 @@ export const JetSkiReservationForm =() => {
                     console.log("Response from createReservation:", data); // Add this line
                     setError(data.error);
                     setSuccess(data.success);
-                    window.location.reload();
+                    if (data.success) {
+                        window.location.reload(); // Reload the page only if the submission was successful
+                    }
                 })
                 .catch((error) => {
                     setError("An error occurred while submitting the form.");
