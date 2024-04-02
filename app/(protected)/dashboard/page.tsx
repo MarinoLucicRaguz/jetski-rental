@@ -9,12 +9,11 @@ import { ListReservationButton } from "@/components/auth/list-reservation-button
 
 const DashboardPage =async ()=>{
     const session = await auth()
-
     return (
         <main className="flex h-full flex-col items-center justify-top bg-sky-500">
-            <div className="flex justify-between w-full p-4">
-                <div className="bg-white rounded-lg text-center w-full margin-right-50 p-1">
-                    Welcome to the dashboard
+           <div className="flex justify-between w-full p-4 bg-sky-700">
+                <div className="rounded-lg text-center w-full margin-right-50 p-1">
+                    Welcome to Jetski Rental Web Organization application
                 </div>
                 <CreateJetskiButton>
                     <Button className="w-full margin-right-5" type="submit" variant="secondary">
@@ -55,7 +54,6 @@ const DashboardPage =async ()=>{
                         Sign out
                     </Button>
                 </form>                
-                
             </div>
         </main>
     )

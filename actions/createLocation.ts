@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 import { LocationSchema } from "@/schemas";
-import { getLocationByName } from "@/data/jetski";
+import { getLocationByName } from "@/data/jetskiData";
 
 
 export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CardWrapper } from "../auth/card-wrapper";
 import { getAllReservations } from "@/actions/listReservations";
-import { Reservation } from "@/data/jetski";
+import { Reservation } from "@/data/jetskiData";
 import { listReservationsByDate } from "@/actions/listReservationsForDate";
 import { Popover, PopoverTrigger } from "@radix-ui/react-popover";
 import { Button } from "../ui/button";

@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 import { JetskiSchema } from "@/schemas";
-import { getJetskiById } from "@/data/jetski";
+import { getJetskiById } from "@/data/jetskiData";
 
 export const editJetski = async (jetskiId: number, values: z.infer<typeof JetskiSchema>) => {
     const validatedFields = JetskiSchema.safeParse(values);

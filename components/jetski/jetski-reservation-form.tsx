@@ -6,28 +6,22 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { useEffect, useState, useTransition } from "react";
 import { JetskiReservationSchema } from "@/schemas";
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
+import {Form,FormControl,FormField,FormItem,FormLabel} from "@/components/ui/form";
 import { CardWrapper } from "@/components/auth/card-wrapper"
 import { Button } from "../ui/button";
-import { DateTime, Duration } from "luxon"
+import { DateTime } from "luxon"
 import { format,add } from "date-fns"
 import { Calendar } from "../ui/calendar";
 import { Popover,PopoverContent,PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Jetski, Location, Reservation } from "@prisma/client";
+import { Jetski, Location } from "@prisma/client";
 import { createReservation } from "@/actions/createReservation";
 import { listAvailableJetskis } from "@/actions/listAvailableJetskis";
 import { listLocation } from "@/actions/listLocations";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 
 enum RentDuration {
     "20 minutes" = "20 minutes",
@@ -206,7 +200,8 @@ export const JetSkiReservationForm =() => {
     };
 
     return (
-        <CardWrapper headerLabel="Create a reservation" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <CardWrapper headerLabel="Add a reservation" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 ">
                     <FormField control={form.control} name="rentDate" render={({field})=>(
@@ -242,6 +237,7 @@ export const JetSkiReservationForm =() => {
                             </Popover>
                         </FormItem>
                     )}/> 
+                    {/* <DatePicker/> refaktorirati nacin odabira datuma i vremena https://mui.com/x/api/date-pickers/desktop-time-picker/ */}
                     <FormField control={form.control} name="startTime" render={({field})=>(
                     <FormItem className="flex flex-col">
                     <FormLabel>
@@ -379,7 +375,8 @@ export const JetSkiReservationForm =() => {
                     </Button>
                 </form>
             </Form>
-        </CardWrapper>
+        </CardWrapper>   
+        </LocalizationProvider>
     )
 }
 

@@ -1,8 +1,7 @@
 "use server";
 
+import { getLocationById } from "@/data/locationData";
 import { db } from "@/lib/db";
-
-import { getLocationById } from "@/data/jetski";
 
 export const deleteLocation = async(locationId: number) => {
 

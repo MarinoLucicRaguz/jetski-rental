@@ -1,9 +1,9 @@
 "use server";
 
-import { fetchLocations } from "@/data/jetski";
+import { fetchAllLocations } from "@/data/locationData";
 
 export const listLocation = async()=>{
-    const listLocations = await fetchLocations()
+    const listLocations = await fetchAllLocations()
 
     return listLocations
 }

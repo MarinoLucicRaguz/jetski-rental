@@ -47,7 +47,7 @@ export const ListJetski =() => {
     };  
 
     return (
-        <CardWrapper headerLabel="Edit Locations" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+        <CardWrapper headerLabel="LIST OF JETSKIS" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
             <div className="space-y-4">
                 {jetskiData?.map((jetski) => (
                     <div className="flex items-center justify-between" key={jetski.jetski_id}>

@@ -4,7 +4,6 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState, useTransition } from "react";
-import { editLocation } from "@/actions/editLocation";
 import { JetskiSchema } from "@/schemas";
 import { Input } from "../ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,15 +17,12 @@ import { editJetski } from "@/actions/editJetski";
 import { getJetski } from "@/actions/getJetski";
 import { listLocation } from "@/actions/listLocations";
 
-
-
 export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPending, startTransition] = useTransition();
     const [jetskiData, setJetskiData] = useState<Jetski>();
     const [locationData, setLocationData] = useState<{ location_id: string; location_name: string; }[]>([]);
-
 
     const form = useForm<z.infer<typeof JetskiSchema>>({
         resolver: zodResolver(JetskiSchema),
@@ -40,7 +36,7 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
         const fetchData = async () => {
             try {
                 const data = await getJetski(jetskiId);
-                if (data) { // Check if name is not null or undefined
+                if (data) {
                     setJetskiData(data);
                 }
             } catch (error) {
@@ -60,7 +56,6 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
     
                 const locations = await listLocation();
                 if (locations) {
-                    // Adjust the structure of locationData
                     const formattedLocations = locations.map(location => ({
                         location_id: String(location.location_id),
                         location_name: location.location_name
@@ -121,7 +116,7 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
                     </div>
                     <FormError message={error} />
                     <FormSuccess message={success} />
-                    <Button type="submit" className="flex w-full margin-right-5" disabled={isPending}>Edit Jetski</Button>
+                    <Button type="submit" className="flex w-full margin-right-5" disabled={isPending}>Save</Button>
                 </form>
             </Form>
         </CardWrapper>

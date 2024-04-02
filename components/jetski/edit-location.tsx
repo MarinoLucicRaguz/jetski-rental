@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState, useTransition } from "react";
 import { editLocation } from "@/actions/editLocation";
-import { getLocationNameAction } from "@/actions/getLocationName";
+import { pullLocationById } from "@/actions/getLocation";
 import { LocationSchema } from "@/schemas";
 import { Input } from "../ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -14,6 +14,7 @@ import { CardWrapper } from "@/components/auth/card-wrapper";
 import { Button } from "../ui/button";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
+import { Location } from "@prisma/client";
 
 
 
@@ -22,9 +23,8 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPending, startTransition] = useTransition();
     const [locationName, setLocationName] = useState<string>("");
+    const [locationData, setLocationData] = useState<Location |null >();
     
-
-
     const form = useForm<z.infer<typeof LocationSchema>>({
         resolver: zodResolver(LocationSchema),
         defaultValues: {
@@ -35,9 +35,10 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const name = await getLocationNameAction(locationId);
-                if (name !== null && name !== undefined) { // Check if name is not null or undefined
-                    setLocationName(name);
+                const pulledLocationData = await pullLocationById(locationId);
+                setLocationData(pulledLocationData);
+                if (locationData?.location_name !== null && locationData?.location_name !== undefined) { // Check if name is not null or undefined
+                    setLocationName(locationData.location_name);
                 }
             } catch (error) {
                 console.error("Error fetching location name:", error);
@@ -50,7 +51,6 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
     const onSubmit = async (values: z.infer<typeof LocationSchema>) => {
         setError("");
         setSuccess("");
-
         try {
             const data = await editLocation(locationId, values);
             setError(data.error || "");

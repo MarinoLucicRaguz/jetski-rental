@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 import { JetskiSchema } from "@/schemas";
-import { getJetskiByName } from "@/data/jetski";
+import { getJetskiByName } from "@/data/jetskiData";
 
 
 export const createJetski = async( values: z.infer<typeof JetskiSchema>)=>{
@@ -13,7 +13,7 @@ export const createJetski = async( values: z.infer<typeof JetskiSchema>)=>{
         return {error:"Invalid fields"};
     }
 
-    const { jetski_registration, jetski_status, jetski_location_id } = validatedField.data;
+    const { jetski_registration, jetski_location_id } = validatedField.data;
 
     const existingJetski = await getJetskiByName(jetski_registration)
 

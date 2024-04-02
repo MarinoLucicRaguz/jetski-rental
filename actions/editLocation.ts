@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 import { LocationSchema } from "@/schemas";
-import { getLocationById } from "@/data/jetski";
+import { getLocationById } from "@/data/locationData";
 
 export const editLocation = async (locationId: number, values: z.infer<typeof LocationSchema>) => {
     const validatedFields = LocationSchema.safeParse(values);

@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 
-import { getJetskiById } from "@/data/jetski";
+import { getJetskiById } from "@/data/jetskiData";
 
 export const deleteJetski = async(jetskiId: number) => {
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchReservations } from "@/data/jetski";
+import { fetchReservations } from "@/data/reservationData";
 
 export const getAllReservations = async()=>{
     const listReservations = await fetchReservations()

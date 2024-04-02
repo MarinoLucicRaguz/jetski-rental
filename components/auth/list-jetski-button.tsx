@@ -15,10 +15,6 @@ export const ListJetskiButton = ({ children, mode = "redirect", asChild }: ListJ
         router.push("/jetski/listjetski");
     };
 
-    if (mode === "modal") {
-        return <span>TODO: Implement modal</span>;
-    }
-
     return (
         <span onClick={onClick} className="cursor-pointer">
             {children}
