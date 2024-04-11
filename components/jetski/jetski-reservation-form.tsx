@@ -20,7 +20,7 @@ import { listAvailableJetskis } from "@/actions/listAvailableJetskis";
 import { listLocation } from "@/actions/listLocations";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { DatePicker, DesktopTimePicker, LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 
 enum RentDuration {
@@ -66,9 +66,9 @@ export const JetSkiReservationForm =() => {
 
     const [duration, setDuration] = useState<RentDuration>(RentDuration["20 minutes"]);
 
-    const [rentDate,setRentDate] = useState<Date>()
-    const [startTime, setStartTime] = useState<Date>(new Date()); 
-    const [endTime, setEndTime] = useState<Date>(calculateEndTime(DateTime.fromJSDate(startTime), duration));
+    const [rentDate,setRentDate] = useState<Date>(new Date())
+    const [startTime, setStartTime] = useState<Date>(); 
+    const [endTime, setEndTime] = useState<Date>();
 
     const [availableJetskis, setAvailableJetskis]=useState<Jetski[]>([]);
     const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
@@ -80,14 +80,36 @@ export const JetSkiReservationForm =() => {
     
     const handleRentDateTimeChange = (selectedRentDate: Date)=>{
         setRentDate(selectedRentDate);
+        
+        const newStartTime = DateTime.fromJSDate(selectedRentDate).set({
+            hour: startTime?.getHours() ?? 0,
+            minute: startTime?.getMinutes() ?? 0,
+        }).toJSDate();
+    
+        setStartTime(newStartTime);
+    
+        if (newStartTime && duration) {
+            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(newStartTime), duration);
+            setEndTime(calculatedEndTime);
+            form.setValue("endTime", calculatedEndTime);
+        }
     };
 
     const handleStartTimeChange = (selectedStartTime: Date) => {
-        setStartTime(selectedStartTime);
-        const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(selectedStartTime), duration);
-        setEndTime(calculatedEndTime);
+        const newStartTime = DateTime.fromJSDate(rentDate).set({
+            hour: selectedStartTime.getHours(),
+            minute: selectedStartTime.getMinutes(),
+        }).toJSDate();
+
+        setStartTime(newStartTime);
     };
 
+    useEffect(() => {
+        if (rentDate && startTime && duration) {
+            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
+            setEndTime(calculatedEndTime);
+        }
+    }, [rentDate, startTime, duration]);
     
     useEffect(() => {
         const getListLocation = async () => {
@@ -101,10 +123,8 @@ export const JetSkiReservationForm =() => {
                 setError("Error fetching locations");
             }
         };
-
         getListLocation();
     },[]);
-
 
     const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
         if (isChecked) {
@@ -114,10 +134,9 @@ export const JetSkiReservationForm =() => {
         }
     };
     
-
     useEffect(() => {
         const fetchJetskis = async () => {
-            if (startTime && duration){
+            if (startTime && duration && endTime){
                 try {
                     const data = await listAvailableJetskis(startTime,endTime);
                     setAvailableJetskis(data);
@@ -131,8 +150,11 @@ export const JetSkiReservationForm =() => {
     },[startTime,duration]);
 
     useEffect(() => {
-        const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
-        setEndTime(calculatedEndTime);
+        if (startTime && duration) {
+            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
+            setEndTime(calculatedEndTime);
+            form.setValue("endTime", calculatedEndTime);
+        }
     }, [startTime, duration]);
 
     useEffect(() => {
@@ -153,28 +175,6 @@ export const JetSkiReservationForm =() => {
             reservation_jetski_list: selectedJetski,
         },
     })
-
-    const getTimes = () => {
-        if (!rentDate) return [];
-    
-        const today = new Date();
-        const beginning = new Date(rentDate);
-        beginning.setHours(8, 0, 0, 0);
-    
-        const end = new Date(rentDate);
-        end.setHours(21, 0, 0, 0);
-    
-        const interval = 5;
-        const times = [];
-    
-        for (let i = beginning; i <= end; i = add(i, { minutes: interval })) {
-            times.push(i);
-        }
-    
-        return times;
-    };
-    
-    const times = getTimes()
 
     const onSubmit = (values: z.infer<typeof JetskiReservationSchema>) => {
         setError("");
@@ -237,44 +237,16 @@ export const JetSkiReservationForm =() => {
                             </Popover>
                         </FormItem>
                     )}/> 
-                    {/* <DatePicker/> refaktorirati nacin odabira datuma i vremena https://mui.com/x/api/date-pickers/desktop-time-picker/ */}
                     <FormField control={form.control} name="startTime" render={({field})=>(
-                    <FormItem className="flex flex-col">
-                    <FormLabel>
-                        Time of reservation
-                    </FormLabel>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button variant={"outline"}>
-                                    {field.value ? (
-                                        format(field.value, "HH:mm")
-                                    ) : (
-                                        <span>Pick a time</span>
-                                    )}
-                                </Button>
-                            </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 max-h-60 overflow-y-auto" align="start">
-                            <div className="grid grid-cols-4 gap-4">
-                                {times.map((time, index) => (
-                                    <Button
-                                        key={index}
-                                        onClick={() => {
-                                            field.onChange(time); 
-                                            handleStartTimeChange(time); //ovako mozes pullat dostupne jetskije
-                                            console.log("Selected time:", format(time, "HH:mm"));
-                                        }}
-                                        className="m-1"
-                                        variant={field.value && field.value.getTime() === time.getTime() ? "default" : "outline"}
-                                    >
-                                        {format(time, "HH:mm")}
-                                    </Button>
-                                ))}
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                    </FormItem>
+                        <FormItem className="flex flex-col">
+                            <FormLabel> Time of reservation </FormLabel>
+                            <TimePicker name="startTime" label="Select a time" minTime={new Date(new Date().setHours(7, 0))} maxTime={new Date(new Date().setHours(19,30))} skipDisabled={true} value={field.value} onChange={(newValue)=>{
+                                field.onChange(newValue);
+                                if(newValue)
+                                    handleStartTimeChange(newValue);
+                            }}  views={['hours','minutes']} ampm={false} 
+                            />
+                        </FormItem>
                     )}/>
                     <div className="justify-between flex">
                         <strong>Duration of rental: </strong>
@@ -282,11 +254,9 @@ export const JetSkiReservationForm =() => {
                             <select value={duration} onChange={(event) => {
                                 const selectedDuration = event.target.value as RentDuration;
                                 setDuration(selectedDuration);
-                                // Calculate and set the endTime based on the selected duration
                                 if (startTime) {
                                     const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), selectedDuration);
                                     setEndTime(calculatedEndTime);
-                                    // Update the hidden input field value
                                     form.setValue("endTime", calculatedEndTime);
                                 }
                             }}>
@@ -300,10 +270,10 @@ export const JetSkiReservationForm =() => {
                     </div>
                     <div className="flex justify-between">
                         <strong>Reservation until:</strong>
-                        {endTime && (
+                        {endTime instanceof Date && (
                             <span className="bg-black text-white w-40 text-center">{format(endTime, "HH:mm")}</span>
                         )}
-                        <input type="hidden" {...form.register("endTime")} value={endTime?.toISOString()} />
+                        <input type="hidden" {...form.register("endTime")} value={endTime instanceof Date ? endTime.toISOString() : ''} />
                     </div>
                     <div>
                         <strong>Choose jetskis:</strong>

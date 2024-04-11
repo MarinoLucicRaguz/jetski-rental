@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 import { LocationSchema } from "@/schemas";
-import { getLocationByName } from "@/data/jetskiData";
+import { getLocationByName } from "@/data/locationData";
 
 
 export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{
@@ -15,9 +15,9 @@ export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{
 
     const { location_name } = validatedField.data;
 
-    const existingJetski = await getLocationByName(location_name)
+    const exisitingLocation = await getLocationByName(location_name)
 
-    if (existingJetski){
+    if (exisitingLocation){
         return {error: "Location with that name already exists!"};
     };
 

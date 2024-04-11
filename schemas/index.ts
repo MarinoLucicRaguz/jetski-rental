@@ -22,13 +22,58 @@ export const RegisterSchema = z.object({
 });
 
 export const JetskiSchema = z.object({
-    jetski_id: z.number(),
-    jetski_registration: z.string().min(1,{
-        message: "Registration is required!"
-    }).max(20,{
-        message: "Maximum length is 20 characters!"
+    jetski_registration: z.string().regex(
+        /^(?:[A-Z]{2})-(?:\d{3,6})$/, {
+            message: "Registration must start with 2 letters representing a city followed by a hyphen and 3 to 6 numbers. For example: ST-123456"
+        }
+    ),
+    jetski_location_id: z.number().nullable().refine((jetski_location_id) => {
+        if (jetski_location_id === null) {
+            return false;
+        } else {
+            return true;
+        }
+    }, {
+        message: "Please select a location.",
     }),
-    jetski_location_id: z.number().nullable(),
+    jetski_model: z.string().min(1, {
+        message: "Model is required."
+    }).max(50, {
+        message: "Maximum length is 50 characters!"
+    }),
+    jetski_topSpeed: z.string().refine((value) => {
+        const [numberStr, unit] = value.split(' ');
+        const number = parseInt(numberStr);
+        
+        if (isNaN(number) || number <= 0 || number > 150) {
+            return false;
+        }
+        
+        if (unit === 'mph') {
+            const kmh = Math.round(number * 1.60934);
+            return kmh
+        }
+        
+        if (unit === 'kmh') {
+            return number
+        }
+
+        return false;
+    }, {
+        message: "Top speed must be higher than zero, followed by 'mph' or 'kmh'!"
+    }),
+    jetski_kW: z.string().refine((value) => {
+        const kW = parseFloat(value);
+        return !isNaN(kW) && kW >= 0;
+    }, {
+        message: "kW must be bigger than zero."
+    }),
+    jetski_manufacturingYear: z.string().refine((value) => {
+        const year = parseInt(value);
+        return !isNaN(year) && year >= 1950 && year <= new Date().getFullYear() + 1;
+    }, {
+        message: "Manufacturing year must be a year between next one and 1950. "
+    })
 });
 
 export const LocationSchema = z.object({

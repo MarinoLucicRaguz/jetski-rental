@@ -33,9 +33,12 @@ export const JetskiForm = () => {
     const form = useForm<z.infer<typeof JetskiSchema>>({
         resolver: zodResolver(JetskiSchema),
         defaultValues: {
-            jetski_id: 0, //useles value - its a workaround
             jetski_registration: "",
-            jetski_location_id: null, // Change default value to undefined
+            jetski_location_id: null, 
+            jetski_model: "",
+            jetski_topSpeed: "",
+            jetski_kW: "",
+            jetski_manufacturingYear: "",
         },
     });
 
@@ -81,7 +84,7 @@ export const JetskiForm = () => {
                                         <Input
                                             {...field}
                                             disabled={isPending}
-                                            placeholder=""
+                                            placeholder="DB-12345"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -115,6 +118,70 @@ export const JetskiForm = () => {
                                 </FormItem>
                             )}
                         />
+                    </div>
+                    <div className="space y-6">
+                        <FormField control={form.control} name="jetski_model" render={({field})=>(
+                            <FormItem>
+                                <FormLabel >Model</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        {...field}
+                                        disabled={isPending}
+                                        placeholder="Yamaha Waverunner"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+                    <div className="space y-6">
+                        <FormField control={form.control} name="jetski_topSpeed" render={({field})=>(
+                            <FormItem>
+                                <FormLabel >Top speed</FormLabel>
+                                <FormControl>
+                                    <Input
+                                    {...field}
+                                    disabled={isPending}
+                                    placeholder="50 mph"
+                                    />
+                                </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    </div>
+                    <div className="space y-6">
+                        <FormField control={form.control} name="jetski_kW" render={({field})=>(
+                            <FormItem>
+                                <FormLabel >kW</FormLabel>
+                                <FormControl>
+                                    <Input
+                                    {...field}
+                                    disabled={isPending}
+                                    placeholder="85 kW"
+                                    />
+                                </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    </div>
+                    <div className="space y-6">
+                        <FormField control={form.control} name="jetski_manufacturingYear" render={({field})=>(
+                            <FormItem>
+                                <FormLabel >Manufacturing year</FormLabel>
+                                <FormControl>
+                                    <Input
+                                    {...field}
+                                    disabled={isPending}
+                                    placeholder="2020"
+                                    />
+                                </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
                     </div>
                     <FormError message={error} />
                     <FormSuccess message={success} />
