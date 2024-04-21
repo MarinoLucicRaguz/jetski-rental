@@ -94,3 +94,11 @@ export const JetskiReservationSchema = z.object({
     reservation_location_id: z.number(),
     reservation_jetski_list: z.array(JetskiSchema),
 })
+
+export const ReservationOptionSchema = z.object({
+    rentaloption_description: z.string().min(3, {
+        message: "Please provide a small description."
+    }),
+    duration: z.string(),
+    rentalprice: z.string()
+});
