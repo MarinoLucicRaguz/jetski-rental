@@ -13,9 +13,60 @@ export const getAllRentalOptions = async()=>{
     }
 }
 
+export const getAllRentalOptionsThatAreAvailable = async()=>{
+    try{
+        const allRentalOptions = await db.rentalOptions.findMany({
+            where:{
+                isAvailable: true
+            }
+        });
+
+        return allRentalOptions;
+    }
+    catch(error)
+    {
+        console.log(error);
+        return null;
+    }
+}
+
+export const getRentalOptionById = async(id: number) =>
+{
+    try {
+        const rentalOption = await db.rentalOptions.findUnique({
+            where:{
+                rentaloption_id: id,
+            }
+        })
+        return rentalOption;
+    }
+    catch (error){
+        console.log(error);
+        return null;
+    }
+}
+
+export const disableRentalOption = async(id: number) =>{
+
+    {
+        try {
+            const rentalOption = await db.rentalOptions.findUnique({
+                where:{
+                    rentaloption_id: id,
+                }
+            })
+            return rentalOption;
+        }
+        catch (error){
+            console.log(error);
+            return null;
+        }
+    }
+}
+    
 export const getRentalOptionByDuration = async (duration: number) => {
     try {
-        const rentalOptions = await db.rentalOptions.findUnique({
+        const rentalOptions = await db.rentalOptions.findMany({
             where:{
                 duration,
             }
@@ -27,22 +78,9 @@ export const getRentalOptionByDuration = async (duration: number) => {
     }
 }
 
-export const getReservationOptionById = async(rentaloption_id:number) => {
-    try {
-        const singleRentalOption = await db.rentalOptions.findUnique({
-            where:{
-                rentaloption_id
-            }
-        });
-        return singleRentalOption;
-    } catch{
-        return null;
-    }
-}
-
 export const doesDurationExist = async(duration:number) => {
     try {
-        const doesItExist = await db.rentalOptions.findUnique({
+        const doesItExist = await db.rentalOptions.findMany({
             where:{
                 duration,
             }

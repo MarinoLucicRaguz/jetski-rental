@@ -2,17 +2,17 @@
 
 import { useRouter } from "next/navigation";
 
-interface CreateReservationOptionButtonProps {
+interface ListRentalOptionsButtonProps {
     children: React.ReactNode;
     mode?: "modal" | "redirect";
     asChild?: boolean;
 }
 
-export const CreateReservationOptionButton = ({ children, mode = "redirect", asChild }: CreateReservationOptionButtonProps) => {
+export const ListRentalOptionsButton = ({ children, mode = "redirect", asChild }: ListRentalOptionsButtonProps) => {
     const router = useRouter();
 
     const onClick = () => {
-        router.push("/rentaloptions/createrentaloption");
+        router.push("/rentaloptions/listrentaloptions");
     };
 
     if (mode === "modal") {

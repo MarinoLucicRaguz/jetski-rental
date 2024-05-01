@@ -2,9 +2,12 @@ import { signOut } from "@/auth"
 import { CreateJetskiButton } from "@/components/auth/create-jetski-button"
 import { CreateLocationButton } from "@/components/auth/create-location-button"
 import { CreateReservationButton } from "@/components/auth/create-reservation-button"
+import { CreateReservationOptionButton } from "@/components/auth/create-reservation-option-button"
 import { ListJetskiButton } from "@/components/auth/list-jetski-button"
 import { ListLocationButton } from "@/components/auth/list-locations-button"
+import { ListRentalOptionsButton } from "@/components/auth/list-rental-options-button"
 import { ListReservationButton } from "@/components/auth/list-reservation-button"
+import { ListRentalOptions } from "@/components/jetski/jetski-rental-options-list"
 import { Button } from "@/components/ui/button"
 
 const AuthLayout =({children}:{
@@ -36,6 +39,16 @@ const AuthLayout =({children}:{
                         List of locations
                     </Button>
                 </ListLocationButton>
+                <CreateReservationOptionButton>
+                    <Button className="w-full margin-right-5" type="submit" variant="secondary">
+                        Add rental option
+                    </Button>
+                </CreateReservationOptionButton>
+                <ListRentalOptionsButton>
+                    <Button className="w-full margin-right-5" type="submit" variant="secondary">
+                        List rental options 
+                    </Button>
+                </ListRentalOptionsButton>
                 <CreateReservationButton>
                     <Button className="w-full margin-right-5" type="submit" variant="secondary">
                         Create a reservation

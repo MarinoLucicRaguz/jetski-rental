@@ -23,6 +23,19 @@ export const getLocationById = async(location_id:number) => {
     }
 }
 
+export const getLocationNameById = async(location_id:number)=>{
+    try {
+        const location = await db.location.findUnique({
+            where:{
+                location_id
+            }
+        });
+        return location?.location_name;
+    } catch{
+        return null;
+    }
+}
+
 export const getLocationByName = async(location_name:string) => {
     try {
         const location = await db.location.findUnique({

@@ -1,16 +1,10 @@
-// model RentalOptions {
-//     rentaloption_id          Int    @id @default(autoincrement())
-//     rentaloption_description String
-//     duration                 Int    @unique
-//     rentalprice              Float
-//   }
 "use client"
 
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ReservationOptionSchema } from "@/schemas";
 import { Input } from "../ui/input";
 import {
@@ -27,22 +21,42 @@ import { Button } from "../ui/button";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
 import { createReservationOption } from "@/actions/createReservationOption";
+import { RentalOptions } from "@prisma/client";
+import { getRentalOption } from "@/actions/getRentalOption";
+import { editReservationOption } from "@/actions/editReservationOption";
 
 
-export const ReservationOptionForm =() => {
+export const EditReservationOptionForm =({rentalOptionId}: {rentalOptionId: number}) => {
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPending, startTransition] = useTransition();
+    const [currentRentalOptions, setCurrentRentalOptions] = useState<RentalOptions>();
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const data = await getRentalOption(rentalOptionId);
+                console.log(data);
+                if (data) {
+                    setCurrentRentalOptions(data);
+                }
+            } catch (error) {
+                console.error("Error fetching rental option data: ", error);
+            }
+        };
+
+        fetchData();
+    }, []);
     const form = useForm<z.infer<typeof ReservationOptionSchema>>({
         resolver: zodResolver(ReservationOptionSchema),
         defaultValues:{
-            rentaloption_description: "",
-            duration: undefined,
-            rentalprice: undefined
+            rentaloption_description: currentRentalOptions?.rentaloption_description,
+            duration: currentRentalOptions?.duration.toString(),
+            rentalprice: currentRentalOptions?.rentalprice.toFixed(2).toString(),
         },
     })
     
+
     const onSubmit = (values: z.infer<typeof ReservationOptionSchema>) => {
         console.log("Submitted values:", values);
     
@@ -57,7 +71,7 @@ export const ReservationOptionForm =() => {
                 return;
             }
     
-            createReservationOption(validation.data)
+            editReservationOption(rentalOptionId ,validation.data)
                 .then((data) => {
                     if (data.error) {
                         console.error("Create reservation option error:", data.error);
@@ -75,7 +89,7 @@ export const ReservationOptionForm =() => {
     };
     
     return (
-        <CardWrapper headerLabel="Add rental option" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+        <CardWrapper headerLabel="Edit rental option" backButtonLabel="Go back to rental option list" backButtonHref="/rentaloptions/listrentaloptions">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}
                     className="space-y-6">
@@ -88,11 +102,11 @@ export const ReservationOptionForm =() => {
                                         Duration of rental option (in minutes)
                                     </FormLabel>
                                     <FormControl>
-                                        <Input
-                                            placeholder="Please set duration in minutes..."
-                                            {...field}
-                                            disabled={isPending}
-                                        />
+                                    <Input
+                                        defaultValue={currentRentalOptions?.duration}
+                                        {...field}
+                                        disabled={isPending}
+                                    />
                                     </FormControl>
                                     <FormMessage/>
                                 </FormItem>
@@ -109,7 +123,7 @@ export const ReservationOptionForm =() => {
                                     </FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Please set price of rental..."
+                                            defaultValue={currentRentalOptions?.rentalprice.toFixed(2)}
                                             {...field}
                                             disabled={isPending}
                                         />
@@ -119,29 +133,12 @@ export const ReservationOptionForm =() => {
                             )
                         }/>
                         </div>
-                        <FormField name="rentaloption_description" render={({field})=>(
-                            <FormItem>
-                                <FormLabel className="text-sm font-bold">Rental option: </FormLabel>
-                                <FormControl className="w-40 bg-black text-white text-center rounded-mb border-solid p-2">
-                                    <select {...field} value={field.value ?? '' } className="w-full bg-black text-white text-center rounded-md border-solid" onChange={(event)=>{
-                                        const selectedValue = event.target.value;
-                                        field.onChange(selectedValue);
-                                    }}>
-                                        <option value="REGULAR" >
-                                            Regular rental
-                                        </option>
-                                        <option value="SAFARI" >
-                                            Safari tour
-                                        </option>
-                                    </select>
-                                </FormControl>
-                            </FormItem>
-                        )}/>
+                        <input type="hidden" {...form.register("rentaloption_description")} value={currentRentalOptions?.rentaloption_description} />
                         <FormError message={error}/>
                         <FormSuccess message={success}/>
                         <Button type="submit" className="w-full" 
                                         disabled={isPending}>
-                            Add a rental option
+                            Save changes
                         </Button>
                 </form>
             </Form>

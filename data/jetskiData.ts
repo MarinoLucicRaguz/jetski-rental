@@ -70,7 +70,8 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
                             ]
                         }
                     }
-                }
+                },
+                jetski_status: "AVAILABLE"
             }
         });
 

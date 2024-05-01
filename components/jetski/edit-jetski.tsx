@@ -24,16 +24,15 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
     const [jetskiData, setJetskiData] = useState<Jetski>();
     const [locationData, setLocationData] = useState<{ location_id: string; location_name: string; }[]>([]);
 
-    //UPDATE -- maknuti toString, uredi bazu
     const form = useForm<z.infer<typeof JetskiSchema>>({
         resolver: zodResolver(JetskiSchema),
         defaultValues: {
             jetski_registration: jetskiData?.jetski_registration,
             jetski_location_id: jetskiData?.jetski_location_id,
             jetski_model: jetskiData?.jetski_model,
-            jetski_topSpeed: jetskiData?.jetski_topSpeed.toString(),
-            jetski_kW: jetskiData?.jetski_kW.toString(),
-            jetski_manufacturingYear: jetskiData?.jetski_manufacturingYear.toString(),
+            jetski_topSpeed: jetskiData?.jetski_topSpeed,
+            jetski_kW: jetskiData?.jetski_kW,
+            jetski_manufacturingYear: jetskiData?.jetski_manufacturingYear,
 
         },
     });

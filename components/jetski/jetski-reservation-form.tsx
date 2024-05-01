@@ -6,199 +6,199 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { useEffect, useState, useTransition } from "react";
 import { JetskiReservationSchema } from "@/schemas";
-import {Form,FormControl,FormField,FormItem,FormLabel} from "@/components/ui/form";
+import {Form,FormControl,FormField,FormItem,FormLabel, FormMessage} from "@/components/ui/form";
 import { CardWrapper } from "@/components/auth/card-wrapper"
 import { Button } from "../ui/button";
-import { DateTime } from "luxon"
 import { format,add } from "date-fns"
 import { Calendar } from "../ui/calendar";
 import { Popover,PopoverContent,PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Jetski, Location } from "@prisma/client";
+import { Jetski, Location, RentalOptions } from "@prisma/client";
 import { createReservation } from "@/actions/createReservation";
 import { listAvailableJetskis } from "@/actions/listAvailableJetskis";
 import { listLocation } from "@/actions/listLocations";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
-import { DatePicker, DesktopTimePicker, LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
-
-enum RentDuration {
-    "20 minutes" = "20 minutes",
-    "30 minutes" = "30 minutes",
-    "45 minutes" = "45 minutes",
-    "1 hour" = "1 hour",
-    "1 hour 30 minutes" = "1 hour 30 minutes",
-    "2 hours" = "2 hours",
-    "3 hours" = "3 hours",
-}
-
-function getDurationInMinutes(duration: RentDuration): number {
-    switch (duration) {
-        case RentDuration["20 minutes"]:
-            return 20;
-        case RentDuration["30 minutes"]:
-            return 30;
-        case RentDuration["45 minutes"]:
-            return 45;
-        case RentDuration["1 hour"]:
-            return 60;
-        case RentDuration["1 hour 30 minutes"]:
-            return 90;
-        case RentDuration["2 hours"]:
-            return 120;
-        case RentDuration["3 hours"]:
-            return 180;
-        default:
-            throw new Error("Invalid rental duration"); //Should absolutely never happen
-    }
-}
-
-function calculateEndTime(startTime: DateTime, duration: RentDuration): Date {
-    const minutes = getDurationInMinutes(duration);
-    return startTime.plus({ minutes }).toJSDate();
-}
+import { getAvailableReservationOptions } from "@/actions/listAvailableRentalOptions";
+import { PhoneInput } from 'react-international-phone'
+import 'react-international-phone/style.css';
+import { Input } from "../ui/input";
 
 export const JetSkiReservationForm =() => {
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPending, startTransition] = useTransition();
+    const [rentalOptions, setRentalOptions] = useState<RentalOptions[] | null>([])
+    const [selectedRentalOption, setRentalOption] = useState<RentalOptions>()
 
-    const [duration, setDuration] = useState<RentDuration>(RentDuration["20 minutes"]);
+    const [phone, setPhone] = useState('');
+    const [discount, setDiscount] = useState(0);
+    const [totalPrice, setTotalPrice] = useState(0);
 
-    const [rentDate,setRentDate] = useState<Date>(new Date())
+    const [rentDate,setRentDate] = useState<Date>()
     const [startTime, setStartTime] = useState<Date>(); 
     const [endTime, setEndTime] = useState<Date>();
 
     const [availableJetskis, setAvailableJetskis]=useState<Jetski[]>([]);
     const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
 
-    const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
+    const [availableLocations, setAvailableLocations] = useState<Location[] | null>([]);
     const [selectedLocation, setSelectedLocation] = useState<Location>();
-    
-    const [safariTour, setSafariTour] = useState<string>("no"); 
-    
-    const handleRentDateTimeChange = (selectedRentDate: Date)=>{
-        setRentDate(selectedRentDate);
-        
-        const newStartTime = DateTime.fromJSDate(selectedRentDate).set({
-            hour: startTime?.getHours() ?? 0,
-            minute: startTime?.getMinutes() ?? 0,
-        }).toJSDate();
-    
-        setStartTime(newStartTime);
-    
-        if (newStartTime && duration) {
-            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(newStartTime), duration);
-            setEndTime(calculatedEndTime);
-            form.setValue("endTime", calculatedEndTime);
-        }
-    };
-
-    const handleStartTimeChange = (selectedStartTime: Date) => {
-        const newStartTime = DateTime.fromJSDate(rentDate).set({
-            hour: selectedStartTime.getHours(),
-            minute: selectedStartTime.getMinutes(),
-        }).toJSDate();
-
-        setStartTime(newStartTime);
-    };
 
     useEffect(() => {
-        if (rentDate && startTime && duration) {
-            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
-            setEndTime(calculatedEndTime);
-        }
-    }, [rentDate, startTime, duration]);
-    
-    useEffect(() => {
-        const getListLocation = async () => {
+        const fetchData = async () => {
             try {
-                const data = await listLocation();
-                if(data)
-                    {
-                        setAvailableLocations(data);
-                    }
-                } catch (error) {
-                setError("Error fetching locations");
+                const rentalData = await getAvailableReservationOptions();
+                setRentalOptions(rentalData);
+                const locationData = await listLocation();
+                setAvailableLocations(locationData);
+
+            } catch (error) {
+                setError("Error fetching rental data");
             }
         };
-        getListLocation();
-    },[]);
+        fetchData();
+    }, []);    
+    
+    useEffect(() => {
+        form.setValue("reservation_jetski_list", selectedJetski);
+    }, [selectedJetski]);
 
-    const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
-        if (isChecked) {
-            setSelectedJetski([...selectedJetski, jetski]);
-        } else {
-            setSelectedJetski(selectedJetski.filter(j => j.jetski_id !== jetski.jetski_id));
+    const handleRentDateTimeChange = (selectedRentDate: Date) => {
+        setRentDate(selectedRentDate);
+        if (startTime) {
+            const updatedStartTime = new Date(
+                selectedRentDate.getFullYear(),
+                selectedRentDate.getMonth(),
+                selectedRentDate.getDate(),
+                startTime.getHours(),
+                startTime.getMinutes()
+            );
+            setStartTime(updatedStartTime);
+            updateEndTime(updatedStartTime);
         }
     };
     
+    const handleStartTimeChange = (selectedTime: Date) => {
+        if (rentDate) {
+            const updatedStartTime = new Date(
+                rentDate.getFullYear(),
+                rentDate.getMonth(),
+                rentDate.getDate(),
+                selectedTime.getHours(),
+                selectedTime.getMinutes()
+            );
+            setStartTime(updatedStartTime);
+            updateEndTime(updatedStartTime);
+        } else {
+            console.log("Rent date is not set. Please select the rent date first.");
+        }
+    };
+    
+    const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
+        setSelectedJetski(prevSelectedJetski => 
+            isChecked 
+            ? [...prevSelectedJetski, jetski]
+            : prevSelectedJetski.filter(j => j.jetski_id !== jetski.jetski_id)
+        );
+    };
+    
+    useEffect(() => {
+        if (rentDate && startTime) {
+            const adjustedStartTime = new Date(
+                rentDate.getFullYear(),
+                rentDate.getMonth(),
+                rentDate.getDate(),
+                startTime.getHours(),
+                startTime.getMinutes()
+            );
+            setStartTime(adjustedStartTime);
+            updateEndTime(adjustedStartTime);
+        }
+    }, [rentDate]);
+
+    useEffect(() => {
+        if (startTime && selectedRentalOption) {
+            const endTimeDate = add(startTime, { minutes: selectedRentalOption.duration });
+            setEndTime(endTimeDate);
+            form.setValue('endTime', endTimeDate);
+        }
+    }, [startTime, selectedRentalOption]);
+
+    const updateEndTime = (startDateTime:Date) => {
+        if (selectedRentalOption) {
+            const endTimeDate = add(startDateTime, { minutes: selectedRentalOption.duration });
+            setEndTime(endTimeDate);
+            form.setValue('endTime', endTimeDate);
+        }
+    };
+
     useEffect(() => {
         const fetchJetskis = async () => {
-            if (startTime && duration && endTime){
+            if (startTime && selectedRentalOption && endTime){
                 try {
-                    const data = await listAvailableJetskis(startTime,endTime);
+                    const data = await listAvailableJetskis(startTime, endTime);
                     setAvailableJetskis(data);
                 } catch (error) {
-                    setError("Error fetching locations");
+                    setError("Error fetching jetskis");
                 }
             }
         };
-
-        fetchJetskis();
-    },[startTime,duration]);
-
-    useEffect(() => {
-        if (startTime && duration) {
-            const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), duration);
-            setEndTime(calculatedEndTime);
-            form.setValue("endTime", calculatedEndTime);
-        }
-    }, [startTime, duration]);
-
-    useEffect(() => {
-        form.setValue("reservation_jetski_list", selectedJetski);
-        form.setValue("jetSkiCount",selectedJetski.length);
-    }, [selectedJetski]);
     
+        fetchJetskis();
+    }, [startTime, selectedRentalOption, endTime]);    
+    
+    useEffect(() => {
+        let jetskiAmplifier = selectedRentalOption?.rentaloption_description === "SAFARI"  ? selectedJetski.length - 1 : selectedJetski.length;
 
+        if(jetskiAmplifier<=0)
+            {
+                jetskiAmplifier=1;
+            }
+        if (selectedRentalOption) {
+            const basePrice = selectedRentalOption.rentalprice*jetskiAmplifier;
+            const calculatedDiscount = (basePrice * discount) / 100;
+            setTotalPrice(basePrice - calculatedDiscount);    
+            form.setValue("totalPrice", totalPrice);
+        }
+    }, [selectedRentalOption, discount, selectedJetski]);
+    
     const form = useForm<z.infer<typeof JetskiReservationSchema>>({
         resolver: zodResolver(JetskiReservationSchema),
         defaultValues:{
             rentDate: rentDate,
             startTime: startTime,
             endTime: endTime,
-            jetSkiCount: selectedJetski.length,
-            safariTour: safariTour,
             reservation_location_id: selectedLocation?.location_id,
             reservation_jetski_list: selectedJetski,
+            contactNumber: phone,
+            totalPrice: totalPrice,
         },
     })
 
-    const onSubmit = (values: z.infer<typeof JetskiReservationSchema>) => {
+    const onSubmit = async (values: z.infer<typeof JetskiReservationSchema>) => {
+        console.log("Form submitted with values:", values);
         setError("");
         setSuccess("");
     
-        console.log("Submitting form with values:", values); // Add this line
-    
-        startTransition(() => {
-            createReservation(values)
-                .then((data) => {
-                    console.log("Response from createReservation:", data); // Add this line
+        startTransition(async () => {
+            try {
+                const data = await createReservation(values);
+                console.log("Response from createReservation:", data);
+                if (data.error) {
                     setError(data.error);
+                } else {
                     setSuccess(data.success);
-                    if (data.success) {
-                        window.location.reload(); // Reload the page only if the submission was successful
-                    }
-                })
-                .catch((error) => {
-                    setError("An error occurred while submitting the form.");
-                    console.error(error);
-                });
+                    window.location.reload();
+                }
+            } catch (error) {
+                setError("An error occurred while submitting the form.");
+                console.error(error);
+            }
         });
-    };
-
+    }; 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
         <CardWrapper headerLabel="Add a reservation" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
@@ -237,35 +237,73 @@ export const JetSkiReservationForm =() => {
                             </Popover>
                         </FormItem>
                     )}/> 
-                    <FormField control={form.control} name="startTime" render={({field})=>(
+                    <FormField control={form.control} name="startTime" render={({ field }) => (
                         <FormItem className="flex flex-col">
-                            <FormLabel> Time of reservation </FormLabel>
-                            <TimePicker name="startTime" label="Select a time" minTime={new Date(new Date().setHours(7, 0))} maxTime={new Date(new Date().setHours(19,30))} skipDisabled={true} value={field.value} onChange={(newValue)=>{
-                                field.onChange(newValue);
-                                if(newValue)
-                                    handleStartTimeChange(newValue);
-                            }}  views={['hours','minutes']} ampm={false} 
+                            <FormLabel>Time of reservation</FormLabel>
+                            <TimePicker
+                                label="Select a time"
+                                minTime={new Date(new Date().setHours(7, 0))}
+                                maxTime={new Date(new Date().setHours(19, 30))}
+                                skipDisabled={true}
+                                value={startTime}
+                                onChange={(newValue) => {
+                                    field.onChange(newValue);
+                                    if (newValue) {
+                                        handleStartTimeChange(newValue);
+                                    }
+                                }}
+                                views={['hours', 'minutes']}
+                                ampm={false}
                             />
                         </FormItem>
+                    )} />
+                    <div>
+                        
+                    <input type="hidden" {...form.register("startTime")} value={startTime instanceof Date ? startTime.toISOString() : ''} />
+                    <FormField name="reservation_location_id" render={({field})=>(
+                        <FormItem className="flex justify-between">
+                            <FormLabel className="text-lg font-bold">
+                                Location of reservation: 
+                            </FormLabel>
+                            <FormControl className="w-60 bg-black text-white rounded-sm text-center border-solid p-1">
+                                <select value={selectedLocation ? selectedLocation.location_id : ''} onChange={(event) => {
+                                    const selectedLocationId = event.target.value;
+                                    if(availableLocations)
+                                    {
+                                        const selectedLocation = availableLocations.find(location => location.location_id.toString() === selectedLocationId);
+                                        setSelectedLocation(selectedLocation);
+                                        form.setValue("reservation_location_id", selectedLocationId !== '' ? Number(selectedLocationId) : 0);
+                                        console.log(selectedLocationId)
+                                    }
+                                }}>
+                                    <option value="">Select a location</option>
+                                    {availableLocations && availableLocations.map(location => (
+                                        <option key={location.location_id} value={location.location_id}>
+                                            {location.location_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </FormControl>
+                        </FormItem>
                     )}/>
+                    </div>
                     <div className="justify-between flex">
-                        <strong>Duration of rental: </strong>
-                        <FormControl className="w-40 bg-black text-white rounded-sm text-center border-solid p-1">
-                            <select value={duration} onChange={(event) => {
-                                const selectedDuration = event.target.value as RentDuration;
-                                setDuration(selectedDuration);
-                                if (startTime) {
-                                    const calculatedEndTime = calculateEndTime(DateTime.fromJSDate(startTime), selectedDuration);
-                                    setEndTime(calculatedEndTime);
-                                    form.setValue("endTime", calculatedEndTime);
-                                }
-                            }}>
-                                {Object.entries(RentDuration).map(([key, value]) => (
-                                    <option key={key} value={key}>
-                                        {value}
-                                    </option>
-                                ))}
-                            </select>
+                        <strong>Rental option: </strong>
+                        <FormControl className="w-80 bg-black text-white rounded-sm text-center border-solid p-1">
+                        <select
+                            value={selectedRentalOption?.rentaloption_id || ''}
+                            onChange={(event) => {
+                                const selectedId = parseInt(event.target.value);
+                                const selectedOption = rentalOptions?.find(option => option.rentaloption_id === selectedId);
+                                setRentalOption(selectedOption || undefined);
+                            }}
+                        >
+                            {rentalOptions?.map((option) => (
+                                <option key={option.rentaloption_id} value={option.rentaloption_id.toString()}>
+                                    {option.rentaloption_description} - {option.duration} minutes - {option.rentalprice} €
+                                </option>
+                            ))}
+                        </select>
                         </FormControl>
                     </div>
                     <div className="flex justify-between">
@@ -294,50 +332,48 @@ export const JetSkiReservationForm =() => {
                         </FormControl>
                     </div>
                     <input type="hidden" {...form.register("reservation_jetski_list")} value={JSON.stringify(selectedJetski)} />
-                    <input type="hidden" {...form.register("jetSkiCount")} value={selectedJetski.length} />
-                    <FormField name="safariTour" render={({field})=>(
-                            <FormItem className="flex justify-between items-center">
-                                <FormLabel className="text-sm font-bold">Is it Safari Tour: </FormLabel>
-                                <FormControl className="w-40 bg-black text-white text-center rounded-mb border-solid">
-                                    <select {...field} value={field.value ?? '' } className="w-full bg-black text-white text-center rounded-md border-solid" onChange={(event)=>{
-                                        const selectedValue = event.target.value;
-                                        setSafariTour(selectedValue);
-                                        field.onChange(selectedValue);
-                                    }}>
-                                        <option value="no" >
-                                            No
-                                        </option>
-                                        <option value="yes" >
-                                            Yes
-                                        </option>
-                                    </select>
-                                </FormControl>
-                            </FormItem>
-                    )}/>
                     <div>
-                    <FormField name="reservation_location_id" render={({field})=>(
-                        <FormItem className="flex justify-between">
-                            <FormLabel className="text-sm font-bold">
-                                Location of reservation: 
-                            </FormLabel>
-                            <FormControl className="w-40 bg-black text-white rounded-sm text-center border-solid p-1">
-                                <select value={selectedLocation ? selectedLocation.location_id : ''} onChange={(event) => {
-                                    const selectedLocationId = event.target.value;
-                                    const selectedLocation = availableLocations.find(location => location.location_id.toString() === selectedLocationId);
-                                    setSelectedLocation(selectedLocation);
-                                    form.setValue("reservation_location_id", selectedLocationId !== '' ? Number(selectedLocationId) : 0);
-                                }}>
-                                    <option value="">Select a location</option>
-                                    {availableLocations && availableLocations.map(location => (
-                                        <option key={location.location_id} value={location.location_id}>
-                                            {location.location_name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </FormControl>
-                        </FormItem>
-                    )}/>
+                    <FormField control={form.control} name="reservationOwner"
+                        render={({ field }) => (
+                            <FormItem>
+                            <strong> 
+                            Reservation owner
+                            </strong>
+                                <FormControl>
+                                <Input
+                                    {...field}
+                                    disabled={isPending}
+                                    placeholder="Owner of reservation"
+                                />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                    />
                     </div>
+                    <div className="flex justify-between w-full">
+                        <strong> Phone number: </strong>
+                        <PhoneInput defaultCountry="hr" forceDialCode={true} value={phone} onChange={(phone)=> setPhone(phone)} />
+                    </div>
+                    <input type="hidden" {...form.register("contactNumber")} value={phone} />
+                    <div className="flex justify-between">
+                    <strong>Discount:</strong>
+                        <select
+                            value={discount}
+                            onChange={(e) => setDiscount(parseInt(e.target.value))}
+                            className="form-control"
+                        >
+                            {[0, 5, 10, 15, 20].map(value => (
+                                <option key={value} value={value}>{value}%</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex justify-between">
+                        <strong>Total Price:</strong>
+                        <span>{totalPrice.toFixed(2)} €</span>
+                    </div>
+
                     <FormError message={error}/>
                     <FormSuccess message={success}/>
                     <Button type="submit" className="w-full">

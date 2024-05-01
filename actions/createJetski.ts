@@ -19,20 +19,14 @@ export const createJetski = async (values: z.infer<typeof JetskiSchema>) => {
         return { error: "Jetski with that registration already exists!!!", success: undefined };
     }
 
-    const topSpeedNum = parseInt(jetski_topSpeed)
-    
-    const kwNum = parseInt(jetski_kW)
-    
-    const manYearNum = parseInt(jetski_manufacturingYear)
-
     try {
         await db.jetski.create({
             data: {
                 jetski_registration,
                 jetski_location_id,
-                jetski_topSpeed: topSpeedNum,
-                jetski_kW: kwNum,
-                jetski_manufacturingYear: manYearNum,
+                jetski_topSpeed,
+                jetski_kW,
+                jetski_manufacturingYear,
                 jetski_model,
             },
         });

@@ -31,9 +31,9 @@ model Jetski {
   jetski_id                Int           @id @default(autoincrement())
   jetski_registration      String        @unique
   jetski_model             String
-  jetski_topSpeed          Int
-  jetski_kW                Int
-  jetski_manufacturingYear Int
+  jetski_topSpeed          String
+  jetski_kW                String
+  jetski_manufacturingYear String
   jetski_status            statusJetski  @default(AVAILABLE)
   jetski_location_id       Int?
   jetski_location          Location?     @relation(fields: [jetski_location_id], references: [location_id])
@@ -44,13 +44,13 @@ model Reservation {
   reservation_id          Int      @id @default(autoincrement())
   startTime               DateTime
   endTime                 DateTime
-  jetskiCount             Int
-  safariTour              Boolean
   createdAt               DateTime @default(now())
+  
   reservationOwner        String
   contactNumber           String
   totalPrice              Float
   discount                Float
+
   reservation_location_id Int
   reservation_location    Location @relation(fields: [reservation_location_id], references: [location_id])
   reservation_jetski_list Jetski[] @relation("JetskiToReservation")
@@ -59,8 +59,9 @@ model Reservation {
 model RentalOptions {
   rentaloption_id          Int    @id @default(autoincrement())
   rentaloption_description String
-  duration                 Int    @unique
+  duration                 Int    
   rentalprice              Float
+  isAvailable              Boolean @default(true)
 }
 
 enum rentalOptionType {

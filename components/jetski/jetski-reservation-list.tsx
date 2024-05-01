@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { CardWrapper } from "../auth/card-wrapper";
 import { getAllReservations } from "@/actions/listReservations";
-import { Reservation } from "@/data/jetskiData";
 import { listReservationsByDate } from "@/actions/listReservationsForDate";
 import { Popover, PopoverTrigger } from "@radix-ui/react-popover";
 import { Button } from "../ui/button";
@@ -12,6 +11,7 @@ import { PopoverContent } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns"
 import { Link } from 'react-router-dom';
+import { Reservation } from "@prisma/client";
 
 export const ListReservations = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -74,11 +74,8 @@ export const ListReservations = () => {
                                 </div>
                                 <div className="mr-2 mb-2 flex"><b>Location: </b>
                                     <div>
-                                        {reservation.reservation_location.location_name}
+                                        {reservation.reservation_location_id}
                                     </div>
-                                </div>
-                                <div className="mr-2 mb-2 flex"><b>Safari Tour: </b>
-                                    {reservation.safariTour ? "Yes" : "No"}
                                 </div>
                                 <div className="flex flex-wrap">
                                     <strong className="mr-2 mb-2">Jetski: </strong>

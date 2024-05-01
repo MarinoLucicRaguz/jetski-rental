@@ -27,52 +27,46 @@ export const JetskiSchema = z.object({
             message: "Registration must start with 2 letters representing a city followed by a hyphen and 3 to 6 numbers. For example: ST-123456"
         }
     ),
-    jetski_location_id: z.number().nullable().refine((jetski_location_id) => {
-        if (jetski_location_id === null) {
-            return false;
-        } else {
-            return true;
-        }
-    }, {
-        message: "Please select a location.",
-    }),
+    jetski_location_id: z.number().nullable().refine((id) => id !== null, {
+        message: "Please select a location."
+    }),    
     jetski_model: z.string().min(1, {
         message: "Model is required."
     }).max(50, {
         message: "Maximum length is 50 characters!"
     }),
-    jetski_topSpeed: z.string().refine((value) => {
-        const [numberStr, unit] = value.split(' ');
-        const number = parseInt(numberStr);
-        
-        if (isNaN(number) || number <= 0 || number > 150) {
-            return false;
-        }
-        
-        if (unit === 'mph') {
-            const kmh = Math.round(number * 1.60934);
-            return kmh
-        }
-        
-        if (unit === 'kmh') {
-            return number
-        }
-
-        return false;
-    }, {
-        message: "Top speed must be higher than zero, followed by 'mph' or 'kmh'!"
-    }),
+    jetski_topSpeed: z.string()
+        .transform((value) => {
+            const [numberStr, unit] = value.split(' ');
+            const number = parseFloat(numberStr);
+            if (isNaN(number) || number <= 0 || number > 150) {
+                return value;
+            }
+            if (unit === 'mph') {
+                const kmh = Math.round(number * 1.60934);
+                return `${kmh} kmh`;
+            }
+            return value;
+        })
+        .refine((value) => {
+            const [numberStr, unit] = value.split(' ');
+            const number = parseFloat(numberStr);
+            return !isNaN(number) && number > 0 && number <= 150 && (unit === 'kmh' || unit === 'mph');
+        }, {
+            message: "Top speed must be a positive number up to 150, followed by 'mph' or 'kmh'."
+        }),
     jetski_kW: z.string().refine((value) => {
-        const kW = parseFloat(value);
-        return !isNaN(kW) && kW >= 0;
+        return !isNaN(parseFloat(value)) && parseFloat(value) >= 0;
     }, {
-        message: "kW must be bigger than zero."
+        message: "kW must be a valid number and bigger than or equal to zero."
     }),
     jetski_manufacturingYear: z.string().refine((value) => {
-        const year = parseInt(value);
-        return !isNaN(year) && year >= 1950 && year <= new Date().getFullYear() + 1;
+        return value.length === 4 &&
+               !isNaN(parseInt(value)) &&
+               parseInt(value) >= 1950 &&
+               parseInt(value) <= new Date().getFullYear() + 1;
     }, {
-        message: "Manufacturing year must be a year between next one and 1950. "
+        message: "Manufacturing year must be a four-digit year between next one and 1950."
     })
 });
 
@@ -88,11 +82,12 @@ export const LocationSchema = z.object({
 export const JetskiReservationSchema = z.object({
     rentDate: z.date(),
     startTime: z.date(),
-    endTime: z.date().nullable(),
-    jetSkiCount: z.number(), 
-    safariTour: z.string(),
+    endTime: z.date(),
     reservation_location_id: z.number(),
-    reservation_jetski_list: z.array(JetskiSchema),
+    reservation_jetski_list: z.array(z.any()),
+    reservationOwner: z.string(),
+    contactNumber: z.string(),
+    totalPrice: z.number(),
 })
 
 export const ReservationOptionSchema = z.object({
@@ -100,5 +95,11 @@ export const ReservationOptionSchema = z.object({
         message: "Please provide a small description."
     }),
     duration: z.string(),
-    rentalprice: z.string()
+    rentalprice: z.string().refine(value => {
+        const regex = /^\d{1,3}(,\d{3})*(\.\d+)?\s(?:€|\$|£|HRK)$/;
+        return regex.test(value);
+    }, {
+        message: "Rental price must be a valid numeric amount followed by a space and currency symbol (€, $, £, or HRK)."
+    })
+    
 });

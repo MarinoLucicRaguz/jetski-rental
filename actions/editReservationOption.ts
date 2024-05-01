@@ -47,7 +47,7 @@ const parseCurrencyValue = (value: string): number => {
     return valueInEur;
 };
 
-export const createReservationOption = async (values: z.infer<typeof ReservationOptionSchema>) => {
+export const editReservationOption = async (reservation_option_id: number, values: z.infer<typeof ReservationOptionSchema>) => {
     const validatedField = ReservationOptionSchema.safeParse(values);
 
     if (!validatedField.success) {
@@ -61,15 +61,6 @@ export const createReservationOption = async (values: z.infer<typeof Reservation
         return { error: "Duration must contain only numbers" };
     }
 
-    const rentalOption = await getRentalOptionByDuration(parseInt(duration));
-
-    if (rentalOption && rentalOption.length > 0) {
-        const duplicateOption = rentalOption.find(option => option.rentaloption_description === rentaloption_description);
-        if (duplicateOption) {
-            return { error: "Rental option with that description and duration already exists!" };
-        }
-    }
-    
     if (rentaloption_description !== "SAFARI" && rentaloption_description !== 'REGULAR') {
         return { error: "Please select correct rental option type." };
     }
@@ -80,7 +71,8 @@ export const createReservationOption = async (values: z.infer<typeof Reservation
         return { error: "We should not pay to the customers for the ride :)" };
     }
 
-    await db.rentalOptions.create({
+    await db.rentalOptions.update({
+        where: { rentaloption_id: reservation_option_id },
         data: {
             rentaloption_description,
             duration: parseInt(duration),
