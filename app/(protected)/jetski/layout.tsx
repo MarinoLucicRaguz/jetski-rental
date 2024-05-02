@@ -14,10 +14,10 @@ const AuthLayout =({children}:{
     children: React.ReactNode
 }) => {
     return(
-        <main className="flex h-full flex-col items-center justify-top bg-sky-500">
+        <main className="flex h-min-screen flex-col items-center justify-top ">
             <div className="flex justify-between w-full p-4 bg-sky-700">
-                <div className="rounded-lg text-center w-full margin-right-50 p-1">
-                        Welcome to Jetski Rental Web Organization application
+                <div className="rounded-lg text-center margin-right-50 p-1">
+                        Jetski dashboard
                 </div>
                     <CreateJetskiButton>
                         <Button className="w-full margin-right-5" type="submit" variant="secondary">
@@ -67,8 +67,8 @@ const AuthLayout =({children}:{
                         Sign out
                     </Button>
                 </form>
-            </div>                
-            <div className="h-full flex items-center justify-center bg-sky-500">
+            </div>
+            <div className="h-full flex flex-grow items-center justify-center p-4">
                 {children}
             </div>
         </main>

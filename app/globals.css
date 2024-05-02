@@ -3,7 +3,9 @@
 @tailwind utilities;
  
 html,
-body,
+body{
+  background-color: #38bdf8;
+}
 :root{
   height: 100%;
   

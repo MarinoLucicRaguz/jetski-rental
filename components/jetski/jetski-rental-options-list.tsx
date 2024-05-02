@@ -10,7 +10,7 @@ import { deleteRentalOption } from "@/actions/deleteRentalOption";
 export const ListRentalOptions = () => {
     const [error, setError] = useState<string | undefined>("");
     const [rentalOptionsData, setRentalOptionsData] = useState<RentalOptions[] | null>([]);
-    const [showUnavailable, setShowUnavailable] = useState(false);
+    const [showUnavailable, setShowUnavailable] = useState(true);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -65,7 +65,7 @@ export const ListRentalOptions = () => {
                 </div>
                 <div className="text-right p-2">
                     <Button onClick={() => setShowUnavailable(!showUnavailable)}>
-                        {showUnavailable ? "Show only available rental options" : "Show all rental options"}
+                        {showUnavailable ?  "Show all rental options":"Show only available rental options"}
                     </Button>
                 </div>
             </div>
