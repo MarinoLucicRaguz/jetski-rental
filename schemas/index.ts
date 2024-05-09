@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { Jetski } from "@prisma/client";
+import parsePhoneNumberFromString from 'libphonenumber-js';
 
 //RAZMISLITI OCEMO LI KORISTITI EMAIL KASNIJE
 //baci malo oko na ZOD, kako cemo koristiti username
@@ -78,15 +78,37 @@ export const LocationSchema = z.object({
     }),
 });
 
+const today = new Date();
+today.setHours(0,0,0,0);
+
+const zPhone = z.string().refine((value) => {
+    const phone = parsePhoneNumberFromString(value, 'NG');
+    return phone && phone.isValid();
+  }, {
+    message: "Invalid phone number"
+});
+  
+  // Creating a helper to get today's date with the time reset to midnight
+  const getToday = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to the start of today
+    return today;
+  };
 
 export const JetskiReservationSchema = z.object({
-    rentDate: z.date(),
-    startTime: z.date(),
+    rentDate: z.date().refine(date => date>=today,
+        {
+            message: "Rent date can't be in past!",
+        }
+    ),
+    startTime: z.date().refine(date => date>=today,{
+        message: "Start time cannot be in the past!"
+    }),
     endTime: z.date(),
     reservation_location_id: z.number(),
     reservation_jetski_list: z.array(z.any()),
     reservationOwner: z.string(),
-    contactNumber: z.string(),
+    contactNumber: zPhone,
     totalPrice: z.number(),
 })
 

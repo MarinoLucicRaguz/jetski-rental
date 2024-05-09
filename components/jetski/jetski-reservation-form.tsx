@@ -1,7 +1,7 @@
 "use client"
 
 import * as z from "zod";
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { useEffect, useState, useTransition } from "react";
@@ -258,7 +258,6 @@ export const JetSkiReservationForm =() => {
                         </FormItem>
                     )} />
                     <div>
-                        
                     <input type="hidden" {...form.register("startTime")} value={startTime instanceof Date ? startTime.toISOString() : ''} />
                     <FormField name="reservation_location_id" render={({field})=>(
                         <FormItem className="flex justify-between">
@@ -276,7 +275,7 @@ export const JetSkiReservationForm =() => {
                                         console.log(selectedLocationId)
                                     }
                                 }}>
-                                    <option value="">Select a location</option>
+                                    <option value="">Select a location!</option>
                                     {availableLocations && availableLocations.map(location => (
                                         <option key={location.location_id} value={location.location_id}>
                                             {location.location_name}
@@ -298,6 +297,7 @@ export const JetSkiReservationForm =() => {
                                 setRentalOption(selectedOption || undefined);
                             }}
                         >
+                            <option value="">Select a rental option!</option>
                             {rentalOptions?.map((option) => (
                                 <option key={option.rentaloption_id} value={option.rentaloption_id.toString()}>
                                     {option.rentaloption_description} - {option.duration} minutes - {option.rentalprice} €
@@ -324,7 +324,7 @@ export const JetSkiReservationForm =() => {
                                                 type="checkbox"
                                                 onChange={(e) => handleCheckboxChange(jetski, e.target.checked)}
                                             />
-                                            {" " + jetski.jetski_registration}
+                                            {" " + jetski.jetski_registration + " - " + jetski.jetski_model + " - " + jetski.jetski_manufacturingYear + " - " + availableLocations?.find(loc => loc.location_id===jetski.jetski_location_id)?.location_name}
                                         </label>
                                     </div>
                                 ))}
@@ -351,22 +351,39 @@ export const JetSkiReservationForm =() => {
                             )}
                     />
                     </div>
-                    <div className="flex justify-between w-full">
-                        <strong> Phone number: </strong>
-                        <PhoneInput defaultCountry="hr" forceDialCode={true} value={phone} onChange={(phone)=> setPhone(phone)} />
+                    <div className="flex justify-between w-full ">
+                        <strong> Contact number: </strong>
+                        <Controller
+                            control={form.control}
+                            name="contactNumber"
+                            render={({ field }) => (
+                                <PhoneInput
+                                    {...field}
+                                    defaultCountry="hr"
+                                    autoFocus={true}
+                                    onChange={(value) => {
+                                        setPhone(value);
+                                        field.onChange(value);
+                                    }}
+                                    value={phone}
+                                />
+                            )}
+                        />
                     </div>
                     <input type="hidden" {...form.register("contactNumber")} value={phone} />
                     <div className="flex justify-between">
-                    <strong>Discount:</strong>
-                        <select
-                            value={discount}
-                            onChange={(e) => setDiscount(parseInt(e.target.value))}
-                            className="form-control"
-                        >
-                            {[0, 5, 10, 15, 20].map(value => (
-                                <option key={value} value={value}>{value}%</option>
-                            ))}
-                        </select>
+                        <strong>Discount:</strong>
+                        <FormControl className="w-20 bg-black text-white rounded-sm text-center border-solid p-1">
+                            <select
+                                value={discount}
+                                onChange={(e) => setDiscount(parseInt(e.target.value))}
+                                className="form-control"
+                                >
+                                {[0, 5, 10, 15, 20].map(value => (
+                                    <option key={value} value={value}>{value}%</option>
+                                ))}
+                            </select>
+                        </FormControl>
                     </div>
 
                     <div className="flex justify-between">

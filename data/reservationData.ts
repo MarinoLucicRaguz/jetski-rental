@@ -50,21 +50,3 @@ export const fetchReservationsByDate = async (date: Date) => {
         return null;
     }
 }
-
-export type Reservation = {
-    reservation_id: number;
-    startTime: Date;
-    endTime: Date;
-    jetskiCount: number;
-    safariTour: boolean;
-    createdAt: Date;
-    reservation_location_id: number;
-    reservation_location: {
-        location_id: number;
-        location_name: string;
-    };
-    reservation_jetski_list?: {
-        jetski_id: number;
-        jetski_registration: string;
-    }[];
-}
