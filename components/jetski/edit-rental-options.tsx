@@ -24,6 +24,9 @@ import { createReservationOption } from "@/actions/createReservationOption";
 import { RentalOptions } from "@prisma/client";
 import { getRentalOption } from "@/actions/getRentalOption";
 import { editReservationOption } from "@/actions/editReservationOption";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { useRouter } from "next/navigation";
+import ErrorPopup from "../ui/errorpopup";
 
 
 export const EditReservationOptionForm =({rentalOptionId}: {rentalOptionId: number}) => {
@@ -31,6 +34,32 @@ export const EditReservationOptionForm =({rentalOptionId}: {rentalOptionId: numb
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPending, startTransition] = useTransition();
     const [currentRentalOptions, setCurrentRentalOptions] = useState<RentalOptions>();
+    const [showError, setShowError] = useState(false);
+    const router = useRouter();
+
+    const user = useCurrentUser();
+
+    useEffect(() => {
+        if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+          setShowError(true);
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 3000);
+        }
+      }, [user, router]);
+      
+      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
 
     useEffect(() => {
         const fetchData = async () => {

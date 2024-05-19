@@ -16,6 +16,9 @@ import { Jetski } from "@prisma/client";
 import { editJetski } from "@/actions/editJetski";
 import { getJetski } from "@/actions/getJetski";
 import { listLocation } from "@/actions/listLocations";
+import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import ErrorPopup from "../ui/errorpopup";
 
 export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
     const [error, setError] = useState<string | undefined>("");
@@ -23,6 +26,33 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
     const [isPending, startTransition] = useTransition();
     const [jetskiData, setJetskiData] = useState<Jetski>();
     const [locationData, setLocationData] = useState<{ location_id: string; location_name: string; }[]>([]);
+
+    const [showError, setShowError] = useState(false);
+    const router = useRouter();
+
+    const user = useCurrentUser();
+
+    useEffect(() => {
+        if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+          setShowError(true);
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 3000);
+        }
+      }, [user, router]);
+      
+      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
 
     const form = useForm<z.infer<typeof JetskiSchema>>({
         resolver: zodResolver(JetskiSchema),

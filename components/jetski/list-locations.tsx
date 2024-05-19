@@ -36,14 +36,12 @@ export const ListLocation = () => {
     }, [startTransition]);
 
     const handleEditClick = (locationId: number) => {
-        // Redirect to the edit location page
         router.push(`/location/${locationId}/editlocation`);
     };
 
     const handleDeleteClick = async (locationId: number) => {
         try {
             await deleteLocation(locationId);
-            // Update locationData after deletion
             setLocationData((prevData) => prevData?.filter((loc) => loc.location_id !== locationId) || null);
         } catch (error) {
             setError("Error deleting location");

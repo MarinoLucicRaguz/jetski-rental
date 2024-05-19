@@ -1,7 +1,10 @@
-import { db } from "@/lib/db";
+// data/reservationData.ts
 
-export const fetchReservations = async() =>{
-    try{
+import { db } from "@/lib/db";
+import { ExtendedReservation } from "@/types";
+
+export const fetchReservations = async (): Promise<ExtendedReservation[] | null> => {
+    try {
         const reservations = await db.reservation.findMany({
             include: {
                 reservation_jetski_list: true,
@@ -9,14 +12,13 @@ export const fetchReservations = async() =>{
             }
         });
         return reservations;
-    } catch(error)
-    {
+    } catch (error) {
         console.log(error);
         return null;
     }
 }
 
-export const fetchReservationsByDate = async (date: Date) => {
+export const fetchReservationsByDate = async (date: Date): Promise<ExtendedReservation[] | null> => {
     try {
         console.log('Fetching reservations for date:', date);
 
@@ -32,21 +34,39 @@ export const fetchReservationsByDate = async (date: Date) => {
         const reservations = await db.reservation.findMany({
             where: {
                 AND: [
-                    { startTime: { lte: endOfDay } }, 
-                    { endTime: { gte: startOfDay } } 
+                    { startTime: { lte: endOfDay } },
+                    { endTime: { gte: startOfDay } }
                 ]
             },
             include: {
                 reservation_jetski_list: true,
                 reservation_location: true,
             }
-            
         });
 
         console.log('Fetched reservations:', reservations);
         return reservations;
     } catch (error) {
         console.error('Error fetching reservations:', error);
+        return null;
+    }
+}
+
+export const getReservationById = async (reservation_id: number): Promise<ExtendedReservation | null> => {
+    try {
+        const reservation = await db.reservation.findUnique({
+            where: {
+                reservation_id
+            },
+            include: {
+                reservation_jetski_list: true,
+                reservation_location: true,
+            }
+        });
+
+        return reservation;
+    } catch (error) {
+        console.error("Unable to find the reservation: ", error);
         return null;
     }
 }

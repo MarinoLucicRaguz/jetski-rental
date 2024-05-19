@@ -1,8 +1,8 @@
-import { ReservationOptionForm } from "@/components/jetski/jetski-rental-options";
+import { ReservationOptionForm } from "@/components/jetski/create-rentaloption";
 
 const JetSkiRentalOptions = () => {
     return (
-        <ReservationOptionForm/>
+        <ReservationOptionForm  />
     )
 }
 

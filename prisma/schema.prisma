@@ -51,6 +51,7 @@ model Reservation {
   totalPrice              Float
   discount                Float
 
+  rentaloption_id         Int @default(0)
   reservation_location_id Int
   reservation_location    Location @relation(fields: [reservation_location_id], references: [location_id])
   reservation_jetski_list Jetski[] @relation("JetskiToReservation")

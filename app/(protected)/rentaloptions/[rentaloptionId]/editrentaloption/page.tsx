@@ -1,6 +1,6 @@
 "use client"
 
-import { EditReservationOptionForm } from "@/components/jetski/jetski-edit-rental-options";
+import { EditReservationOptionForm } from "@/components/jetski/edit-rental-options";
 import { useParams } from "next/navigation";
 
 const EditJetSkiRentalOptions = () => {

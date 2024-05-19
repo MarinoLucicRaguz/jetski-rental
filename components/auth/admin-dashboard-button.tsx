@@ -2,22 +2,18 @@
 
 import { useRouter } from "next/navigation";
 
-interface CreateReservationButtonProps {
+interface AdminDashboardButtonProps {
     children: React.ReactNode;
     mode?: "modal" | "redirect";
     asChild?: boolean;
 }
 
-export const CreateReservationButton = ({ children, mode = "redirect", asChild }: CreateReservationButtonProps) => {
+export const AdminDashboardButton = ({ children, mode = "redirect", asChild }: AdminDashboardButtonProps) => {
     const router = useRouter();
 
     const onClick = () => {
-        router.push("/reservation/createreservation");
+        router.push("/admindashboard");
     };
-
-    if (mode === "modal") {
-        return <span>TODO: Implement modal</span>;
-    }
 
     return (
         <span onClick={onClick} className="cursor-pointer">

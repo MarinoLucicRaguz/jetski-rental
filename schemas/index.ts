@@ -1,8 +1,6 @@
 import * as z from "zod";
 import parsePhoneNumberFromString from 'libphonenumber-js';
-
-//RAZMISLITI OCEMO LI KORISTITI EMAIL KASNIJE
-//baci malo oko na ZOD, kako cemo koristiti username
+import { UserRole, UserStatus } from "@prisma/client";
 
 export const LoginSchema = z.object({
     email: z.string().email({
@@ -19,6 +17,15 @@ export const RegisterSchema = z.object({
     name: z.string().min(1,{
         message: "Name is required!"
     })
+});
+
+export const EditUserSchema = z.object({
+    name: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
+    password: z.string().nullable().optional(),
+    user_status: z.nativeEnum(UserStatus).optional(),
+    user_role: z.nativeEnum(UserRole).optional(),
+    user_location_id: z.number().nullable().optional(),
 });
 
 export const JetskiSchema = z.object({
@@ -110,6 +117,28 @@ export const JetskiReservationSchema = z.object({
     reservationOwner: z.string(),
     contactNumber: zPhone,
     totalPrice: z.number(),
+    rentaloption_id: z.number(),
+    discount: z.number(),
+})
+
+export const EditReservationSchema = z.object({
+    reservation_id: z.number(),
+    rentDate: z.date().refine(date => date>=today,
+        {
+            message: "Rent date can't be in past!",
+        }
+    ),
+    startTime: z.date().refine(date => date>=today,{
+        message: "Start time cannot be in the past!"
+    }),
+    endTime: z.date(),
+    reservation_location_id: z.number(),
+    reservation_jetski_list: z.array(z.any()),
+    reservationOwner: z.string(),
+    contactNumber: zPhone,
+    totalPrice: z.number(),
+    rentaloption_id: z.number(),
+    discount: z.number(),
 })
 
 export const ReservationOptionSchema = z.object({

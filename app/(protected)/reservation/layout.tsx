@@ -12,7 +12,7 @@ import { ListReservationButton } from "@/components/auth/list-reservation-button
 import { Button } from "@/components/ui/button"
 import { getUserRole } from "@/lib/getUserRole"
 
-const RentalOptionLayout =async({children}:{
+const ReservationLayout =async({children}:{
     children: React.ReactNode
 }) => {
     const userRole = await getUserRole();
@@ -96,4 +96,4 @@ const RentalOptionLayout =async({children}:{
     );
 }
 
-export default RentalOptionLayout;
+export default ReservationLayout;

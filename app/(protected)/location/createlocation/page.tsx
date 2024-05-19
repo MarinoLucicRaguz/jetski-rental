@@ -1,4 +1,4 @@
-import { LocationForm } from "@/components/jetski/jetski-location-form";
+import { LocationForm } from "@/components/jetski/create-location";
 
 const LocationPage = () => {
     return (

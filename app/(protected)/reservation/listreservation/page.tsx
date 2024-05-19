@@ -1,4 +1,4 @@
-import { ListReservations } from "@/components/jetski/jetski-reservation-list";
+import { ListReservations } from "@/components/jetski/list-reservations";
 const ListReservationsPage = () => {
     return (
         <ListReservations/>

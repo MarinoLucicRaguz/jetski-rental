@@ -12,7 +12,7 @@ export const ListReservationButton = ({ children, mode = "redirect", asChild }: 
     const router = useRouter();
 
     const onClick = () => {
-        router.push("/jetski/listreservation");
+        router.push("/reservation/listreservation");
     };
 
     if (mode === "modal") {

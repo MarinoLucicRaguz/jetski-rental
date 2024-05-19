@@ -1,4 +1,4 @@
-import { ListJetski } from "@/components/jetski/jetski-list";
+import { ListJetski } from "@/components/jetski/list-jetski";
 
 const ListJetskiPage = () => {
     return (

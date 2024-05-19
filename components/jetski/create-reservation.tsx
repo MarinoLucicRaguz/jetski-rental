@@ -25,6 +25,9 @@ import { getAvailableReservationOptions } from "@/actions/listAvailableRentalOpt
 import { PhoneInput } from 'react-international-phone'
 import 'react-international-phone/style.css';
 import { Input } from "../ui/input";
+import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import ErrorPopup from "../ui/errorpopup";
 
 export const JetSkiReservationForm =() => {
     const [error, setError] = useState<string | undefined>("");
@@ -46,6 +49,33 @@ export const JetSkiReservationForm =() => {
 
     const [availableLocations, setAvailableLocations] = useState<Location[] | null>([]);
     const [selectedLocation, setSelectedLocation] = useState<Location>();
+
+    const [showError, setShowError] = useState(false);
+    const router = useRouter();
+
+    const user = useCurrentUser();
+
+    useEffect(() => {
+        if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+          setShowError(true);
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 3000);
+        }
+      }, [user, router]);
+      
+      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator or moderator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -175,6 +205,8 @@ export const JetSkiReservationForm =() => {
             reservation_jetski_list: selectedJetski,
             contactNumber: phone,
             totalPrice: totalPrice,
+            rentaloption_id: selectedRentalOption?.rentaloption_id,
+            discount: discount
         },
     })
 
@@ -295,6 +327,7 @@ export const JetSkiReservationForm =() => {
                                 const selectedId = parseInt(event.target.value);
                                 const selectedOption = rentalOptions?.find(option => option.rentaloption_id === selectedId);
                                 setRentalOption(selectedOption || undefined);
+                                form.setValue("rentaloption_id", selectedId);
                             }}
                         >
                             <option value="">Select a rental option!</option>
@@ -306,6 +339,7 @@ export const JetSkiReservationForm =() => {
                         </select>
                         </FormControl>
                     </div>
+                    <input type="hidden" {...form.register("rentaloption_id")} value={selectedRentalOption?.rentaloption_id } />
                     <div className="flex justify-between">
                         <strong>Reservation until:</strong>
                         {endTime instanceof Date && (
@@ -385,12 +419,11 @@ export const JetSkiReservationForm =() => {
                             </select>
                         </FormControl>
                     </div>
-
+                    <input type="hidden" {...form.register("discount")} value={discount} />
                     <div className="flex justify-between">
                         <strong>Total Price:</strong>
                         <span>{totalPrice.toFixed(2)} €</span>
                     </div>
-
                     <FormError message={error}/>
                     <FormSuccess message={success}/>
                     <Button type="submit" className="w-full">

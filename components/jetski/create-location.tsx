@@ -4,7 +4,7 @@ import * as z from "zod";
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { LocationSchema } from "@/schemas";
 import { Input } from "../ui/input";
 import {
@@ -21,12 +21,42 @@ import { Button } from "../ui/button";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
 import { createLocation } from "@/actions/createLocation";
+import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import ErrorPopup from "../ui/errorpopup";
 
 
 export const LocationForm =() => {
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPending, startTransition] = useTransition();
+
+    const [showError, setShowError] = useState(false);
+    const router = useRouter();
+
+    const user = useCurrentUser();
+
+    useEffect(() => {
+        if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+          setShowError(true);
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 3000);
+        }
+      }, [user, router]);
+      
+      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
 
     const form = useForm<z.infer<typeof LocationSchema>>({
         resolver: zodResolver(LocationSchema),
@@ -36,8 +66,6 @@ export const LocationForm =() => {
     })
     
     const onSubmit =(values: z.infer<typeof LocationSchema>)=>{
-        //ovdje se moze koristi axios za putanje, ali ovo je kao jednostavnije? nisam siguran, istrazi
-        //axios.post("/your/api/route", values)
         setError("");
         setSuccess("");
 

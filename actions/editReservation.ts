@@ -1,17 +1,18 @@
 "use server";
 import { db } from "@/lib/db";
 import * as z from "zod";
-import { JetskiReservationSchema } from "@/schemas";
+import { EditReservationSchema } from "@/schemas";
 import { DateTime } from "luxon";
 
-export const createReservation = async (values: z.infer<typeof JetskiReservationSchema>) => {
-    const validatedFields = JetskiReservationSchema.safeParse(values);
+export const editReservation = async (values: z.infer<typeof EditReservationSchema>) => {
+    const validatedFields = EditReservationSchema.safeParse(values);
 
     if (!validatedFields.success) {
         return { error: "Invalid fields" };
     }
 
     const {
+        reservation_id,
         startTime,
         endTime,
         reservation_jetski_list,
@@ -45,6 +46,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
         return { error: "The specified location does not exist." };
     }
 
+    // Check jet ski availability
     const jetskiAvailabilityChecks = reservation_jetski_list.map(async jetski => {
         const reservations = await db.reservation.findMany({
             where: {
@@ -53,12 +55,14 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
                         jetski_id: jetski.jetski_id,
                     },
                 },
-                NOT: [
-                    { endTime: { lt: startTime } },
-                    { startTime: { gt: endTime } },
+                AND: [
+                    { startTime: { lt: endTime } },
+                    { endTime: { gt: startTime } },
+                    { reservation_id: { not: reservation_id } } // Exclude the current reservation
                 ],
             },
         });
+
         return reservations.length === 0;
     });
 
@@ -68,7 +72,8 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     }
 
     try {
-        const reservation = await db.reservation.create({
+        const reservation = await db.reservation.update({
+            where: { reservation_id },
             data: {
                 startTime,
                 endTime,
@@ -80,18 +85,17 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
                     connect: { location_id: reservation_location_id },
                 },
                 reservation_jetski_list: {
-                    connect: reservation_jetski_list.map(jetski => ({ jetski_id: jetski.jetski_id })),
+                    set: reservation_jetski_list.map(jetski => ({ jetski_id: jetski.jetski_id })),
                 },
-                rentaloption_id
-            },
+                rentaloption_id: rentaloption_id,
+                },
         });
 
         return {
-            success: "Reservation has been created successfully!",
-            reservation,
+            success: "Reservation has been updated successfully!"
         };
     } catch (error) {
-        console.error("Error creating reservation:", error);
-        return { error: "An error occurred while creating the reservation." };
+        console.error("Error updating reservation:", error);
+        return { error: "An error occurred while updating the reservation." };
     }
 };

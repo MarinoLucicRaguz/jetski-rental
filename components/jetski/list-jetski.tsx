@@ -51,7 +51,7 @@ export const ListJetski = () => {
     }, [jetskiData, selectedLocation, showOnlyAvailable]);
 
     const handleEditJetskiClick = (jetskiId: number) => {
-        router.push(`/jetski/${jetskiId}/edit`);
+        router.push(`/jetski/${jetskiId}/editjetski`);
     };
 
     const handleDeleteJetskiClick = async (jetskiId: number) => {
@@ -146,6 +146,9 @@ export const ListJetski = () => {
                             ))}
                         </tbody>
                     </table>
+                    <div className="mt-4 flex justify-center">
+                        <a href="/dashboard" className="text-sm font-normal text-gray-500 hover:text-gray-700 hover:underline">Go back to dashboard</a>
+                    </div>
                     {error && <div className="text-red-500">{`Error: ${error}`}</div>}
                 </div>
             </div>

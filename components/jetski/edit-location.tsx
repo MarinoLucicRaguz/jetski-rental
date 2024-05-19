@@ -15,6 +15,9 @@ import { Button } from "../ui/button";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
 import { Location } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import ErrorPopup from "../ui/errorpopup";
 
 
 
@@ -25,6 +28,33 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
     const [locationName, setLocationName] = useState<string>("");
     const [locationData, setLocationData] = useState<Location |null >();
     
+    const [showError, setShowError] = useState(false);
+    const router = useRouter();
+
+    const user = useCurrentUser();
+
+    useEffect(() => {
+        if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+          setShowError(true);
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 3000);
+        }
+      }, [user, router]);
+      
+      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
+
     const form = useForm<z.infer<typeof LocationSchema>>({
         resolver: zodResolver(LocationSchema),
         defaultValues: {

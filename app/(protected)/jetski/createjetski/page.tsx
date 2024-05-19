@@ -1,4 +1,4 @@
-import { JetskiForm } from "@/components/jetski/jetski-form";
+import { JetskiForm } from "@/components/jetski/create-jetski";
 
 const JetskiPage = () => {
     return (
