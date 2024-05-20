@@ -251,8 +251,7 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
                 Save
             </Button>
         </form>
-    </Form>
-
-        </CardWrapper>
+        </Form>
+    </CardWrapper>
     );
 };

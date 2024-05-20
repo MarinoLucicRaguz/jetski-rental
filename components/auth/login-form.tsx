@@ -38,8 +38,6 @@ export const LoginForm =() => {
     })
     
     const onSubmit =(values: z.infer<typeof LoginSchema>)=>{
-        //ovdje se moze koristi axios za putanje, ali ovo je kao jednostavnije? nisam siguran, istrazi
-        //axios.post("/your/api/route", values)
         setError("");
         setSuccess("");
 

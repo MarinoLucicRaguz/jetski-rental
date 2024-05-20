@@ -24,7 +24,7 @@ export const {
         }
         return session;
       },
-      async jwt({ token, user }){
+      async jwt({ token }){
         if (!token.sub) {
           return token;
         }

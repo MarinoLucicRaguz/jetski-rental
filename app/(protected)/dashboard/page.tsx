@@ -11,6 +11,7 @@ import { ListRentalOptionsButton } from "@/components/auth/list-rental-options-b
 import { AdminDashboardButton } from "@/components/auth/admin-dashboard-button";
 import { signOutUser } from "@/actions/signOutAction";
 import { getUserRole } from "@/lib/getUserRole";
+import { SettingsButton } from "@/components/auth/settings-button";
 
 const DashboardPage =async ()=>{
     const session = await auth()
@@ -81,6 +82,11 @@ const DashboardPage =async ()=>{
                         </Button>
                         </AdminDashboardButton>
                     )}
+                    <SettingsButton>
+                        <Button className="w-full mb-3" type="submit" variant="secondary">
+                            Settings
+                        </Button>  
+                    </SettingsButton>
                     <form action={signOutUser}>
                         <Button className="w-full mb-3" type="submit" variant="secondary">
                         Sign out

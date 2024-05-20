@@ -9,6 +9,7 @@ import { ListJetskiButton } from "@/components/auth/list-jetski-button"
 import { ListLocationButton } from "@/components/auth/list-locations-button"
 import { ListRentalOptionsButton } from "@/components/auth/list-rental-options-button"
 import { ListReservationButton } from "@/components/auth/list-reservation-button"
+import { SettingsButton } from "@/components/auth/settings-button"
 import { Button } from "@/components/ui/button"
 import { getUserRole } from "@/lib/getUserRole"
 
@@ -83,6 +84,11 @@ const AdminLayout =async({children}:{
                         </Button>
                         </AdminDashboardButton>
                     )}
+                    <SettingsButton>
+                        <Button className="w-full mb-3" type="submit" variant="secondary">
+                            Settings
+                        </Button>  
+                    </SettingsButton>
                     <form action={signOutUser}>
                         <Button className="w-full mb-3" type="submit" variant="secondary">
                         Sign out
