@@ -24,17 +24,27 @@ import { createLocation } from "@/actions/createLocation";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import ErrorPopup from "../ui/errorpopup";
-
+import { User } from "@prisma/client";
+import { getAuthUsers } from "@/actions/getAuthUsers";
+import { MenuItem, Select } from "@mui/material";
 
 export const LocationForm =() => {
     const [error, setError] = useState<string | undefined>("");
     const [success, setSuccess] = useState<string | undefined>("");
     const [isPending, startTransition] = useTransition();
+    const [users, setUsers] = useState<User[]|null>([]);
 
     const [showError, setShowError] = useState(false);
     const router = useRouter();
 
     const user = useCurrentUser();
+
+    const form = useForm<z.infer<typeof LocationSchema>>({
+        resolver: zodResolver(LocationSchema),
+        defaultValues:{
+            location_name: "",
+        },
+    })
 
     useEffect(() => {
         if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
@@ -58,13 +68,19 @@ export const LocationForm =() => {
         );
     }
 
-    const form = useForm<z.infer<typeof LocationSchema>>({
-        resolver: zodResolver(LocationSchema),
-        defaultValues:{
-            location_name: "",
-        },
-    })
-    
+    useEffect(()=>{
+        const fetchUsers=async ()=>{
+            try{
+                const users = await getAuthUsers();
+                setUsers(users);
+            } catch(error)
+            {
+                setError("Unable to fetch users. There has been an error!");   
+            }
+        }
+        fetchUsers();
+    },[])
+
     const onSubmit =(values: z.infer<typeof LocationSchema>)=>{
         setError("");
         setSuccess("");
@@ -74,7 +90,7 @@ export const LocationForm =() => {
                 .then((data)=>{
                     setError(data.error),
                     setSuccess(data.success);
-                })
+            })
         })
     };
     
@@ -102,6 +118,36 @@ export const LocationForm =() => {
                                 </FormItem>
                             )
                             }/>
+                            <FormField control={form.control}
+                            name="user_id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Manager</FormLabel>
+                                    <FormControl>
+                                        <Select
+                                            {...field}
+                                            disabled={isPending}
+                                            className="w-full border border-gray-300 rounded-sm"
+                                            size="small"
+                                            renderValue={(selected) => {
+                                                if (selected === "") {
+                                                    return <span>Select a manager</span>;
+                                                }
+                                                const selectedUser = users?.find(user => user.user_id === selected);
+                                                return selectedUser ? (selectedUser.name || selectedUser.email) : "";
+                                            }}
+                                        >
+                                            {users?.map(user => (
+                                                <MenuItem key={user.user_id} value={user.user_id}>
+                                                    {user.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         </div>
                         <FormError message={error}/>
                         <FormSuccess message={success}/>

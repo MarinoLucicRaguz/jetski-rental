@@ -8,6 +8,7 @@ import { deleteJetski } from "@/actions/deleteJetski";
 import { listLocation } from "@/actions/listLocations";
 import { Menu, MenuItem } from "@mui/material";
 import Spinner from "../ui/spinner";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const ListJetski = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -18,6 +19,8 @@ export const ListJetski = () => {
     const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const router = useRouter();
+
+    const user= useCurrentUser();
 
     useEffect(() => {
         const fetchLocations = async () => {
@@ -123,7 +126,9 @@ export const ListJetski = () => {
                                 <th className="px-6 py-3">Top Speed</th>
                                 <th className="px-6 py-3">Availability</th>
                                 <th className="px-6 py-3">Location</th>
-                                <th className="px-6 py-3">Actions</th>
+                                {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
+                                    <th className="px-6 py-3">Actions</th>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
@@ -136,12 +141,14 @@ export const ListJetski = () => {
                                     <td className="px-6 py-4">
                                         {getLocationName(jetski.jetski_location_id, locationNames)}
                                     </td>
+                                    {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
                                     <td className="px-6 py-4">
                                         <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>
                                         <Button variant="destructive" onClick={() => handleDeleteJetskiClick(jetski.jetski_id)}>
                                             {jetski.jetski_status === 'AVAILABLE' ? "Remove" : "Return"}
                                         </Button>
                                     </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>

@@ -12,6 +12,7 @@ import { ListReservationButton } from "@/components/auth/list-reservation-button
 import { SettingsButton } from "@/components/auth/settings-button"
 import { Button } from "@/components/ui/button"
 import { getUserRole } from "@/lib/getUserRole"
+import Image from "next/image"
 
 const RentalOptionLayout =async({children}:{
     children: React.ReactNode
@@ -22,7 +23,7 @@ const RentalOptionLayout =async({children}:{
         <main className="flex h-full w-full">
             <div className="sticky top-0 flex flex-col w-64 bg-sky-700 border-2 border-black h-screen overflow-auto">
                 <div className="flex justify-center items-center h-44 border-b-2 border-black">
-                    <img src="/jetski_transp.png" alt="Jetski Logo" className="w-44" />
+                    <Image src="/jetski_transp.png" alt="Jetski Logo" width={176} height={176} className="w-44" />
                 </div>
                 <div className="text-white text-xl font-bold p-2 bg-sky-800 rounded-md mb-5">
                     NAVIGATION MENU:

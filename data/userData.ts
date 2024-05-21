@@ -27,3 +27,19 @@ export const getAllUsers = async()=>{
         return null;
     }
 }
+export const getAuthenticatedUsers = async()=>{
+    try{
+        const users = await db.user.findMany({
+            where: {
+                OR: [
+                    {user_role: "ADMIN"},
+                    {user_role: "MODERATOR"}
+                ]
+            }
+        })
+
+        return users;
+    } catch {
+        return null;
+    }
+}

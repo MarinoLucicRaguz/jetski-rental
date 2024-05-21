@@ -14,10 +14,12 @@ import { CardWrapper } from "@/components/auth/card-wrapper";
 import { Button } from "../ui/button";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
-import { Location } from "@prisma/client";
+import { Location, User } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import ErrorPopup from "../ui/errorpopup";
+import { getAuthUsers } from "@/actions/getAuthUsers";
+import { MenuItem, Select } from "@mui/material";
 
 
 
@@ -27,6 +29,7 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
     const [isPending, startTransition] = useTransition();
     const [locationName, setLocationName] = useState<string>("");
     const [locationData, setLocationData] = useState<Location |null >();
+    const [users, setUsers] = useState<User[]>([]);
     
     const [showError, setShowError] = useState(false);
     const router = useRouter();
@@ -59,24 +62,35 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
         resolver: zodResolver(LocationSchema),
         defaultValues: {
             location_name: locationName,
+            user_id: locationData?.location_manager_id
         },
     });
 
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                const pulledLocationData = await pullLocationById(locationId);
-                setLocationData(pulledLocationData);
-                if (locationData?.location_name !== null && locationData?.location_name !== undefined) { // Check if name is not null or undefined
-                    setLocationName(locationData.location_name);
-                }
-            } catch (error) {
-                console.error("Error fetching location name:", error);
+          try {
+            const [pulledLocationData, users] = await Promise.all([
+              pullLocationById(locationId),
+              getAuthUsers()
+            ]);
+            setLocationData(pulledLocationData);
+            if(users)
+            {
+                setUsers(users);
             }
+            if (pulledLocationData) {
+              form.reset({
+                location_name: pulledLocationData.location_name,
+                user_id: pulledLocationData.location_manager_id || "",
+              });
+            }
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
         };
-
+    
         fetchData();
-    }, []);
+      }, [locationId, form]);
 
     const onSubmit = async (values: z.infer<typeof LocationSchema>) => {
         setError("");
@@ -104,10 +118,45 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
                                 <FormMessage />
                             </FormItem>
                         )} />
+                        <FormField
+                            control={form.control}
+                            name="user_id"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Manager</FormLabel>
+                                    <FormControl>
+                                        <Select
+                                            {...field}
+                                            displayEmpty
+                                            disabled={isPending}
+                                            className="w-full border border-gray-300 rounded-md"
+                                            size="small"
+                                            renderValue={(selected) => {
+                                                if (selected === "" || selected === undefined) {
+                                                    const selectedUser = users?.find(user => user.user_id === locationData?.location_manager_id);
+                                                    return selectedUser ? (selectedUser.name || selectedUser.email) : "";
+                                                }
+                                                const selectedUser = users?.find(user => user.user_id === selected);
+                                                return selectedUser ? (selectedUser.name || selectedUser.email) : "";
+                                            }}>
+                                            <MenuItem value="">
+                                                <em>Select a manager</em>
+                                            </MenuItem>
+                                            {users?.map(user => (
+                                                <MenuItem key={user.user_id} value={user.user_id}>
+                                                    {user.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
                     <FormError message={error} />
                     <FormSuccess message={success} />
-                    <Button type="submit" className="flex w-full margin-right-5" disabled={isPending}>Edit Location</Button>
+                    <Button type="submit" className="flex w-full margin-right-5" disabled={isPending}>Save</Button>
                 </form>
             </Form>
         </CardWrapper>

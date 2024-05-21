@@ -11,6 +11,12 @@ datasource db {
 model Location {
   location_id          Int           @id @default(autoincrement())
   location_name        String        @unique
+
+  location_manager_id  String?
+  location_manager     User?    @relation("Manager", fields: [location_manager_id], references: [user_id])
+
+
+
   jetski_location_list Jetski[]
   reservations_list    Reservation[]
   user_location_list   User[]
@@ -25,6 +31,8 @@ model User {
   user_role        UserRole   @default(GUEST)
   user_location_id Int?
   user_location    Location?  @relation(fields: [user_location_id], references: [location_id])
+
+  managed_locations Location[] @relation("Manager")
 }
 
 model Jetski {

@@ -12,7 +12,10 @@ export const editLocation = async (locationId: number, values: z.infer<typeof Lo
         return { error: "Invalid fields" };
     }
 
-    const { location_name } = validatedFields.data;
+    const { location_name,user_id } = validatedFields.data;
+
+    const newLocName = location_name.toLowerCase();
+    const finalName = newLocName.charAt(0).toUpperCase() + newLocName.slice(1);
 
     const existingLocation = await getLocationById(locationId);
 
@@ -23,7 +26,7 @@ export const editLocation = async (locationId: number, values: z.infer<typeof Lo
     try {
         await db.location.update({
             where: { location_id: locationId },
-            data: { location_name }
+            data: { location_name: finalName, location_manager_id: user_id }
         });
 
         return { success: "Location successfully updated" };

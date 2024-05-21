@@ -1,5 +1,4 @@
 import { CreateJetskiButton } from "@/components/auth/create-jetski-button"
-import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { CreateReservationButton } from "@/components/auth/create-reservation-button";
 import { CreateLocationButton } from "@/components/auth/create-location-button";
@@ -12,16 +11,16 @@ import { AdminDashboardButton } from "@/components/auth/admin-dashboard-button";
 import { signOutUser } from "@/actions/signOutAction";
 import { getUserRole } from "@/lib/getUserRole";
 import { SettingsButton } from "@/components/auth/settings-button";
+import Image from "next/image";
 
 const DashboardPage =async ()=>{
-    const session = await auth()
     
     const userRole = await getUserRole();
     return (
         <main className="flex h-full w-full">
-            <div className="sticky top-0 flex flex-col w-64 bg-sky-700 border-2 border-black h-screen overflow-auto"> {/* Ensure full height */}
-                <div className="flex justify-center items-center h-44 border-b-2 border-black"> {/* Added border for separation */}
-                    <img src="/jetski_transp.png" alt="Jetski Logo" className="w-44" /> {/* Adjusted for no specific height */}
+            <div className="sticky top-0 flex flex-col w-64 bg-sky-700 border-2 border-black h-screen overflow-auto">
+                <div className="flex justify-center items-center h-44 border-b-2 border-black">
+                    <Image src="/jetski_transp.png" alt="Jetski Logo" width={176} height={176} className="w-44" />
                 </div>
                 <div className="text-white text-xl font-bold p-2 bg-sky-800 rounded-md mb-5">
                     NAVIGATION MENU:

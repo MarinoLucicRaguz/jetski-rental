@@ -83,6 +83,7 @@ export const LocationSchema = z.object({
     }).max(30,{
         message: "Maximum length is 30 characters!"
     }),
+    user_id: z.string().nullable()
 });
 
 const today = new Date();
@@ -95,12 +96,6 @@ const zPhone = z.string().refine((value) => {
     message: "Invalid phone number"
 });
   
-  // Creating a helper to get today's date with the time reset to midnight
-  const getToday = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to the start of today
-    return today;
-  };
 
 export const JetskiReservationSchema = z.object({
     rentDate: z.date().refine(date => date>=today,

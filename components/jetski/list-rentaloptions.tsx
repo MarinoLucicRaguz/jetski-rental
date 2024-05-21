@@ -1,11 +1,11 @@
 "use client"
 import { useEffect, useState, useTransition } from "react";
 import { RentalOptions } from "@prisma/client";
-import { CardWrapper } from "../auth/card-wrapper";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getAllReservationOptions } from "@/actions/listReservationOptions";
 import { deleteRentalOption } from "@/actions/deleteRentalOption";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const ListRentalOptions = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -13,6 +13,8 @@ export const ListRentalOptions = () => {
     const [showUnavailable, setShowUnavailable] = useState(true);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+
+    const user = useCurrentUser();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -76,7 +78,9 @@ export const ListRentalOptions = () => {
                         <th className="px-4 py-2">Duration</th>
                         <th className="px-4 py-2">Availability</th>
                         <th className="px-4 py-2">Price</th>
-                        <th className="px-4 py-2">Actions</th>
+                        {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
+                            <th className="px-4 py-2">Actions</th>
+                        )}
                     </tr>
                 </thead>
                 <tbody>
@@ -87,7 +91,9 @@ export const ListRentalOptions = () => {
                                 <td className="border px-4 py-2">{rental.duration} minutes</td>
                                 <td className="border px-4 py-2">{rental.isAvailable ? "Available" : "Not available"}</td>
                                 <td className="border px-4 py-2">{rental.rentalprice.toPrecision(3)} €</td>
-                                <td className="border px-4 py-2">
+                                {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
+
+                                    <td className="border px-4 py-2">
                                     <Button onClick={() => handleEditClick(rental.rentaloption_id)}>Edit</Button>
                                         {rental.isAvailable === true ? (
                                             <Button variant="destructive" onClick={() => handleDeleteClick(rental.rentaloption_id)}>Disallow rental option</Button>
@@ -95,6 +101,7 @@ export const ListRentalOptions = () => {
                                             <Button variant="constructive" onClick={() => handleDeleteClick(rental.rentaloption_id)}>Allow rental option</Button>
                                         )}
                                     </td>
+                                )}
                             </tr>
                         )
                     ))}

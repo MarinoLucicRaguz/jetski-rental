@@ -54,6 +54,92 @@ export const JetSkiReservationForm =() => {
     const router = useRouter();
 
     const user = useCurrentUser();
+    
+    const form = useForm<z.infer<typeof JetskiReservationSchema>>({
+        resolver: zodResolver(JetskiReservationSchema),
+        defaultValues:{
+            rentDate: rentDate,
+            startTime: startTime,
+            endTime: endTime,
+            reservation_location_id: selectedLocation?.location_id,
+            reservation_jetski_list: selectedJetski,
+            contactNumber: phone,
+            totalPrice: totalPrice,
+            rentaloption_id: selectedRentalOption?.rentaloption_id,
+            discount: discount
+        },
+    })
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const rentalData = await getAvailableReservationOptions();
+                setRentalOptions(rentalData);
+                const locationData = await listLocation();
+                setAvailableLocations(locationData);
+
+            } catch (error) {
+                setError("Error fetching rental data");
+            }
+        };
+        fetchData();
+    }, []);    
+    
+    useEffect(() => {
+        form.setValue("reservation_jetski_list", selectedJetski);
+    }, [selectedJetski]);
+        
+    useEffect(() => {
+        if (rentDate && startTime) {
+            const adjustedStartTime = new Date(
+                rentDate.getFullYear(),
+                rentDate.getMonth(),
+                rentDate.getDate(),
+                startTime.getHours(),
+                startTime.getMinutes()
+            );
+            setStartTime(adjustedStartTime);
+            updateEndTime(adjustedStartTime);
+        }
+    }, [rentDate]);
+
+    useEffect(() => {
+        if (startTime && selectedRentalOption) {
+            const endTimeDate = add(startTime, { minutes: selectedRentalOption.duration });
+            setEndTime(endTimeDate);
+            form.setValue('endTime', endTimeDate);
+        }
+    }, [startTime, selectedRentalOption]);
+
+    useEffect(() => {
+        const fetchJetskis = async () => {
+            if (startTime && selectedRentalOption && endTime){
+                try {
+                    const data = await listAvailableJetskis(startTime, endTime);
+                    setAvailableJetskis(data);
+                } catch (error) {
+                    setError("Error fetching jetskis");
+                }
+            }
+        };
+    
+        fetchJetskis();
+    }, [startTime, selectedRentalOption, endTime]);    
+    
+    useEffect(() => {
+        let jetskiAmplifier = selectedRentalOption?.rentaloption_description === "SAFARI"  ? selectedJetski.length - 1 : selectedJetski.length;
+
+        if(jetskiAmplifier<=0)
+            {
+                jetskiAmplifier=1;
+            }
+        if (selectedRentalOption) {
+            const basePrice = selectedRentalOption.rentalprice*jetskiAmplifier;
+            const calculatedDiscount = (basePrice * discount) / 100;
+            setTotalPrice(basePrice - calculatedDiscount);    
+            form.setValue("totalPrice", totalPrice);
+        }
+    }, [selectedRentalOption, discount, selectedJetski]);
 
     useEffect(() => {
         if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
@@ -76,25 +162,6 @@ export const JetSkiReservationForm =() => {
           </>
         );
     }
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const rentalData = await getAvailableReservationOptions();
-                setRentalOptions(rentalData);
-                const locationData = await listLocation();
-                setAvailableLocations(locationData);
-
-            } catch (error) {
-                setError("Error fetching rental data");
-            }
-        };
-        fetchData();
-    }, []);    
-    
-    useEffect(() => {
-        form.setValue("reservation_jetski_list", selectedJetski);
-    }, [selectedJetski]);
 
     const handleRentDateTimeChange = (selectedRentDate: Date) => {
         setRentDate(selectedRentDate);
@@ -134,28 +201,6 @@ export const JetSkiReservationForm =() => {
             : prevSelectedJetski.filter(j => j.jetski_id !== jetski.jetski_id)
         );
     };
-    
-    useEffect(() => {
-        if (rentDate && startTime) {
-            const adjustedStartTime = new Date(
-                rentDate.getFullYear(),
-                rentDate.getMonth(),
-                rentDate.getDate(),
-                startTime.getHours(),
-                startTime.getMinutes()
-            );
-            setStartTime(adjustedStartTime);
-            updateEndTime(adjustedStartTime);
-        }
-    }, [rentDate]);
-
-    useEffect(() => {
-        if (startTime && selectedRentalOption) {
-            const endTimeDate = add(startTime, { minutes: selectedRentalOption.duration });
-            setEndTime(endTimeDate);
-            form.setValue('endTime', endTimeDate);
-        }
-    }, [startTime, selectedRentalOption]);
 
     const updateEndTime = (startDateTime:Date) => {
         if (selectedRentalOption) {
@@ -164,51 +209,6 @@ export const JetSkiReservationForm =() => {
             form.setValue('endTime', endTimeDate);
         }
     };
-
-    useEffect(() => {
-        const fetchJetskis = async () => {
-            if (startTime && selectedRentalOption && endTime){
-                try {
-                    const data = await listAvailableJetskis(startTime, endTime);
-                    setAvailableJetskis(data);
-                } catch (error) {
-                    setError("Error fetching jetskis");
-                }
-            }
-        };
-    
-        fetchJetskis();
-    }, [startTime, selectedRentalOption, endTime]);    
-    
-    useEffect(() => {
-        let jetskiAmplifier = selectedRentalOption?.rentaloption_description === "SAFARI"  ? selectedJetski.length - 1 : selectedJetski.length;
-
-        if(jetskiAmplifier<=0)
-            {
-                jetskiAmplifier=1;
-            }
-        if (selectedRentalOption) {
-            const basePrice = selectedRentalOption.rentalprice*jetskiAmplifier;
-            const calculatedDiscount = (basePrice * discount) / 100;
-            setTotalPrice(basePrice - calculatedDiscount);    
-            form.setValue("totalPrice", totalPrice);
-        }
-    }, [selectedRentalOption, discount, selectedJetski]);
-    
-    const form = useForm<z.infer<typeof JetskiReservationSchema>>({
-        resolver: zodResolver(JetskiReservationSchema),
-        defaultValues:{
-            rentDate: rentDate,
-            startTime: startTime,
-            endTime: endTime,
-            reservation_location_id: selectedLocation?.location_id,
-            reservation_jetski_list: selectedJetski,
-            contactNumber: phone,
-            totalPrice: totalPrice,
-            rentaloption_id: selectedRentalOption?.rentaloption_id,
-            discount: discount
-        },
-    })
 
     const onSubmit = async (values: z.infer<typeof JetskiReservationSchema>) => {
         console.log("Form submitted with values:", values);
@@ -223,7 +223,9 @@ export const JetSkiReservationForm =() => {
                     setError(data.error);
                 } else {
                     setSuccess(data.success);
-                    window.location.reload();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500)
                 }
             } catch (error) {
                 setError("An error occurred while submitting the form.");
@@ -358,7 +360,7 @@ export const JetSkiReservationForm =() => {
                                                 type="checkbox"
                                                 onChange={(e) => handleCheckboxChange(jetski, e.target.checked)}
                                             />
-                                            {" " + jetski.jetski_registration + " - " + jetski.jetski_model + " - " + jetski.jetski_manufacturingYear + " - " + availableLocations?.find(loc => loc.location_id===jetski.jetski_location_id)?.location_name}
+                                            {" " + jetski.jetski_registration + " - " + availableLocations?.find(loc => loc.location_id===jetski.jetski_location_id)?.location_name}
                                         </label>
                                     </div>
                                 ))}
@@ -385,24 +387,28 @@ export const JetSkiReservationForm =() => {
                             )}
                     />
                     </div>
-                    <div className="flex justify-between w-full ">
+                    <div className="flex-xol justify-between ">
                         <strong> Contact number: </strong>
                         <Controller
                             control={form.control}
                             name="contactNumber"
-                            render={({ field }) => (
-                                <PhoneInput
-                                    {...field}
-                                    defaultCountry="hr"
-                                    autoFocus={true}
-                                    onChange={(value) => {
+                            render={({ field, fieldState: { error } }) => (
+                                <div className="w-full">
+                                    <PhoneInput
+                                        {...field}
+                                        defaultCountry="hr"
+                                        autoFocus={true}
+                                        onChange={(value) => {
                                         setPhone(value);
                                         field.onChange(value);
-                                    }}
-                                    value={phone}
-                                />
+                                        }}
+                                        value={phone}
+                                        className={error ? "border-red-500" : ""}
+                                    />
+                                    {error && <span className="text-red-500">{error.message}</span>}
+                                </div>
                             )}
-                        />
+                            />
                     </div>
                     <input type="hidden" {...form.register("contactNumber")} value={phone} />
                     <div className="flex justify-between">

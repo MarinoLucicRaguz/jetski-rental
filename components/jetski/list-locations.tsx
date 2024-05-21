@@ -3,20 +3,19 @@
 import { useEffect, useState, useTransition } from "react";
 import { listLocation } from "@/actions/listLocations";
 import { deleteLocation } from "@/actions/deleteLocation";
-import { Location } from "@prisma/client";
+import { Location, User } from "@prisma/client";
 import { CardWrapper } from "../auth/card-wrapper";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
-export function ButtonDestructive() {
-    return <Button variant="destructive">Destructive</Button>
-  }
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export const ListLocation = () => {
     const [error, setError] = useState<string | undefined>("");
     const [locationData, setLocationData] = useState<Location[] | null>([]);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+
+    const user = useCurrentUser();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -54,10 +53,12 @@ export const ListLocation = () => {
                 {locationData?.map((location) => (
                     <div className="flex items-center justify-between" key={location.location_id}>
                         <span >{location.location_name}</span>
+                        {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
                         <div className="space-x-2">
                             <Button onClick={() => handleEditClick(location.location_id)}>Edit</Button>
                             <Button variant="destructive" onClick={() => handleDeleteClick(location.location_id)}>Delete</Button>
                         </div>
+                        )}
                     </div>
                 ))}
                 {error && <div>Error: {error}</div>}

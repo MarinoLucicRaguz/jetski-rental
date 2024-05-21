@@ -38,6 +38,28 @@ export const JetskiForm = () => {
 
     const user = useCurrentUser();
 
+    const form = useForm<z.infer<typeof JetskiSchema>>({
+        resolver: zodResolver(JetskiSchema),
+        defaultValues: {
+            jetski_registration: "",
+            jetski_location_id: null, 
+            jetski_model: "",
+            jetski_topSpeed: "",
+            jetski_kW: "",
+            jetski_manufacturingYear: "",
+        },
+    });
+
+    useEffect(() => {
+        listLocation()
+        .then((data) => {
+            if (data !== null) setLocations(data);
+        })
+        .catch((error) => {
+            console.error("Error fetching locations: ", error);
+        });
+    }, []);
+
     useEffect(() => {
         if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
           setShowError(true);
@@ -59,29 +81,7 @@ export const JetskiForm = () => {
           </>
         );
     }
-
-    const form = useForm<z.infer<typeof JetskiSchema>>({
-        resolver: zodResolver(JetskiSchema),
-        defaultValues: {
-            jetski_registration: "",
-            jetski_location_id: null, 
-            jetski_model: "",
-            jetski_topSpeed: "",
-            jetski_kW: "",
-            jetski_manufacturingYear: "",
-        },
-    });
-
-    useEffect(() => {
-        listLocation()
-            .then((data) => {
-                if (data !== null) setLocations(data);
-            })
-            .catch((error) => {
-                console.error("Error fetching locations: ", error);
-            });
-    }, []);
-
+    
     const onSubmit = (values: z.infer<typeof JetskiSchema>) => {
         setError("");
         setSuccess("");

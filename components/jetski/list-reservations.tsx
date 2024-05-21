@@ -5,15 +5,18 @@ import { CardWrapper } from "../auth/card-wrapper";
 import { listReservationsByDate } from "@/actions/listReservationsForDate";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import { Button } from "../ui/button";
-import { CalendarIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { CalendarIcon, TrashIcon, UpdateIcon, ClipboardCopyIcon } from "@radix-ui/react-icons";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
-import { Location, Reservation } from "@prisma/client";
+import { Location, RentalOptions } from "@prisma/client";
 import { listLocation } from "@/actions/listLocations";
 import { Menu, MenuItem } from "@mui/material";
 import { deleteReservation } from "@/actions/deleteReservation";
 import { useRouter } from "next/navigation";
 import { ExtendedReservation } from "@/types";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { getAllReservationOptions } from "@/actions/listReservationOptions";
+
 
 export const ListReservations = () => {
     const [error, setError] = useState("");
@@ -23,18 +26,27 @@ export const ListReservations = () => {
     const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [confirmPopover, setConfirmPopover] = useState<null | number>(null);
+    const [rentalOptions, setRentalOptions] = useState<RentalOptions[]>([])
     const router = useRouter();
 
+    const user = useCurrentUser();
+
     useEffect(() => {
-        const fetchLocations = async () => {
+        const fetchLocationAndOptionsData = async () => {
             try {
                 const locationData = await listLocation();
                 setLocationNames(locationData);
+
+                const rentaloptions = await getAllReservationOptions();
+                if(rentaloptions)
+                {
+                    setRentalOptions(rentaloptions);
+                }
             } catch (error) {
                 setError("Failed to load locations: " + error);
             }
         };
-        fetchLocations();
+        fetchLocationAndOptionsData();
     }, []);
 
     useEffect(() => {
@@ -80,6 +92,23 @@ export const ListReservations = () => {
         setConfirmPopover(reservation_id);
     };
 
+    const formatReservationsForClipboard = () => {
+        return filteredReservations.map(reservation => {
+            const location = locationNames?.find(loc => loc.location_id === reservation.reservation_location_id);
+            const jetskis = reservation.reservation_jetski_list?.map(jetski => jetski.jetski_registration).join(" - ") || "";
+            return `${reservation.reservation_jetski_list.length}x${(new Date(reservation.endTime).getTime() - new Date(reservation.startTime).getTime()) / 3600000}h ${rentalOptions?.find((rentalOption)=>rentalOption.rentaloption_id===reservation.rentaloption_id)?.rentaloption_description === "SAFARI" ? "safari" : "regular"} / ${reservation.reservation_location.location_name}  / ${jetskis} / ${reservation.reservationOwner} / ${reservation.totalPrice}€`;
+        }).join("\n");
+    };
+    
+    const copyToClipboard = () => {
+        const formattedReservations = formatReservationsForClipboard();
+        navigator.clipboard.writeText(formattedReservations).then(() => {
+            alert("Reservations copied to clipboard!");
+        }).catch(err => {
+            setError("Failed to copy reservations: " + err);
+        });
+    };
+    
     const confirmDelete = async () => {
         if (confirmPopover !== null) {
             try {
@@ -137,6 +166,9 @@ export const ListReservations = () => {
                         </Menu>
                     </div>
                 </div>
+                <Button onClick={copyToClipboard} className="mb-4">
+                    <ClipboardCopyIcon className="mr-2" /> Copy to Clipboard
+                </Button>
                 {error && <div className="text-red-500">{error}</div>}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredReservations.map((reservation) => {
@@ -144,21 +176,19 @@ export const ListReservations = () => {
                         return (
                             <div key={reservation.reservation_id} className="border rounded-lg p-4 shadow-sm flex flex-col">
                                 <div>
-                                    <strong>Reservation name:</strong> {reservation.reservationOwner}
-                                </div>
-                                <div>
-                                    <strong>Contact number: </strong> {reservation.contactNumber}
-                                </div>
-                                <div>
-                                    <strong>Start Time:</strong> {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                                    <br />
-                                    <strong>End Time:</strong> {new Date(reservation.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                                </div>
-                                <div>
                                     <strong>Location:</strong> {location ? location.location_name : 'No location found'}
                                 </div>
                                 <div>
+                                    <strong>Name:</strong> {reservation.reservationOwner}
+                                </div>
+                                <div>
+                                    <strong>Contact: </strong> {reservation.contactNumber}
+                                </div>
+                                <div>
                                     <strong>Price: </strong> {reservation.totalPrice} €
+                                </div>
+                                <div>
+                                    <strong>Time:</strong> {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(reservation.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                                 </div>
                                 <div>
                                     <strong>Jetski:</strong>
@@ -166,6 +196,7 @@ export const ListReservations = () => {
                                         <div key={jetski.jetski_id}>{jetski.jetski_registration}</div>
                                     ))}
                                 </div>
+                                {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
                                 <div className="flex justify-between mt-auto">
                                         <Button variant={"constructive"} onClick={()=> handleEditButton(reservation.reservation_id)}>
                                             <UpdateIcon />
@@ -186,6 +217,7 @@ export const ListReservations = () => {
                                         </PopoverContent>
                                     </Popover>
                                 </div>
+                                )}
                             </div>
                         );
                     })}

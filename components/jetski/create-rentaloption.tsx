@@ -42,6 +42,15 @@ export const ReservationOptionForm =() => {
 
     const user = useCurrentUser();
 
+    const form = useForm<z.infer<typeof ReservationOptionSchema>>({
+        resolver: zodResolver(ReservationOptionSchema),
+        defaultValues:{
+            rentaloption_description: "",
+            duration: undefined,
+            rentalprice: undefined
+        },
+    })
+
     useEffect(() => {
         if (user && user.role !== "ADMIN") {
           setShowError(true);
@@ -63,15 +72,6 @@ export const ReservationOptionForm =() => {
           </>
         );
     }
-
-    const form = useForm<z.infer<typeof ReservationOptionSchema>>({
-        resolver: zodResolver(ReservationOptionSchema),
-        defaultValues:{
-            rentaloption_description: "",
-            duration: undefined,
-            rentalprice: undefined
-        },
-    })
     
     const onSubmit = (values: z.infer<typeof ReservationOptionSchema>) => {
         console.log("Submitted values:", values);
