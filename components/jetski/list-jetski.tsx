@@ -1,9 +1,9 @@
 "use client"
-import { useEffect, useState, useTransition, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { listJetski } from "@/actions/listJetskis";
 import { Jetski, Location } from "@prisma/client";
 import { Button } from "../ui/button";
-import { useRouter } from "next/navigation";  // Correct import if using Next.js
+import { useRouter } from "next/navigation";
 import { deleteJetski } from "@/actions/deleteJetski";
 import { listLocation } from "@/actions/listLocations";
 import { Menu, MenuItem } from "@mui/material";
@@ -14,7 +14,7 @@ export const ListJetski = () => {
     const [error, setError] = useState<string | undefined>("");
     const [jetskiData, setJetskiData] = useState<Jetski[] | null>([]);
     const [locationNames, setLocationNames] = useState<Location[] | null>([]);
-    const [loadingData, setLoadingData] = useState(true); // Track data loading
+    const [loadingData, setLoadingData] = useState(true);
     const [showOnlyAvailable, setShowOnlyAvailable] = useState(true);
     const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -42,7 +42,7 @@ export const ListJetski = () => {
         };
 
         Promise.all([fetchLocations(), fetchJetskis()]).then(() => {
-            setLoadingData(false); // Hide spinner when both data sets are loaded
+            setLoadingData(false); 
         });
     }, []);
 
@@ -88,14 +88,14 @@ export const ListJetski = () => {
     };
 
     return (
-        <div className="relative w-full h-full"> {/* Ensures the container fills its parent */}
+        <div className="relative w-full h-full">
         {loadingData && 
-        (<div className="flex justify-center items-center" style={{ backgroundColor: "#38bdf8" }}> {/* Overlay with semi-transparent background */}
+        (<div className="flex justify-center items-center" style={{ backgroundColor: "#38bdf8" }}>
                 <Spinner />
             </div>
         )}
 
-        <div className={`p-10 bg-white rounded-sm ${loadingData ? "opacity-100" : ""}`}> {/* Optionally reduce opacity of the content div when loading */}
+        <div className={`p-10 bg-white rounded-sm ${loadingData ? "opacity-100" : ""}`}>
                 <div className="flex flex-col space-y-4">
                     <div className="text-center text-2xl font-bold uppercase text-black">
                         {showOnlyAvailable ? "List of available jetskis" : "List of all jetskis"}

@@ -24,6 +24,7 @@ export default async function RootLayout({
         <SessionProvider session={session}>
           {children}
         </SessionProvider>
+        <div id="modal-root"></div>
       </body>
     </html>
   )

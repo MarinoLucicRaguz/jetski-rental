@@ -8,7 +8,7 @@ export const deleteLocation = async(locationId: number) => {
     const existingLocation = await getLocationById(locationId);
 
     if (!existingLocation) {
-        return { error: "Location with this ID does not exist!" }; //Should never happen, but just incase!
+        return { error: "Location with this ID does not exist!" };
     }
 
     try {

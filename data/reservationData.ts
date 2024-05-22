@@ -70,3 +70,35 @@ export const getReservationById = async (reservation_id: number): Promise<Extend
         return null;
     }
 }
+
+export const getReservationByLocation = async (location_id: number): Promise<ExtendedReservation[] | null> => {
+  try {
+    const now = new Date();
+    const oneHourAgo = new Date(now);
+    oneHourAgo.setHours(now.getHours() - 1);
+
+    const tomorrow = new Date(oneHourAgo);
+    tomorrow.setDate(oneHourAgo.getDate() + 1);
+    tomorrow.setHours(0,0,0,0)
+
+    const reservation = await db.reservation.findMany({
+      where: {
+        reservation_location_id: location_id,
+        startTime: {
+          gte: oneHourAgo,
+          lt: tomorrow,
+        },
+      },
+      orderBy: { startTime: 'asc' },
+      include: {
+        reservation_jetski_list: true,
+        reservation_location: true,
+      },
+    });
+
+    return reservation;
+  } catch (error) {
+    console.error("Unable to find reservations ", error);
+    return null;
+  }
+};

@@ -23,11 +23,12 @@ import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { getAvailableReservationOptions } from "@/actions/listAvailableRentalOptions";
 import { PhoneInput } from 'react-international-phone'
-import 'react-international-phone/style.css';
 import { Input } from "../ui/input";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import ErrorPopup from "../ui/errorpopup";
+import { debounce } from "lodash";
+import 'react-international-phone/style.css';
 
 export const JetSkiReservationForm =() => {
     const [error, setError] = useState<string | undefined>("");
@@ -162,6 +163,7 @@ export const JetSkiReservationForm =() => {
           </>
         );
     }
+    const debounceTimeChange = debounce((handler, value) => handler(value), 300);
 
     const handleRentDateTimeChange = (selectedRentDate: Date) => {
         setRentDate(selectedRentDate);
@@ -173,9 +175,8 @@ export const JetSkiReservationForm =() => {
                 startTime.getHours(),
                 startTime.getMinutes()
             );
-            setStartTime(updatedStartTime);
-            updateEndTime(updatedStartTime);
-        }
+            debounceTimeChange(setStartTime, updatedStartTime);
+            debounceTimeChange(updateEndTime, updatedStartTime);        }
     };
     
     const handleStartTimeChange = (selectedTime: Date) => {
@@ -262,7 +263,7 @@ export const JetSkiReservationForm =() => {
                                             field.onChange(date);
                                             if(date)
                                                 handleRentDateTimeChange(date);
-                                            console.log("Selected date:", date) }}
+                                            }}
                                         disabled={(date) =>
                                             date < new Date(new Date().toDateString()) 
                                         }
