@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
-import { Form, FormField, FormItem, FormLabel, FormControl } from '../ui/form';
+import { FormItem, FormLabel, FormControl } from '../ui/form';
 import { Button } from '../ui/button';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover';
@@ -19,6 +19,7 @@ const AvailabilitySchema = z.object({
   rentDate: z.date().nullable(),
   jetskiCount: z.number().min(1),
   rentalOption: z.any().optional(),
+  location: z.any().optional(),
 });
 
 type AvailabilityFormValues = z.infer<typeof AvailabilitySchema>;
@@ -37,6 +38,8 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
   const [rentalOptions, setRentalOptions] = useState<RentalOptions[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+  const [includeLocation, setIncludeLocation] = useState(false);
+  const [checkedAvailability, setCheckedAvailability] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,12 +60,17 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
   }, []);
 
   const handleCheckAvailability = async (data: AvailabilityFormValues) => {
-    console.log(data.rentDate)
-    console.log(data.jetskiCount)
-    console.log(data.rentalOption)
     if (data.rentDate && data.jetskiCount && data.rentalOption) {
       try {
-        const slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption.duration);
+        let slots;
+        if (includeLocation && data.location)
+        {
+          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption.duration, data.location.location_id);
+        }
+        else{
+          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption.duration);
+        }
+        setCheckedAvailability(true);
         setAvailableSlots(slots.slice(0,5));
       } catch (error) {
         console.error('Error checking availability:', error);
@@ -78,7 +86,6 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
         </strong>
     </div>
     <FormProvider {...methods}>
-        <form className="flex flex-col gap-2" onSubmit={handleSubmit(handleCheckAvailability)}>
           <Controller
             name="rentDate"
             control={control}
@@ -99,7 +106,8 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
                       mode="single"
                       selected={field.value || undefined}
                       onSelect={(date) => field.onChange(date)}
-                    //   disabled={(date) => date < new Date(new Date().toDateString())}
+                      disabled={(date) => date < new Date(new Date().toDateString()) 
+                    }
                     />
                   </PopoverContent>
                 </Popover>
@@ -130,7 +138,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
             name="rentalOption"
             control={control}
             render={({ field }) => (
-              <FormItem className='flex justify-between'>
+              <FormItem className='flex justify-between gap-2'>
                 <FormLabel className='flex items-center font-bold'>Rental Option: </FormLabel>
                 <FormControl className='rounded-sm p-1'>
                   <select
@@ -139,8 +147,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
                       const selectedOption = rentalOptions.find(option => option.rentaloption_id === parseInt(e.target.value));
                       field.onChange(selectedOption);
                     }}
-                    className='shadow-[1px_1px_3px_rgba(0,0,0,0.5)] bg-black text-white'
-                    >
+                    className='shadow-[1px_1px_3px_rgba(0,0,0,0.5)] bg-black text-white'>
                     <option value="">Select an option</option> 
                     {rentalOptions.map((option) => (
                       <option key={option.rentaloption_id} value={option.rentaloption_id}>
@@ -152,6 +159,49 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
               </FormItem>
             )}
           />
+          <form className="flex flex-col gap-1" onSubmit={handleSubmit(handleCheckAvailability)}>
+            <div className="flex items-center">
+              <label className='font-bold text-sm' htmlFor="includeLocation">Check availability per location</label>
+              <input
+                type="checkbox"
+                checked={includeLocation}
+                onChange={(e) => setIncludeLocation(e.target.checked)}
+                id="includeLocation"
+                className="ml-5 mr-2"
+              />
+            </div>
+          {includeLocation && (
+            <Controller
+              name="location"
+              control={control}
+              render={({ field }) => (
+                <FormItem className="flex justify-between ">
+                  <FormLabel className="flex items-center font-bold">Location: </FormLabel>
+                  <FormControl className='rounded sm p-1'>
+                    <select
+                      value={field.value?.location_id || ''}
+                      onChange={(e) => {
+                        const selectedLocationId = parseInt(e.target.value);
+                        if (selectedLocationId === 0) {
+                          field.onChange(null);
+                        } else {
+                          const selectedLocation = locations.find(location => location.location_id === selectedLocationId);
+                          field.onChange(selectedLocation);
+                        }
+                      }}
+                      className='shadow-[1px_1px_3px_rgba(0,0,0,0.5)] bg-black text-white'>
+                      <option value="0">All locations</option>
+                      {locations.map((location) => (
+                        <option key={location.location_id} value={location.location_id}>
+                          {location.location_name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
           <Button type="submit">Check Availability</Button>
         </form>
         {availableSlots.length > 0 && (
@@ -171,6 +221,10 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
             </div>
           </div>
         )}
+        {availableSlots.length == 0 && checkedAvailability &&(
+          <p>There are no available slots for selected options.</p>
+        )}
+        
       </FormProvider>
     </Modal>
   );

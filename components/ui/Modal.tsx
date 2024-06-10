@@ -20,8 +20,9 @@ const Modal = ({ children, onClose }: { children: React.ReactNode; onClose: () =
   return createPortal(
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-8 rounded-lg shadow-lg relative">
-        <Button variant="destructive" onClick={onClose} className="absolute top-2 right-2 ">
-          Close
+        <Button variant="default" size="extra-sm" onClick={onClose} className="absolute top-2 right-2 ">
+          <span className="sr-only">Close</span>
+          X
         </Button>
         {children}
       </div>

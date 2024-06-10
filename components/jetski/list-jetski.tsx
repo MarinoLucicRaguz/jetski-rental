@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useMemo } from "react";
 import { listJetski } from "@/actions/listJetskis";
-import { Jetski, Location } from "@prisma/client";
+import { Jetski, Location, statusJetski } from "@prisma/client";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { deleteJetski } from "@/actions/deleteJetski";
@@ -9,6 +9,22 @@ import { listLocation } from "@/actions/listLocations";
 import { Menu, MenuItem } from "@mui/material";
 import Spinner from "../ui/spinner";
 import { useCurrentUser } from "@/hooks/use-current-user";
+
+function convertStatusToText(currentStatus: statusJetski)
+{
+    switch(currentStatus){
+        case "AVAILABLE":
+            return "Ready for service.";
+        case "NOT_AVAILABLE":
+            return "Jetski is temporary out of service.";
+        case "OUT_OF_FUEL":
+            return "Jetski is out of fuel."
+        case "NOT_IN_FLEET":
+            return "Jetski is out of service."
+        default:
+            "Unknown status.";
+    }
+}
 
 export const ListJetski = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -122,9 +138,10 @@ export const ListJetski = () => {
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3">Registration</th>
-                                <th className="px-6 py-3">Model & Year</th>
+                                <th className="px-6 py-3">Model</th>
+                                <th className="px-6 py-3">Year</th>
                                 <th className="px-6 py-3">Top Speed</th>
-                                <th className="px-6 py-3">Availability</th>
+                                <th className="px-6 py-3">Status</th>
                                 <th className="px-6 py-3">Location</th>
                                 {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
                                     <th className="px-6 py-3">Actions</th>
@@ -135,9 +152,10 @@ export const ListJetski = () => {
                             {filteredJetskis?.map(jetski => (
                                 <tr key={jetski.jetski_id} className="bg-white border-b">
                                     <td className="px-6 py-4">{jetski.jetski_registration}</td>
-                                    <td className="px-6 py-4">{`${jetski.jetski_model} ${jetski.jetski_manufacturingYear}`}</td>
+                                    <td className="px-6 py-4">{jetski.jetski_model}</td>
+                                    <td className="px-6 py-4">{jetski.jetski_manufacturingYear}</td>
                                     <td className="px-6 py-4">{jetski.jetski_topSpeed}</td>
-                                    <td className="px-6 py-4">{jetski.jetski_status}</td>
+                                    <td className="px-6 py-4">{convertStatusToText(jetski.jetski_status)}</td>
                                     <td className="px-6 py-4">
                                         {getLocationName(jetski.jetski_location_id, locationNames)}
                                     </td>

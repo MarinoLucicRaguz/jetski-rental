@@ -1,21 +1,21 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { RentalOptions, Reservation, Jetski } from "@prisma/client";
 
 interface AvailabilitySlot {
   start_time: string;
   end_time: string;
   available_jetskis: number;
+  location?: number;
 }
 
 const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start: Date, end: Date }[] => {
   const slots = [];
   const slotStartTime = new Date(rentDate);
-  slotStartTime.setHours(7, 0, 0, 0); 
+  slotStartTime.setHours(7, 0, 0, 0);
 
   const dayEndTime = new Date(rentDate);
-  dayEndTime.setHours(19, 0, 0, 0); 
+  dayEndTime.setHours(19, 0, 0, 0);
 
   while (slotStartTime < dayEndTime) {
     const slotEndTime = new Date(slotStartTime);
@@ -25,7 +25,7 @@ const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start:
 
     slots.push({ start: new Date(slotStartTime), end: new Date(slotEndTime) });
 
-    slotStartTime.setMinutes(slotStartTime.getMinutes() + 5); // Increment by 5 minutes
+    slotStartTime.setMinutes(slotStartTime.getMinutes() + 5);
   }
 
   return slots;
@@ -34,7 +34,8 @@ const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start:
 export const calculateAvailability = async (
   rentDate: Date,
   jetskiCount: number,
-  rentalDurationMinutes: number
+  rentalDurationMinutes: number,
+  location?: number,
 ): Promise<AvailabilitySlot[]> => {
   const startTime = new Date(rentDate);
   startTime.setHours(0, 0, 0, 0);
@@ -58,25 +59,44 @@ export const calculateAvailability = async (
 
   const availabilitySlots: AvailabilitySlot[] = [];
 
-  const jetskis = await db.jetski.findMany({});
+  let availableJetskis;
+  if(!location)
+  {
+     availableJetskis = await db.jetski.findMany({
+      where: {
+        jetski_status: 'AVAILABLE',
+      },
+    });
+  }
+  else{
+    availableJetskis = await db.jetski.findMany({
+      where: {
+        jetski_status: 'AVAILABLE',
+        jetski_location_id: location,
+      },
+    });
+  }
+
+  const totalAvailableJetskis = availableJetskis.length;
 
   let currentSlotIndex = 0;
 
   while (currentSlotIndex < slots.length) {
     const slot = slots[currentSlotIndex];
-    const availableJetskisCount = jetskis.filter((jetski) => {
-      const overlappingReservations = reservations.filter((reservation) => {
-        const reservationStartTime = new Date(reservation.startTime);
-        const reservationEndTime = new Date(reservation.endTime);
-        return (
-          reservation.reservation_jetski_list.some((rj) => rj.jetski_id === jetski.jetski_id) &&
-          ((reservationStartTime >= slot.start && reservationStartTime < slot.end) ||
-            (reservationEndTime > slot.start && reservationEndTime <= slot.end) ||
-            (reservationStartTime <= slot.start && reservationEndTime >= slot.end))
-        );
-      });
-      return overlappingReservations.length === 0;
-    }).length;
+
+    const overlappingReservations = reservations.filter((reservation) => {
+      const reservationStartTime = new Date(reservation.startTime);
+      const reservationEndTime = new Date(reservation.endTime);
+      return (
+        (reservationStartTime < slot.end && reservationEndTime > slot.start)
+      );
+    });
+
+    const reservedJetskis = overlappingReservations.reduce((count, reservation) => {
+      return count + reservation.reservation_jetski_list.length;
+    }, 0);
+
+    const availableJetskisCount = totalAvailableJetskis - reservedJetskis;
 
     if (availableJetskisCount >= jetskiCount) {
       availabilitySlots.push({
@@ -85,7 +105,7 @@ export const calculateAvailability = async (
         available_jetskis: availableJetskisCount,
       });
 
-      currentSlotIndex += Math.ceil(rentalDurationMinutes / 5);
+      currentSlotIndex += Math.floor(60 / 5); 
     } else {
       currentSlotIndex += 1;
     }

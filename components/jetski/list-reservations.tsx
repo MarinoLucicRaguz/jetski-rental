@@ -8,7 +8,7 @@ import { Button } from "../ui/button";
 import { CalendarIcon, TrashIcon, UpdateIcon, ClipboardCopyIcon } from "@radix-ui/react-icons";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
-import { Location, RentalOptions } from "@prisma/client";
+import { Jetski, Location, RentalOptions } from "@prisma/client";
 import { listLocation } from "@/actions/listLocations";
 import { Menu, MenuItem } from "@mui/material";
 import { deleteReservation } from "@/actions/deleteReservation";
@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { ExtendedReservation } from "@/types";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { getAllReservationOptions } from "@/actions/listReservationOptions";
+import { listJetski } from "@/actions/listJetskis";
 
 
 export const ListReservations = () => {
@@ -23,8 +24,11 @@ export const ListReservations = () => {
     const [reservationData, setReservationData] = useState<ExtendedReservation[]>([]);
     const [rentDate, setRentDate] = useState(new Date());
     const [locationNames, setLocationNames] = useState<Location[] | null>([]);
+    const [jetskiData, setJetskiData] = useState<Jetski[]>([]);
+    const [selectedJetski, setSelectedJetski] = useState<number | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [locationAnchorEl, setLocationAnchorEl] = useState<null | HTMLElement>(null);    
+    const [jetskiAnchorEl, setJetskiAnchorEl] = useState<null | HTMLElement>(null);
     const [confirmPopover, setConfirmPopover] = useState<null | number>(null);
     const [rentalOptions, setRentalOptions] = useState<RentalOptions[]>([])
     const router = useRouter();
@@ -41,6 +45,12 @@ export const ListReservations = () => {
                 if(rentaloptions)
                 {
                     setRentalOptions(rentaloptions);
+                }
+
+                const jetskis = await listJetski();
+                if(jetskis)
+                {
+                    setJetskiData(jetskis);
                 }
             } catch (error) {
                 setError("Failed to load locations: " + error);
@@ -67,27 +77,36 @@ export const ListReservations = () => {
 
     const filteredReservations = useMemo(() => {
         return reservationData.filter(reservation =>
-            selectedLocation === null || reservation.reservation_location_id === selectedLocation
+            (selectedLocation === null || reservation.reservation_location_id === selectedLocation) &&
+            (selectedJetski === null || reservation.reservation_jetski_list.some(jetski => jetski.jetski_id === selectedJetski))
         );
-    }, [reservationData, selectedLocation]);
+    }, [reservationData, selectedLocation, selectedJetski]);
 
     const handleEditButton = (reservationId: number) => {
         router.push(`/reservation/${reservationId}/editreservation`);
     };
 
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
+    const handleLocationClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setLocationAnchorEl(event.currentTarget);
+      };
+    
+      const handleJetskiClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setJetskiAnchorEl(event.currentTarget);
+      };
 
     const handleClose = () => {
-        setAnchorEl(null);
+        setLocationAnchorEl(null);
+        setJetskiAnchorEl(null);
     };
 
     const handleLocationSelect = (location_id: number | null) => {
         setSelectedLocation(location_id);
-        setAnchorEl(null);
+        setLocationAnchorEl(null);
     };
-
+    const handleJetskiSelect = (jetski_id: number | null) => {
+        setSelectedJetski(jetski_id);
+        setJetskiAnchorEl(null);
+    };
     const handleDeleteClick = (reservation_id: number) => {
         setConfirmPopover(reservation_id);
     };
@@ -102,11 +121,7 @@ export const ListReservations = () => {
     
     const copyToClipboard = () => {
         const formattedReservations = formatReservationsForClipboard();
-        navigator.clipboard.writeText(formattedReservations).then(() => {
-            alert("Reservations copied to clipboard!");
-        }).catch(err => {
-            setError("Failed to copy reservations: " + err);
-        });
+        navigator.clipboard.writeText(formattedReservations);
     };
     
     const confirmDelete = async () => {
@@ -144,23 +159,31 @@ export const ListReservations = () => {
                                 mode="single"
                                 selected={rentDate}
                                 onSelect={(date) => {
-                                    if (date) setRentDate(date);
-                                    console.log("Selected date:", date);
+                                    if (date) { setRentDate(date); }
                                 }}
                             />
                         </PopoverContent>
                     </Popover>
-                    <div className="flex justify-between">
-                        <Button onClick={handleClick}>Filter</Button>
-                        <Menu
-                            open={Boolean(anchorEl)}
-                            anchorEl={anchorEl}
-                            onClose={handleClose}
-                        >
-                            <MenuItem onClick={() => handleLocationSelect(null)}>No filter</MenuItem>
+                    <div className="flex justify-between gap-2">
+                        <div className="flex items-center">
+                            <Button onClick={handleLocationClick}>{locationNames && locationNames?.find((location)=> location.location_id === selectedLocation)?.location_name || "All locations"}</Button>
+                        </div>
+                        <Menu open={Boolean(locationAnchorEl)} anchorEl={locationAnchorEl} onClose={handleClose}>
+                            <MenuItem onClick={() => handleLocationSelect(null)}>All locations</MenuItem>
                             {locationNames?.map((location) => (
                                 <MenuItem key={location.location_id} onClick={() => handleLocationSelect(location.location_id)}>
                                     {location.location_name}
+                                </MenuItem>
+                            ))}
+                        </Menu>
+                        <div className="flex items-center">
+                            <Button onClick={handleJetskiClick}>{jetskiData && jetskiData?.find((jetski)=> jetski.jetski_id === selectedJetski)?.jetski_registration || "All jetskis"}</Button>
+                        </div>
+                        <Menu open={Boolean(jetskiAnchorEl)} anchorEl={jetskiAnchorEl} onClose={handleClose}>
+                            <MenuItem onClick={() => handleJetskiSelect(null)}>All jetskis</MenuItem>
+                            {jetskiData?.map((jetski) => (
+                                <MenuItem key={jetski.jetski_id} onClick={() => handleJetskiSelect(jetski.jetski_id)}>
+                                    {jetski.jetski_registration} / {locationNames?.find((location)=> location.location_id === jetski.jetski_location_id )?.location_name}
                                 </MenuItem>
                             ))}
                         </Menu>
