@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { getJetskiById } from "@/data/jetskiData";
 import { statusJetski } from "@prisma/client";
 
-export const deleteJetski = async (jetskiId: number) => {
+export const updateJetskiStatus = async (jetskiId: number) => {
     const existingJetski = await getJetskiById(jetskiId);
 
     if (!existingJetski) {
@@ -13,6 +13,10 @@ export const deleteJetski = async (jetskiId: number) => {
     }
     
     let newStatus: statusJetski = "NOT_IN_FLEET";
+
+    if (existingJetski.jetski_status !== "AVAILABLE") {
+        newStatus = "AVAILABLE";
+    }
 
     try {
         await db.jetski.update({

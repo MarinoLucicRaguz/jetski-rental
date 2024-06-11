@@ -58,7 +58,7 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
         resolver: zodResolver(JetskiSchema),
         defaultValues: {
             jetski_registration: jetskiData?.jetski_registration,
-            jetski_location_id: jetskiData?.jetski_location_id,
+            jetski_location_id: jetskiData?.jetski_location_id || null,
             jetski_model: jetskiData?.jetski_model,
             jetski_topSpeed: jetskiData?.jetski_topSpeed,
             jetski_kW: jetskiData?.jetski_kW,
@@ -73,6 +73,12 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
                 const data = await getJetski(jetskiId);
                 if (data) {
                     setJetskiData(data);
+                    form.setValue("jetski_registration", data.jetski_registration);
+                    form.setValue("jetski_model", data.jetski_model);
+                    form.setValue("jetski_topSpeed", data.jetski_topSpeed);
+                    form.setValue("jetski_kW", data.jetski_kW);
+                    form.setValue("jetski_manufacturingYear", data.jetski_manufacturingYear);
+                    form.setValue("jetski_location_id", data.jetski_location_id ? data.jetski_location_id : null);
                 }
             } catch (error) {
                 console.error("Error fetching location name:", error);
@@ -146,17 +152,19 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
                         control={form.control}
                         name="jetski_location_id"
                         render={({ field }) => (
-                        <FormItem className="flex justify-between">
-                            <FormLabel className="border-solid sans-serif text-bold text-center p-3">
-                            LOCATION:
+                        <FormItem>
+                            <FormLabel className="border-solid sans-serif text-bold ">
+                                Location:
                             </FormLabel>
-                            <FormControl className="rounded-sm text-center bg-black text-white border-solid p-2">
+                            <FormControl className="rounded-sm text-center bg-black text-white border-solid ml-80 w-40 p-2">
                             <select
-                                {...form.register("jetski_location_id", {
-                                valueAsNumber: true,
-                                })}
+                                {...form.register("jetski_location_id")}
                                 disabled={isPending}
-                            >
+                                value={field.value === null ? "" : field.value}
+                                onChange={(e) => {
+                                    field.onChange(e.target.value === "" ? null : e.target.value);
+                                }}>
+                                <option value="" hidden disabled>No location </option>
                                 {locationData.map((location) => (
                                 <option
                                     key={location.location_id}
@@ -171,7 +179,6 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
                         </FormItem>
                         )}
                     />
-                    {/* Add more FormField components for other fields */}
                     <FormField
                         control={form.control}
                         name="jetski_model"

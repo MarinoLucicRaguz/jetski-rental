@@ -1,4 +1,3 @@
-import { Icon } from '@mui/material';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './button';

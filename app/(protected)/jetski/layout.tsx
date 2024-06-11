@@ -4,6 +4,7 @@ import { CreateJetskiButton } from "@/components/auth/create-jetski-button"
 import { CreateLocationButton } from "@/components/auth/create-location-button"
 import { CreateReservationButton } from "@/components/auth/create-reservation-button"
 import { CreateReservationOptionButton } from "@/components/auth/create-reservation-option-button"
+import { DashboardButton } from "@/components/auth/go-to-dashboard"
 import { ListJetskiButton } from "@/components/auth/list-jetski-button"
 import { ListLocationButton } from "@/components/auth/list-locations-button"
 import { ListRentalOptionsButton } from "@/components/auth/list-rental-options-button"
@@ -28,6 +29,11 @@ const JetskiLayout =async({children}:{
                     NAVIGATION MENU:
                 </div>
                 <div className="overflow-auto flex-grow">
+                    <DashboardButton>
+                        <Button className="w-full mb-3" type="submit" variant="secondary">
+                            Dashboard
+                        </Button>
+                    </DashboardButton>
                     {(userRole === "ADMIN" || userRole==="MODERATOR") && (
                     <CreateJetskiButton>
                         <Button className="w-full mb-3" type="submit" variant="secondary">
@@ -85,7 +91,7 @@ const JetskiLayout =async({children}:{
                     )}
                     <SettingsButton>
                         <Button className="w-full mb-3" type="submit" variant="secondary">
-                            Settings
+                        My profile
                         </Button>  
                     </SettingsButton>
                     <form action={signOutUser}>

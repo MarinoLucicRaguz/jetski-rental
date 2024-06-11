@@ -20,22 +20,36 @@ export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{
     const finalName = newLocName.charAt(0).toUpperCase() + newLocName.slice(1);
 
     const exisitingLocation = await getLocationByName(location_name)
-
-    if(user_id)
-    {
-        const user = await getUserByid(user_id)
-    }
-
+    
     if (exisitingLocation){
         return {error: "Location with that name already exists!"};
     };
 
-    await db.location.create({
-        data:{
+    const existingModerator = await db.location.findFirst({
+        where: {
+            location_manager_id: user_id,
+        },
+    });
+
+    if (existingModerator) {
+        return { error: "User is already a moderator of another location!" };
+    }
+
+    const createdLocation = await db.location.create({
+        data: {
             location_name: finalName,
-            location_manager_id: user_id
-        }
-    })
+            location_manager_id: user_id,
+        },
+    });
+    
+    if (user_id) {
+        await db.user.update({
+            where: {
+                user_id: user_id,
+            },
+            data: { user_location_id: createdLocation.location_id },
+        });
+    }
 
     return {
         success: "Location has been added successfully!"

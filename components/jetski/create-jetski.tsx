@@ -128,9 +128,10 @@ export const JetskiForm = () => {
                             name="jetski_location_id"
                             render={({ field }) => (
                                 <FormItem>
-                                    <div className="flex justify-between">
-                                        <FormLabel className="sans-serif text-bold text-center p-3">CHOOSE LOCATION: </FormLabel>
-                                        <FormControl className="rounded-sm text-center bg-black text-white border-solid p-2">
+                                    <FormLabel className="border-solid sans-serif text-bold ">
+                                        Location:
+                                    </FormLabel>
+                                    <FormControl className="rounded-sm text-center bg-black text-white border-solid ml-80 w-40 p-2">
                                             <select {...form.register("jetski_location_id",{valueAsNumber:true, })}disabled={isPending}>
                                                 <option value="" disabled hidden>Select a location</option>
                                                 {locations.map((location)=>(
@@ -143,7 +144,6 @@ export const JetskiForm = () => {
                                                 ))}
                                             </select>
                                         </FormControl>
-                                    </div>
                                     <FormMessage />
                                 </FormItem>
                             )}

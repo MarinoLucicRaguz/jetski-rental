@@ -1,11 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Card,CardContent,CardFooter,CardHeader } from "../ui/card";
+import { BackButton } from "./back-button";
 import { Header } from "./header";
-import { Button } from "../ui/button";
 
-interface CardWrapperProps {
+interface AuthCardWrapperProps {
     children: React.ReactNode;
     headerLabel: string;
     backButtonLabel?: string;
@@ -13,20 +12,14 @@ interface CardWrapperProps {
     className?: string;
 }
 
-export const CardWrapper =({
+export const AuthCardWrapper =({
     children,
     headerLabel,
     backButtonLabel,
     backButtonHref,
     className = "shadow-md md:w-[300px] lg:w-[600px]"
 
-}: CardWrapperProps) => {
-    const router = useRouter();
-
-    const handleGoBack = () => {
-        router.back();
-    };
-
+}: AuthCardWrapperProps) => {
     return (
         <Card className={`shadow-md ${className}`}>
             <CardHeader>
@@ -35,10 +28,11 @@ export const CardWrapper =({
             <CardContent>
                 {children}
             </CardContent>
-            <CardFooter className="flex justify-center">
-                <Button variant="ghost" onClick={handleGoBack}>
-                    Go back    
-                </Button>
+            <CardFooter>
+                <BackButton
+                    label={backButtonLabel || ""}
+                    href={backButtonHref || ""}
+                />
             </CardFooter>
         </Card>
     )

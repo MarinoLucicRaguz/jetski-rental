@@ -48,7 +48,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <CardWrapper headerLabel="Settings" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+    <CardWrapper headerLabel="My profile" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
         <div>
         <form onSubmit={handleSubmit}>
             <div className="mb-4">

@@ -13,9 +13,9 @@ export const GuestPage = () => {
   const user = useCurrentUser();
 
   useEffect(() => {
-    if (user && user.role !== "GUEST" && user.status!=="NOT_EMPLOYED") {
+    if (user && user.role !== "GUEST" && user.status!=="INACTIVE") {
       router.push("/dashboard");
-    } else if (user && user.role === "GUEST" || user?.status==="NOT_EMPLOYED") {
+    } else if (user && user.role === "GUEST" || user?.status==="INACTIVE") {
       setShowError(true);
     }
   }, [user, router]);

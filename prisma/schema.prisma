@@ -27,7 +27,7 @@ model User {
   name             String?
   email            String?    @unique
   password         String?
-  user_status      UserStatus @default(EMPLOYED)
+  user_status      UserStatus @default(ACTIVE)
   user_role        UserRole   @default(GUEST)
   user_location_id Int?
   user_location    Location?  @relation(fields: [user_location_id], references: [location_id])
@@ -87,9 +87,8 @@ enum statusJetski {
 }
 
 enum UserStatus {
-  EMPLOYED
-  VACATION
-  NOT_EMPLOYED
+  ACTIVE
+  INACTIVE
 }
 
 enum UserRole {

@@ -17,11 +17,11 @@ import {
     FormMessage,
 
 } from "@/components/ui/form";
-import { CardWrapper } from "./card-wrapper"
 import { Button } from "../ui/button";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
 import { login } from "@/actions/login";
+import { AuthCardWrapper } from "./auth-card-wrapper";
 
 
 export const LoginForm =() => {
@@ -50,7 +50,7 @@ export const LoginForm =() => {
     };
 
     return (
-        <CardWrapper headerLabel="Welcome back" backButtonLabel="Don't have an account?" backButtonHref="/auth/register">
+        <AuthCardWrapper headerLabel="Welcome back" backButtonLabel="Don't have an account?" backButtonHref="/auth/register">
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}
                     className="space-y-6">
@@ -102,6 +102,6 @@ export const LoginForm =() => {
                         </Button>
                 </form>
             </Form>
-        </CardWrapper>
+        </AuthCardWrapper>
     )
 }

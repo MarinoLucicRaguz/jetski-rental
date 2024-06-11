@@ -4,27 +4,30 @@ import { listJetski } from "@/actions/listJetskis";
 import { Jetski, Location, statusJetski } from "@prisma/client";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { deleteJetski } from "@/actions/deleteJetski";
+import { updateJetskiStatus } from "@/actions/updateJetskiStatus";
 import { listLocation } from "@/actions/listLocations";
 import { Menu, MenuItem } from "@mui/material";
 import Spinner from "../ui/spinner";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { deleteJetski } from "@/actions/deleteJetski";
 
 function convertStatusToText(currentStatus: statusJetski)
 {
     switch(currentStatus){
         case "AVAILABLE":
-            return "Ready for service.";
+            return "Operational";
         case "NOT_AVAILABLE":
-            return "Jetski is temporary out of service.";
+            return "Temporary out of service.";
         case "OUT_OF_FUEL":
-            return "Jetski is out of fuel."
+            return "Out of fuel."
         case "NOT_IN_FLEET":
-            return "Jetski is out of service."
+            return "Decommissioned."
         default:
             "Unknown status.";
     }
 }
+
+type JetskiSortBy = "jetski_id" | "jetski_registration" | "jetski_model" | "jetski_topSpeed" | "jetski_kW" | "jetski_manufacturingYear" | "jetski_status" | "jetski_location_id";
 
 export const ListJetski = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -34,6 +37,8 @@ export const ListJetski = () => {
     const [showOnlyAvailable, setShowOnlyAvailable] = useState(true);
     const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [sortBy, setSortBy] = useState<JetskiSortBy>("jetski_registration");
+    const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
     const router = useRouter();
 
     const user= useCurrentUser();
@@ -62,26 +67,82 @@ export const ListJetski = () => {
         });
     }, []);
 
+    const handleGoBack = () => {
+        router.back();
+    };
+
+    const handleSort = (key:JetskiSortBy) => {
+        if (sortBy===key)
+        {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else{
+            setSortBy(key);
+            setSortDirection("asc");
+        }
+    }
+    
     const filteredJetskis = useMemo(() => {
         return jetskiData?.filter(jetski =>
             (selectedLocation === null || jetski.jetski_location_id === selectedLocation) &&
             (!showOnlyAvailable || jetski.jetski_status === 'AVAILABLE')
         );
     }, [jetskiData, selectedLocation, showOnlyAvailable]);
+    
+
+    const sortedFilteredJetskis  = useMemo(() => {
+        if (!filteredJetskis) return [];
+
+        const sorted = [...filteredJetskis];
+        sorted.sort((a, b) => {
+            const aValue = a[sortBy]!;
+            const bValue = b[sortBy]!;
+
+            if (aValue === bValue) return 0;
+
+            if (sortDirection === "asc") {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+
+        return sorted;
+    }, [jetskiData, sortBy, sortDirection, selectedLocation, showOnlyAvailable]);
 
     const handleEditJetskiClick = (jetskiId: number) => {
         router.push(`/jetski/${jetskiId}/editjetski`);
     };
 
-    const handleDeleteJetskiClick = async (jetskiId: number) => {
+    const handleJetskiStatusClick = async (jetskiId: number) => {
+        try {
+            await updateJetskiStatus(jetskiId);
+            setJetskiData(prevJetskiData =>
+                prevJetskiData?.map(jetski => 
+                    jetski.jetski_id === jetskiId
+                        ? { ...jetski, jetski_status: jetski.jetski_status === 'AVAILABLE' ? "NOT_AVAILABLE" : "AVAILABLE" } 
+                        : jetski
+                ) || []
+            );
+        } catch (error) {
+            setError("Error deleting jetski");
+        }
+    };    
+    
+    const handleJetskiRemoveClick = async (jetskiId: number) => {
         try {
             await deleteJetski(jetskiId);
-            setJetskiData(prev => prev?.filter(jetski => jetski.jetski_id !== jetskiId) || []);
+            setJetskiData(prevJetskiData =>
+                prevJetskiData?.map(jetski => 
+                    jetski.jetski_id === jetskiId
+                        ? { ...jetski, jetski_status: "NOT_IN_FLEET" } 
+                        : jetski
+                ) || []
+            );
         } catch (error) {
             setError("Error deleting jetski");
         }
     };
-    
+     
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -114,16 +175,18 @@ export const ListJetski = () => {
         <div className={`p-10 bg-white rounded-sm ${loadingData ? "opacity-100" : ""}`}>
                 <div className="flex flex-col space-y-4">
                     <div className="text-center text-2xl font-bold uppercase text-black">
-                        {showOnlyAvailable ? "List of available jetskis" : "List of all jetskis"}
+                        {showOnlyAvailable ? "Available jetskis" : "All jetskis"}
                     </div>
                     <div className="flex justify-between">
-                        <Button onClick={handleClick}>Choose location as a filter</Button>
+                    <Button onClick={handleClick}>
+                        {selectedLocation ? locationNames?.find((location) => location.location_id === selectedLocation)?.location_name : 'All locations'}
+                    </Button>
                         <Menu
                             open={Boolean(anchorEl)}
                             anchorEl={anchorEl}
                             onClose={handleClose}
                         >
-                            <MenuItem onClick={() => handleLocationSelect(null)}>Display All</MenuItem>
+                            <MenuItem onClick={() => handleLocationSelect(null)}>All locations</MenuItem>
                             {locationNames?.map((location) => (
                                 <MenuItem key={location.location_id} onClick={() => handleLocationSelect(location.location_id)}>
                                     {location.location_name}
@@ -131,25 +194,37 @@ export const ListJetski = () => {
                             ))}
                         </Menu>
                         <Button onClick={() => setShowOnlyAvailable(!showOnlyAvailable)}>
-                            {showOnlyAvailable ? "Show All Jetskis" : "Show Available Jetskis"}
+                            {showOnlyAvailable ? "Display all jetskis" : "Display only available jetskis"}
                         </Button>
                     </div>
                     <table className="w-full text-sm text-left text-gray-500">
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3">Registration</th>
-                                <th className="px-6 py-3">Model</th>
-                                <th className="px-6 py-3">Year</th>
-                                <th className="px-6 py-3">Top Speed</th>
-                                <th className="px-6 py-3">Status</th>
-                                <th className="px-6 py-3">Location</th>
+                            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("jetski_registration")}>
+                                Registration
+                            </th>
+                            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("jetski_model")}>
+                                Model
+                            </th>
+                            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("jetski_manufacturingYear")}>
+                                Year
+                            </th>
+                            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("jetski_topSpeed")}>
+                                Top Speed
+                            </th>
+                            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("jetski_status")}>
+                                Status
+                            </th>
+                            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("jetski_location_id")}>
+                                Location
+                            </th>
                                 {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
                                     <th className="px-6 py-3">Actions</th>
                                 )}
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredJetskis?.map(jetski => (
+                            {sortedFilteredJetskis?.map(jetski => (
                                 <tr key={jetski.jetski_id} className="bg-white border-b">
                                     <td className="px-6 py-4">{jetski.jetski_registration}</td>
                                     <td className="px-6 py-4">{jetski.jetski_model}</td>
@@ -161,10 +236,17 @@ export const ListJetski = () => {
                                     </td>
                                     {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
                                     <td className="px-6 py-4">
-                                        <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>
-                                        <Button variant="destructive" onClick={() => handleDeleteJetskiClick(jetski.jetski_id)}>
-                                            {jetski.jetski_status === 'AVAILABLE' ? "Remove" : "Return"}
-                                        </Button>
+                                        {jetski.jetski_status !== 'NOT_IN_FLEET' && (
+                                            <>
+                                            <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>
+                                            <Button className="ml-2" variant="yellow" onClick={() => handleJetskiStatusClick(jetski.jetski_id)}>
+                                                {jetski.jetski_status === 'AVAILABLE' ? "Send for repair" : "Return from repair"}
+                                            </Button>
+                                            <Button className="ml-2" variant="destructive" onClick={() => handleJetskiRemoveClick(jetski.jetski_id)}>
+                                                Remove
+                                            </Button>
+                                        </>
+                                        )}
                                     </td>
                                     )}
                                 </tr>
@@ -172,7 +254,9 @@ export const ListJetski = () => {
                         </tbody>
                     </table>
                     <div className="mt-4 flex justify-center">
-                        <a href="/dashboard" className="text-sm font-normal text-gray-500 hover:text-gray-700 hover:underline">Go back to dashboard</a>
+                        <Button variant="ghost" onClick={handleGoBack}>
+                            Go back    
+                        </Button>
                     </div>
                     {error && <div className="text-red-500">{`Error: ${error}`}</div>}
                 </div>

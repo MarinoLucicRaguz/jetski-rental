@@ -45,6 +45,10 @@ export const ListRentalOptions = () => {
         updateAvailable();
     }, [showUnavailable]);
 
+    const handleGoBack = () => {
+        router.back();
+    };
+    
     const handleEditClick = (rentaloption_id: number) => {
         router.push(`/rentaloptions/${rentaloption_id}/editrentaloption`);
     };
@@ -108,7 +112,9 @@ export const ListRentalOptions = () => {
                 </tbody>
             </table>
             <div className="mt-4 flex justify-center">
-                <a href="/dashboard" className="text-sm font-normal text-gray-500 hover:text-gray-700 hover:underline">Go back to dashboard</a>
+                <Button variant="ghost" onClick={handleGoBack}>
+                    Go back    
+                </Button>
             </div>
             {error && <div>Error: {error}</div>}
         </div>

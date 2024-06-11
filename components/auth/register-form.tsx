@@ -15,11 +15,11 @@ import {
   FormLabel,
   FormMessage,  
 } from "@/components/ui/form";
-import { CardWrapper } from "@/components/auth/card-wrapper"
 import { Button } from "@/components/ui/button";
 import { FormError } from "@/components/form-error";
 import { FormSuccess } from "@/components/form-success";
 import { register } from "@/actions/register";
+import { AuthCardWrapper } from "./auth-card-wrapper";
 
 export const RegisterForm = () => {
   const [error, setError] = useState<string | undefined>("");
@@ -49,7 +49,7 @@ export const RegisterForm = () => {
   };
 
   return (
-    <CardWrapper
+    <AuthCardWrapper
       headerLabel="Create an account"
       backButtonLabel="Already have an account?"
       backButtonHref="/auth/login"
@@ -125,6 +125,6 @@ export const RegisterForm = () => {
           </Button>
         </form>
       </Form>
-    </CardWrapper>
+    </AuthCardWrapper>
   );
 };

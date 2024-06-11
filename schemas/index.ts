@@ -34,9 +34,7 @@ export const JetskiSchema = z.object({
             message: "Registration must start with 2 letters representing a city followed by a hyphen and 3 to 6 numbers. For example: ST-123456"
         }
     ),
-    jetski_location_id: z.number().nullable().refine((id) => id !== null, {
-        message: "Please select a location."
-    }),    
+    jetski_location_id: z.number().nullable(),
     jetski_model: z.string().min(1, {
         message: "Model is required."
     }).max(50, {
@@ -51,16 +49,16 @@ export const JetskiSchema = z.object({
             }
             if (unit === 'mph') {
                 const kmh = Math.round(number * 1.60934);
-                return `${kmh} kmh`;
+                return `${kmh} km/h`;
             }
             return value;
         })
         .refine((value) => {
             const [numberStr, unit] = value.split(' ');
             const number = parseFloat(numberStr);
-            return !isNaN(number) && number > 0 && number <= 150 && (unit === 'kmh' || unit === 'mph');
+            return !isNaN(number) && number > 0 && number <= 150 && (unit === 'km/h' || unit === 'mph');
         }, {
-            message: "Top speed must be a positive number up to 150, followed by 'mph' or 'kmh'."
+            message: "Top speed must be a positive number up to 150, followed by 'mph' or 'km/h'."
         }),
     jetski_kW: z.string().refine((value) => {
         return !isNaN(parseFloat(value)) && parseFloat(value) >= 0;

@@ -3,16 +3,27 @@
 import { useEffect, useState, useTransition } from "react";
 import { listLocation } from "@/actions/listLocations";
 import { deleteLocation } from "@/actions/deleteLocation";
-import { Location, User } from "@prisma/client";
+import { Location, Jetski, User } from "@prisma/client";
 import { CardWrapper } from "../auth/card-wrapper";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { listJetski } from "@/actions/listJetskis";
+import { getUsers } from "@/actions/getUsers";
+import Modal from "../ui/Modal";
+import LocationDetailsModal from "../modal/locationDetails";
 
 export const ListLocation = () => {
     const [error, setError] = useState<string | undefined>("");
     const [locationData, setLocationData] = useState<Location[] | null>([]);
+    const [jetskiData, setJetskiData] = useState<Jetski[] | null>([]);
+    const [userData, setUserData] = useState<User[] |null>([]);
     const [isPending, startTransition] = useTransition();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+    const [locationJetskis, setLocationJetskis] = useState<Jetski[] | null>([]);
+    const [locationUsers, setLocationUsers] = useState<User[] | null>([]);
+
     const router = useRouter();
 
     const user = useCurrentUser();
@@ -26,6 +37,10 @@ export const ListLocation = () => {
 
                 const data = await listLocation();
                 setLocationData(data);
+                const jetskis = await listJetski();
+                setJetskiData(jetskis)
+                const users = await getUsers();
+                setUserData(users);
             } catch (error) {
                 setError("Error fetching locations");
             }
@@ -37,6 +52,28 @@ export const ListLocation = () => {
     const handleEditClick = (locationId: number) => {
         router.push(`/location/${locationId}/editlocation`);
     };
+    const handleOpenModal = () => {
+        setIsModalOpen(true);
+      };
+    
+    const handleCloseModal = () => {
+    setIsModalOpen(false);
+    };
+
+    const handleDetailsClick = async (location: Location) =>
+    {
+        try {
+            setSelectedLocation(location);
+            const locationJetskis = jetskiData?.filter((jetski) => jetski.jetski_location_id === location.location_id) || [];
+            const locationUsers = userData?.filter((user) => user.user_location_id === location.location_id) || [];
+            console.log(userData)
+            setLocationJetskis(locationJetskis);
+            setLocationUsers(locationUsers);
+            setIsModalOpen(true);
+        } catch (error) {
+            setError("Error fetching details");
+        }
+    }
 
     const handleDeleteClick = async (locationId: number) => {
         try {
@@ -48,21 +85,49 @@ export const ListLocation = () => {
     };
 
     return (
-        <CardWrapper headerLabel="Edit Locations" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+        <CardWrapper headerLabel="Locations" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
             <div className="space-y-4">
-                {locationData?.map((location) => (
-                    <div className="flex items-center justify-between" key={location.location_id}>
-                        <span >{location.location_name}</span>
-                        {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
-                        <div className="space-x-2">
-                            <Button onClick={() => handleEditClick(location.location_id)}>Edit</Button>
-                            <Button variant="destructive" onClick={() => handleDeleteClick(location.location_id)}>Delete</Button>
-                        </div>
-                        )}
-                    </div>
-                ))}
-                {error && <div>Error: {error}</div>}
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Location Name</th>
+                            <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
+                            {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                                <th className="px-6 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase text-center tracking-wider">Actions</th>
+                            )}
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {locationData?.map((location) => (
+                            <tr key={location.location_id}>
+                                <td className="px-6 py-4 whitespace-nowrap">{location.location_name}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {userData?.find((user) => user.user_id === location.location_manager_id)?.name || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                    <Button variant="yellow" onClick={() => handleDetailsClick(location)}>Details</Button>
+                                    {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                                        <>
+                                            <Button  onClick={() => handleEditClick(location.location_id)}>Edit</Button>
+                                            <Button variant="destructive" onClick={() => handleDeleteClick(location.location_id)}>Delete</Button>
+                                        </>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {error && <div className="text-red-500 mt-4">{`Error: ${error}`}</div>}
             </div>
+            {isModalOpen && selectedLocation && locationJetskis && locationUsers && (
+                <LocationDetailsModal
+                    location={selectedLocation}
+                    jetskis={locationJetskis} 
+                    users={locationUsers}
+                    onClose={handleCloseModal}
+                />
+            )}
+
         </CardWrapper>
     );
 };

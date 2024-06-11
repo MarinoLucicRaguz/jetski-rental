@@ -5,7 +5,7 @@ import { CardWrapper } from "../auth/card-wrapper";
 import { listReservationsByDate } from "@/actions/listReservationsForDate";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import { Button } from "../ui/button";
-import { CalendarIcon, TrashIcon, UpdateIcon, ClipboardCopyIcon } from "@radix-ui/react-icons";
+import { CalendarIcon, TrashIcon, UpdateIcon, ClipboardCopyIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
 import { Jetski, Location, RentalOptions } from "@prisma/client";
@@ -143,9 +143,8 @@ export const ListReservations = () => {
     };
 
     return (
-        <CardWrapper headerLabel="List of Reservations" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard" className="shadow-md md:w-[750px] lg:w-[1200px]">
+        <CardWrapper headerLabel="Reservation Schedule" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard" className="shadow-md md:w-[750px] lg:w-[1200px]">
             <div className="p-4 bg-white shadow rounded-lg">
-                <h2 className="text-lg font-semibold mb-4">Reservation Schedule</h2>
                 <div className="my-4 flex justify-between">
                     <Popover>
                         <PopoverTrigger asChild>
@@ -193,57 +192,72 @@ export const ListReservations = () => {
                     <ClipboardCopyIcon className="mr-2" /> Copy to Clipboard
                 </Button>
                 {error && <div className="text-red-500">{error}</div>}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredReservations.map((reservation) => {
-                        const location = locationNames?.find(loc => loc.location_id === reservation.reservation_location_id);
-                        return (
-                            <div key={reservation.reservation_id} className="border rounded-lg p-4 shadow-sm flex flex-col">
-                                <div>
-                                    <strong>Location:</strong> {location ? location.location_name : 'No location found'}
-                                </div>
-                                <div>
-                                    <strong>Name:</strong> {reservation.reservationOwner}
-                                </div>
-                                <div>
-                                    <strong>Contact: </strong> {reservation.contactNumber}
-                                </div>
-                                <div>
-                                    <strong>Price: </strong> {reservation.totalPrice} €
-                                </div>
-                                <div>
-                                    <strong>Time:</strong> {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(reservation.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-                                </div>
-                                <div>
-                                    <strong>Jetski:</strong>
-                                    {reservation.reservation_jetski_list && reservation.reservation_jetski_list.map(jetski => (
-                                        <div key={jetski.jetski_id}>{jetski.jetski_registration}</div>
-                                    ))}
-                                </div>
-                                {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
-                                <div className="flex justify-between mt-auto">
-                                        <Button variant={"constructive"} onClick={()=> handleEditButton(reservation.reservation_id)}>
-                                            <UpdateIcon />
-                                        </Button>
-                                    <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
-                                        <PopoverTrigger asChild>
-                                            <Button variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
-                                                <TrashIcon />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
-                                            <h3 className="text-lg font-semibold">Are you sure?</h3>
-                                            <p>Do you really want to delete this reservation?</p>
-                                            <div className="flex justify-end space-x-2 mt-4">
-                                                <Button variant="outline" onClick={cancelDelete}>Cancel</Button>
-                                                <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                <div className="p-10 bg-white rounded-sm ">
+                    <div className="flex flex-col space-y-4">
+                        <table className="w-full text-sm text-left text-gray-500">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3">Location</th>
+                                    <th className="px-6 py-3">Name</th>
+                                    <th className="px-6 py-3">Contact</th>
+                                    <th className="px-6 py-3">Price</th>
+                                    <th className="px-6 py-3">Time</th>
+                                    <th className="px-6 py-3">Jetskis</th>
+                                    <th className="px-6 py-3">Type</th>
+                                    {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                                        <th className="px-6 py-3">Actions</th>
+                                    )}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredReservations?.map(reservation => {
+                                    const location = locationNames?.find(loc => loc.location_id === reservation.reservation_location_id);
+                                    return (
+                                        <tr key={reservation.reservation_id} className="bg-white border-b">
+                                            <td className="px-6 py-4">{location ? location.location_name : 'No location found'}</td>
+                                            <td className="px-6 py-4">{reservation.reservationOwner}</td>
+                                            <td className="px-6 py-4">{reservation.contactNumber}</td>
+                                            <td className="px-6 py-4">{reservation.totalPrice} €</td>
+                                            <td className="px-6 py-4">
+                                                {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(reservation.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {reservation.reservation_jetski_list && reservation.reservation_jetski_list.map(jetski => (
+                                                    <div key={jetski.jetski_id}>{jetski.jetski_registration}</div>
+                                                ))}
+                                            </td>
+                                            <td className="px-6 py-4">{reservation.rentaloption_id === 1 ? "Regular" : "Safari" }</td>
+                                            {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                                                <td className="px-6 py-4">
+                                                    <div className="flex gap-1">
+                                                        <Button variant={"constructive"} onClick={() => handleEditButton(reservation.reservation_id)}>
+                                                            <Pencil1Icon />
+                                                        </Button>
+                                                        <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
+                                                            <PopoverTrigger asChild>
+                                                                <Button variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
+                                                                    <TrashIcon />
+                                                                </Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
+                                                                <h3 className="text-lg font-semibold">Are you sure?</h3>
+                                                                <p>Do you really want to delete this reservation?</p>
+                                                                <div className="flex justify-end space-x-2 mt-4">
+                                                                    <Button variant="outline" onClick={cancelDelete}>Cancel</Button>
+                                                                    <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                                                                </div>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                        {error && <div className="text-red-500">{`Error: ${error}`}</div>}
+                    </div>
                 </div>
             </div>
         </CardWrapper>

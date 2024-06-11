@@ -157,6 +157,7 @@ export const ReservationOptionForm =() => {
                                         const selectedValue = event.target.value;
                                         field.onChange(selectedValue);
                                     }}>
+                                        <option value="" hidden disabled>Select an option</option>
                                         <option value="REGULAR" >
                                             Regular rental
                                         </option>
