@@ -9,8 +9,8 @@ export const editUser = async (user_id: string, values: z.infer<typeof EditUserS
     if (!validatedFields.success) {
         return { error: "Invalid fields" };
     }
-
-    const { name, email, password, user_status, user_role, user_location_id } = validatedFields.data;
+    
+    const { name, email, password, user_status, user_role, user_location_id, contactNumber } = validatedFields.data;
 
     try {
         const existingUser = await db.user.findUnique({ where: { user_id } });
@@ -25,6 +25,16 @@ export const editUser = async (user_id: string, values: z.infer<typeof EditUserS
             return { error: "Email already in use by another user" };
         }
 
+        const managedLocation = await db.location.findFirst({
+            where: {
+                location_manager_id: user_id,
+            },
+        });
+
+        if (managedLocation && managedLocation.location_id !== user_location_id) {
+            return { error: "User is a manager of their current location and cannot be removed from it" };
+        }
+
         await db.user.update({
             where: { user_id },
             data: {
@@ -34,6 +44,7 @@ export const editUser = async (user_id: string, values: z.infer<typeof EditUserS
                 user_status,
                 user_role,
                 user_location_id,
+                contactNumber,
             },
         });
 

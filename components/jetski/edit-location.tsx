@@ -62,7 +62,7 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
         resolver: zodResolver(LocationSchema),
         defaultValues: {
             location_name: locationName,
-            user_id: locationData?.location_manager_id
+            user_id: locationData?.location_manager_id || "",
         },
     });
 
@@ -125,29 +125,34 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
                                 <FormItem>
                                     <FormLabel>Manager</FormLabel>
                                     <FormControl>
-                                        <Select
-                                            {...field}
-                                            displayEmpty
-                                            disabled={isPending}
-                                            className="w-full border border-gray-300 rounded-md"
-                                            size="small"
-                                            renderValue={(selected) => {
-                                                if (selected === "" || selected === undefined) {
-                                                    const selectedUser = users?.find(user => user.user_id === locationData?.location_manager_id);
-                                                    return selectedUser ? (selectedUser.name || selectedUser.email) : "";
-                                                }
-                                                const selectedUser = users?.find(user => user.user_id === selected);
-                                                return selectedUser ? (selectedUser.name || selectedUser.email) : "";
-                                            }}>
-                                            <MenuItem value="">
-                                                <em>Select a manager</em>
-                                            </MenuItem>
-                                            {users?.map(user => (
-                                                <MenuItem key={user.user_id} value={user.user_id}>
-                                                    {user.name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
+                                    <Select
+                                        {...field}
+                                        displayEmpty
+                                        disabled={isPending}
+                                        className="w-full border border-gray-300 rounded-md"
+                                        size="small"
+                                        renderValue={(selected) => {
+                                          if (selected === "" || selected === undefined) {
+                                            return "No manager";
+                                          } else {
+                                            const selectedUser = users?.find(user => user.user_id === selected);
+                                            return selectedUser ? (selectedUser.name || selectedUser.email) : "";
+                                          }
+                                        }}
+                                        onChange={(e) => {
+                                          const selectedUserId = e.target.value;
+                                          form.setValue("user_id", selectedUserId === "" ? null : selectedUserId);
+                                        }}
+                                      >
+                                        <MenuItem value="">
+                                          <em>No manager</em>
+                                        </MenuItem>
+                                        {users?.map(user => (
+                                          <MenuItem key={user.user_id} value={user.user_id}>
+                                            {user.name}
+                                          </MenuItem>
+                                        ))}
+                                      </Select>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

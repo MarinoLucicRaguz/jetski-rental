@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { SessionProvider } from 'next-auth/react'
+import { SessionProvider } from 'next-auth/react' //remove
+import { SessionDataProvider } from '@/components/wrapper/SessionDataWrapper'
 import { auth } from '@/auth'
 import './globals.css'
 
@@ -21,9 +22,9 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider session={session}>
+        <SessionDataProvider>
           {children}
-        </SessionProvider>
+          </SessionDataProvider>
         <div id="modal-root"></div>
       </body>
     </html>

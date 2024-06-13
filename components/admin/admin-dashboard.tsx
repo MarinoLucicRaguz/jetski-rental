@@ -1,4 +1,3 @@
-// components/admin/admin-dashboard.tsx
 "use client";
 
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -12,6 +11,7 @@ import UserCard from "../ui/usercard";
 import { editUser } from "@/actions/editUser";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
+import { deleteUser } from "@/actions/deleteUser";
 
 const AdminDashboard = () => {
   const user = useCurrentUser();
@@ -47,20 +47,28 @@ const AdminDashboard = () => {
 
   const handleSaveUser = async (editedUser: Partial<User>) => {
     try {
-      const response = await editUser(editedUser.user_id as string, editedUser);
+      const response = await editUser(editedUser.user_id as string, {
+        ...editedUser,
+        user_location_id: editedUser.user_location_id || null, 
+      });
       if (response.error) {
         setError(response.error);
+        setTimeout(() => setError(""), 1500);
       } else {
         setSuccess("User successfully updated");
         setUsers((prevUsers) =>
           prevUsers.map((u) => (u.user_id === editedUser.user_id ? { ...u, ...editedUser } : u))
         );
+        setTimeout(() => setSuccess(""), 1500);
+
       }
     } catch (error) {
       setError("Failed to update user.");
       console.error("Error updating user: ", error);
+      setTimeout(() => setError(""), 2500);
     }
   };
+  
 
   if (user && user.role !== "ADMIN") {
     return (
@@ -75,19 +83,57 @@ const AdminDashboard = () => {
     );
   }
 
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const response = await deleteUser(userId);
+      if (response.error) {
+        setError(response.error);
+        setTimeout(() => setError(""), 1500);
+      } else {
+        setSuccess("User deleted successfuly.");
+        setUsers((prevUsers) => prevUsers.filter((u) => u.user_id !== userId));
+        setTimeout(() => setSuccess(""), 1500);
+      }
+    } catch (error) {
+      setError("Failed to delete user.");
+      console.error("Error deleting user: ", error);
+      setTimeout(() => setError(""), 2500);
+    }
+  };
+
   return (
-    <CardWrapper headerLabel="Admin dashboard" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
-      <div className="space-y-2">
-        {users ? (
-          users.map((user) => (
-            <UserCard key={user.user_id} user={user} onSave={handleSaveUser} />
-          ))
-        ) : (
-          <p>No users found</p>
-        )}
+    <CardWrapper className="w-full" headerLabel="Admin dashboard" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+      <table className="w-full text-sm text-left text-gray-500">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-100 rounded-sm">
+          <tr>
+            <th className="px-6 py-3">Name</th>
+            <th className="px-6 py-3">Email</th>
+            <th className="px-6 py-3">Contact</th>
+            <th className="px-6 py-3">Role</th>
+            <th className="px-6 py-3">Locations</th>
+            <th className="px-6 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.length > 0 ? (
+            users.map((user) => (
+              <tr key={user.user_id} className="bg-white border-b">
+                  <UserCard user={user} onSave={handleSaveUser} onDelete={() => handleDeleteUser(user.user_id)} />
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={5} className="px-6 py-4 text-center">
+                No users found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+      <div className="flex justify-center p-5">
+        {error && <FormError message={error} />}
+        {success && <FormSuccess message={success} />}
       </div>
-      <FormError message={error} />
-      <FormSuccess message={success} />
     </CardWrapper>
   );
 };

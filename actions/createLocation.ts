@@ -1,17 +1,14 @@
 "use server";
 import { db } from "@/lib/db";
 import * as z from "zod";
-
 import { LocationSchema } from "@/schemas";
 import { getLocationByName } from "@/data/locationData";
-import { getUserByid } from "@/data/userData";
 
-
-export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{
+export const createLocation = async (values: z.infer<typeof LocationSchema>) => {
     const validatedField = LocationSchema.safeParse(values);
 
-    if (!validatedField.success){
-        return {error:"Invalid fields"};
+    if (!validatedField.success) {
+        return { error: "Invalid fields" };
     }
 
     const { location_name, user_id } = validatedField.data;
@@ -19,20 +16,22 @@ export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{
     const newLocName = location_name.toLowerCase();
     const finalName = newLocName.charAt(0).toUpperCase() + newLocName.slice(1);
 
-    const exisitingLocation = await getLocationByName(location_name)
-    
-    if (exisitingLocation){
-        return {error: "Location with that name already exists!"};
-    };
+    const existingLocation = await getLocationByName(location_name);
 
-    const existingModerator = await db.location.findFirst({
-        where: {
-            location_manager_id: user_id,
-        },
-    });
+    if (existingLocation) {
+        return { error: "Location with that name already exists!" };
+    }
 
-    if (existingModerator) {
-        return { error: "User is already a moderator of another location!" };
+    if (user_id !== null) {
+        const existingModerator = await db.location.findFirst({
+            where: {
+                location_manager_id: user_id,
+            },
+        });
+
+        if (existingModerator) {
+            return { error: "User is already a manager of another location!" };
+        }
     }
 
     const createdLocation = await db.location.create({
@@ -41,7 +40,7 @@ export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{
             location_manager_id: user_id,
         },
     });
-    
+
     if (user_id) {
         await db.user.update({
             where: {
@@ -53,5 +52,5 @@ export const createLocation = async( values: z.infer<typeof LocationSchema>)=>{
 
     return {
         success: "Location has been added successfully!"
-    }
-}
+    };
+};

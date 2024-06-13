@@ -26,6 +26,7 @@ export const EditUserSchema = z.object({
     user_status: z.nativeEnum(UserStatus).optional(),
     user_role: z.nativeEnum(UserRole).optional(),
     user_location_id: z.number().nullable().optional(),
+    contactNumber: z.string().nullable().optional(),
 });
 
 export const JetskiSchema = z.object({

@@ -1,23 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { Location, User, UserRole, UserStatus } from "@prisma/client";
+import { Location, User, UserRole } from "@prisma/client";
 import { listLocation } from "@/actions/listLocations";
 import { Button } from "./button";
+import parsePhoneNumberFromString from "libphonenumber-js";
+import { PhoneInput } from "react-international-phone";
+
+const convertUserRole = (userRole: UserRole): string => {
+  switch (userRole) {
+    case "ADMIN":
+      return "Administrator";
+    case "MODERATOR":
+      return "Manager";
+    case "USER":
+      return "Worker";
+    case "GUEST":
+      return "New user";
+    default:
+      return "Unknown role";
+  }
+};
 
 interface UserCardProps {
   user: User;
   onSave: (editedUser: Partial<User>) => void;
+  onDelete: () => void;
 }
 
-const UserCard: React.FC<UserCardProps> = ({ user, onSave }) => {
+const UserCard: React.FC<UserCardProps> = ({ user, onSave, onDelete }) => {
   const [editedUser, setEditedUser] = useState<Partial<User>>(user);
   const [isEditing, setIsEditing] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [phone, setPhone] = useState<string>(user.contactNumber || "");
+  const [isValidPhoneNumber, setIsValidPhoneNumber] = useState(true); 
+  const [isFormValid, setIsFormValid] = useState(true);
 
   useEffect(() => {
     const fetchLocations = async () => {
       try {
         const data = await listLocation();
-        if (data) setLocations(data);
+        if (data) {
+          setLocations(data);
+        }
       } catch (error) {
         console.error("Failed to fetch locations:", error);
       }
@@ -26,20 +49,30 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSave }) => {
     fetchLocations();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setEditedUser((prevUser) => ({
-      ...prevUser,
-      [name]: value,
-    }));
+  const handleChange = (value: string) => {
+    setPhone(value);
+
+    const phoneNumber = parsePhoneNumberFromString(value);
+    setIsValidPhoneNumber(phoneNumber ? phoneNumber.isValid() : false);
   };
 
   const handleSave = () => {
-    onSave(editedUser);
+    if (!isValidPhoneNumber) {
+      setIsFormValid(false);
+      return;
+    }
+
+    setIsFormValid(true);
+    const editedUserWithPhone = {
+      ...editedUser,
+      contactNumber: phone,
+    }
+    onSave(editedUserWithPhone);
     setIsEditing(false);
   };
 
   const handleEdit = () => {
+    setIsFormValid(true);
     setIsEditing(true);
   };
 
@@ -47,86 +80,149 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSave }) => {
     setIsEditing(false);
   };
 
+  const handleDelete = async () => {
+    onDelete();
+  };
+
   return (
-    <div className="user-card p-4 border rounded-lg shadow-md">
-      {isEditing ? (
-        <>
+    <>
+      <td>
+        {isEditing ? (
           <input
             type="text"
             name="name"
             value={editedUser.name || ""}
-            onChange={handleChange}
-            className="block w-full p-2 mb-2 border rounded"
+            onChange={(e) =>
+              setEditedUser((prevUser) => ({
+                ...prevUser,
+                name: e.target.value,
+              }))
+            }
+            className="border border-gray-300 rounded-md p-2"
           />
+        ) : (
+          user.name
+        )}
+      </td>
+      <td>
+        {isEditing ? (
           <input
             type="email"
             name="email"
             value={editedUser.email || ""}
-            onChange={handleChange}
-            className="block w-full p-2 mb-2 border rounded"
+            onChange={(e) =>
+              setEditedUser((prevUser) => ({
+                ...prevUser,
+                email: e.target.value,
+              }))
+            }
+            className="border border-gray-300 rounded-md p-2"
           />
-          <select
-            name="user_status"
-            value={editedUser.user_status}
+        ) : (
+          user.email
+        )}
+      </td>
+      <td>
+        {isEditing ? (
+          <PhoneInput
+            defaultCountry="HR"
+            value={phone}
             onChange={handleChange}
-            className="block w-full p-2 mb-2 border rounded"
-          >
-            {Object.values(UserStatus).map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+          />
+        ) : (
+          user.contactNumber
+        )}
+        {!isValidPhoneNumber && (
+          <span className="text-red-500">Invalid phone number format</span>
+        )}
+      </td>
+      <td>
+        {isEditing ? (
           <select
             name="user_role"
             value={editedUser.user_role}
-            onChange={handleChange}
-            className="block w-full p-2 mb-2 border rounded"
+            onChange={(e) =>
+              setEditedUser((prevUser) => ({
+                ...prevUser,
+                user_role: e.target.value as UserRole,
+              }))
+            }
+            className="border border-gray-300 rounded-md p-2"
           >
             {Object.values(UserRole).map((role) => (
               <option key={role} value={role}>
-                {role}
+                {convertUserRole(role)}
               </option>
             ))}
           </select>
+        ) : (
+          convertUserRole(user.user_role)
+        )}
+      </td>
+      <td>
+        {isEditing ? (
           <select
             name="user_location_id"
             value={editedUser.user_location_id || ""}
-            onChange={(e) => setEditedUser((prevUser) => ({ ...prevUser, user_location_id: Number(e.target.value) }))}
-            className="block w-full p-2 mb-2 border rounded"
+            onChange={(e) =>
+              setEditedUser((prevUser) => ({
+                ...prevUser,
+                user_location_id: parseInt(e.target.value, 10),
+              }))
+            }
+            className="border border-gray-300 rounded-md p-2"
           >
-            <option value="">Select a location</option>
+            <option value="">No location</option>
             {locations.map((location) => (
-              <option key={location.location_id} value={location.location_id}>
+              <option
+                key={location.location_id}
+                value={location.location_id}
+              >
                 {location.location_name}
               </option>
             ))}
           </select>
-          <div className="flex justify-between">
-            <Button onClick={handleSave} variant={"constructive"}>
+        ) : (
+          locations.find(
+            (location) => location.location_id === user.user_location_id
+          )?.location_name || "N/A"
+        )}
+      </td>
+      <td>
+        {isEditing ? (
+          <div className="flex space-x-2">
+            <Button
+              className="ml-2"
+              onClick={handleSave}
+              variant={"constructive"}
+              disabled={!isValidPhoneNumber} // Disable save button if phone number is invalid
+            >
               Save
             </Button>
-            <Button onClick={cancelEdit} variant={"destructive"}>
+            <Button
+              className="ml-2"
+              onClick={cancelEdit}
+              variant={"destructive"}
+            >
               Cancel
             </Button>
           </div>
-        </>
-      ) : (
-        <>
-          <p>Name: {user.name}</p>
-          <p>Email: {user.email}</p>
-          <p>Status: {user.user_status}</p>
-          <p>Role: {user.user_role}</p>
-          <p>
-            Location:{" "}
-            {locations.find((location) => location.location_id === user.user_location_id)?.location_name || "N/A"}
-          </p>
-          <button onClick={handleEdit} className="px-4 py-2 mt-2 text-white bg-blue-500 rounded-lg">
+        ) : (
+          <Button className="ml-2" onClick={handleEdit} variant="default">
             Edit
-          </button>
-        </>
-      )}
-    </div>
+          </Button>
+        )}
+        {!isEditing && (
+          <Button
+            variant="destructive"
+            className="ml-2"
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>
+        )}
+      </td>
+    </>
   );
 };
 

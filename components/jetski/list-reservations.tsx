@@ -5,10 +5,10 @@ import { CardWrapper } from "../auth/card-wrapper";
 import { listReservationsByDate } from "@/actions/listReservationsForDate";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import { Button } from "../ui/button";
-import { CalendarIcon, TrashIcon, UpdateIcon, ClipboardCopyIcon, Pencil1Icon } from "@radix-ui/react-icons";
+import { CalendarIcon, TrashIcon, ClipboardCopyIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
-import { Jetski, Location, RentalOptions } from "@prisma/client";
+import { Jetski, Location, RentalOptions, Reservation } from "@prisma/client";
 import { listLocation } from "@/actions/listLocations";
 import { Menu, MenuItem } from "@mui/material";
 import { deleteReservation } from "@/actions/deleteReservation";
@@ -17,6 +17,25 @@ import { ExtendedReservation } from "@/types";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { getAllReservationOptions } from "@/actions/listReservationOptions";
 import { listJetski } from "@/actions/listJetskis";
+import { startReservation } from "@/actions/startReservation";
+import { endReservation } from "@/actions/endReservation";
+
+type sortReservationBy = "startTime" | "totalPrice" | "reservationOwner" | "rentaloption_id" | "reservation_location_id";
+
+const getStatusColor = (reservation: ExtendedReservation) => {
+    const hasUnavailableJetski = reservation.reservation_jetski_list.some(jetski => jetski.jetski_status !== "AVAILABLE");
+
+    if (hasUnavailableJetski) {
+        return { color: 'bg-red-500', label: 'Issue' };
+    } else if (reservation.isCurrentlyRunning) {
+        return { color: 'bg-green-500', label: 'Running' };
+    } else if (!reservation.hasItFinished) {
+        return { color: 'bg-yellow-500', label: 'Pending' };
+    } else {
+        return { color: 'bg-gray-500', label: 'Finished' };
+    }
+};
+
 
 
 export const ListReservations = () => {
@@ -31,6 +50,8 @@ export const ListReservations = () => {
     const [jetskiAnchorEl, setJetskiAnchorEl] = useState<null | HTMLElement>(null);
     const [confirmPopover, setConfirmPopover] = useState<null | number>(null);
     const [rentalOptions, setRentalOptions] = useState<RentalOptions[]>([])
+    const [sortBy,setSortBy] = useState<sortReservationBy>("startTime");
+    const [sortDirection, setSortDirection] = useState<"asc"|"desc">("asc");
     const router = useRouter();
 
     const user = useCurrentUser();
@@ -75,6 +96,16 @@ export const ListReservations = () => {
         fetchData();
     }, [rentDate]);
 
+    const handleSort = (key: sortReservationBy) =>
+    {
+        if(sortBy===key)
+            setSortDirection(sortDirection === "asc" ? "desc":"asc");
+        else{
+            setSortBy(key);
+            setSortDirection("asc");
+        }
+    }
+
     const filteredReservations = useMemo(() => {
         return reservationData.filter(reservation =>
             (selectedLocation === null || reservation.reservation_location_id === selectedLocation) &&
@@ -82,9 +113,74 @@ export const ListReservations = () => {
         );
     }, [reservationData, selectedLocation, selectedJetski]);
 
+    const sortedReservations = useMemo(() => {
+        return [...filteredReservations].sort((a, b) => {
+            const aValue = a[sortBy];
+            const bValue = b[sortBy];
+    
+            if (aValue === bValue) return 0;
+    
+            if (sortDirection === "asc") {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+    }, [filteredReservations, sortBy, sortDirection]);
+
     const handleEditButton = (reservationId: number) => {
         router.push(`/reservation/${reservationId}/editreservation`);
     };
+
+    const handleStartReservationButton = async (reservation_id: number) => {
+        try {
+            const res = await startReservation(reservation_id);
+            if (res.success) {
+                setReservationData(prevReservations => {
+                    return prevReservations.map(reservation => {
+                        if (reservation.reservation_id === reservation_id) {
+                            return {
+                                ...reservation,
+                                isCurrentlyRunning: true
+                            };
+                        }
+                        return reservation;
+                    });
+                });
+            }   
+            else {
+                setError(res?.error || "Unknown error occurred.");
+            }
+        } catch (error) {
+            setError("Error while starting reservation.");
+        }
+    }
+    
+    const handleEndReservationButton = async (reservation_id: number) => {
+        try {
+            const res = await endReservation(reservation_id);
+            if (res.success) {
+                setReservationData(prevReservations => {
+                    return prevReservations.map(reservation => {
+                        if (reservation.reservation_id === reservation_id) {
+                            return {
+                                ...reservation,
+                                isCurrentlyRunning: false,
+                                hasItFinished: true,
+                            };
+                        }
+                        return reservation;
+                    });
+                });
+            } else {
+                setError(res?.error || "Unknown error occurred.");
+            }
+        } catch (error) {
+            setError("Error while ending reservation.");
+        }
+    }
+    
+    
 
     const handleLocationClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setLocationAnchorEl(event.currentTarget);
@@ -143,7 +239,7 @@ export const ListReservations = () => {
     };
 
     return (
-        <CardWrapper headerLabel="Reservation Schedule" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard" className="shadow-md md:w-[750px] lg:w-[1200px]">
+        <CardWrapper headerLabel="Reservation Schedule" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard" className="shadow-md md:w-[750px] lg:w-[1500px]">
             <div className="p-4 bg-white shadow rounded-lg">
                 <div className="my-4 flex justify-between">
                     <Popover>
@@ -191,29 +287,34 @@ export const ListReservations = () => {
                 <Button onClick={copyToClipboard} className="mb-4">
                     <ClipboardCopyIcon className="mr-2" /> Copy to Clipboard
                 </Button>
-                {error && <div className="text-red-500">{error}</div>}
                 <div className="p-10 bg-white rounded-sm ">
                     <div className="flex flex-col space-y-4">
                         <table className="w-full text-sm text-left text-gray-500">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3">Location</th>
-                                    <th className="px-6 py-3">Name</th>
+                                    <th className="px-6 py-3">Status</th>
+                                    <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("reservation_location_id")}>Location</th>
+                                    <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("reservationOwner")}>Name</th>
                                     <th className="px-6 py-3">Contact</th>
-                                    <th className="px-6 py-3">Price</th>
-                                    <th className="px-6 py-3">Time</th>
+                                    <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("totalPrice")}>Price</th>
+                                    <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("startTime")}>Time</th>
                                     <th className="px-6 py-3">Jetskis</th>
-                                    <th className="px-6 py-3">Type</th>
+                                    <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("rentaloption_id")}>Type</th>
                                     {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
                                         <th className="px-6 py-3">Actions</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredReservations?.map(reservation => {
+                                {sortedReservations?.map(reservation => {
                                     const location = locationNames?.find(loc => loc.location_id === reservation.reservation_location_id);
+                                    const status = getStatusColor(reservation);
                                     return (
                                         <tr key={reservation.reservation_id} className="bg-white border-b">
+                                             <td className="px-6 py-4">
+                                                <span className={`inline-block w-3 h-3 mr-2 rounded-full ${status.color}`}></span>
+                                                {status.label}
+                                            </td>
                                             <td className="px-6 py-4">{location ? location.location_name : 'No location found'}</td>
                                             <td className="px-6 py-4">{reservation.reservationOwner}</td>
                                             <td className="px-6 py-4">{reservation.contactNumber}</td>
@@ -223,31 +324,45 @@ export const ListReservations = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 {reservation.reservation_jetski_list && reservation.reservation_jetski_list.map(jetski => (
-                                                    <div key={jetski.jetski_id}>{jetski.jetski_registration}</div>
+                                                    <div key={jetski.jetski_id} className={jetski.jetski_status !== "AVAILABLE" ? "text-red-500" : ""}>
+                                                        {jetski.jetski_registration}
+                                                    </div>
                                                 ))}
                                             </td>
                                             <td className="px-6 py-4">{reservation.rentaloption_id === 1 ? "Regular" : "Safari" }</td>
                                             {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
                                                 <td className="px-6 py-4">
                                                     <div className="flex gap-1">
-                                                        <Button variant={"constructive"} onClick={() => handleEditButton(reservation.reservation_id)}>
-                                                            <Pencil1Icon />
-                                                        </Button>
-                                                        <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
-                                                            <PopoverTrigger asChild>
-                                                                <Button variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
-                                                                    <TrashIcon />
+                                                    <div>
+                                                        {!reservation.hasItFinished ? (
+                                                            <>
+                                                                <Button onClick={() => reservation.isCurrentlyRunning ? handleEndReservationButton(reservation.reservation_id) : handleStartReservationButton(reservation.reservation_id)}>
+                                                                    {reservation.isCurrentlyRunning ? "End" : "Start"}
                                                                 </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
-                                                                <h3 className="text-lg font-semibold">Are you sure?</h3>
-                                                                <p>Do you really want to delete this reservation?</p>
-                                                                <div className="flex justify-end space-x-2 mt-4">
-                                                                    <Button variant="outline" onClick={cancelDelete}>Cancel</Button>
-                                                                    <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
-                                                                </div>
-                                                            </PopoverContent>
-                                                        </Popover>
+                                                                <Button variant={"constructive"} onClick={() => handleEditButton(reservation.reservation_id)}>
+                                                                    <Pencil1Icon />
+                                                                </Button>
+                                                                <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
+                                                                            <TrashIcon />
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
+                                                                        <h3 className="text-lg font-semibold">Are you sure?</h3>
+                                                                        <p>Do you really want to delete this reservation?</p>
+                                                                        <div className="flex justify-end space-x-2 mt-4">
+                                                                            <Button variant="outline" onClick={cancelDelete}>Cancel</Button>
+                                                                            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            </>
+                                                        ): (
+                                                            <p>Reservation has finished.</p>
+                                                        )}
+                                                    </div>
+
                                                     </div>
                                                 </td>
                                             )}
@@ -256,7 +371,13 @@ export const ListReservations = () => {
                                 })}
                             </tbody>
                         </table>
-                        {error && <div className="text-red-500">{`Error: ${error}`}</div>}
+                        {error && (
+                            <div className="flex justify-center">
+                                <div className="text-center text-red-500 bg-red-100 border border-red-400 rounded-md py-2 px-4 mt-4">
+                                    {error}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

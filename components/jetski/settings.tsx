@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,42 @@ import { updateUserDetails } from "@/actions/updateUser";
 import { CardWrapper } from "../auth/card-wrapper";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
-import { Input, TextField } from "@mui/material";
+import { TextField } from "@mui/material";
+import 'react-international-phone/style.css';
+import { PhoneInput } from "react-international-phone";
+import { actionGetUserByEmail } from "@/actions/getUserByEmail";
 
 const SettingsPage = () => {
   const user = useCurrentUser();
   const [name, setName] = useState(user?.name || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [phone, setPhone]= useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        if (user?.email) {
+          const currentUser = await actionGetUserByEmail(user.email);
+          if (currentUser?.contactNumber) {
+            setPhone(currentUser.contactNumber);
+          }
+          if(currentUser?.name)
+          {
+            setName(currentUser.name)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    fetchUserDetails();
+  }, [user?.email]);
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +59,8 @@ const SettingsPage = () => {
         email: user.email, 
         name, 
         currentPassword, 
-        newPassword 
+        newPassword,
+        phone
       });
 
       if (response.error) {
@@ -60,6 +87,18 @@ const SettingsPage = () => {
               fullWidth
               required
             />
+            </div>
+            <div className="mb-4">
+            <PhoneInput
+              defaultCountry="hr"
+              autoFocus={true}
+              onChange={(value) => {
+                  setPhone(value);
+              }}
+              value={phone}
+              className={error ? "border-red-500" : ""}
+            />
+            <FormError message={error} />
             </div>
             <div className="mb-4">
                 <TextField

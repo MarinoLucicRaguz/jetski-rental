@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { listJetski } from "@/actions/listJetskis";
 import { getUsers } from "@/actions/getUsers";
-import Modal from "../ui/Modal";
 import LocationDetailsModal from "../modal/locationDetails";
+import { ExtendedReservation } from "@/types";
+import { getTodayReservationData } from "@/actions/getTodayReservation";
 
 export const ListLocation = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -23,9 +24,9 @@ export const ListLocation = () => {
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
     const [locationJetskis, setLocationJetskis] = useState<Jetski[] | null>([]);
     const [locationUsers, setLocationUsers] = useState<User[] | null>([]);
+    const [reservationsData, setReservationsData] = useState<ExtendedReservation[]>([]);
 
     const router = useRouter();
-
     const user = useCurrentUser();
 
     useEffect(() => {
@@ -41,6 +42,9 @@ export const ListLocation = () => {
                 setJetskiData(jetskis)
                 const users = await getUsers();
                 setUserData(users);
+                const reservations = await getTodayReservationData()
+                if(reservations)
+                    setReservationsData(reservations);
             } catch (error) {
                 setError("Error fetching locations");
             }
@@ -52,9 +56,6 @@ export const ListLocation = () => {
     const handleEditClick = (locationId: number) => {
         router.push(`/location/${locationId}/editlocation`);
     };
-    const handleOpenModal = () => {
-        setIsModalOpen(true);
-      };
     
     const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -66,7 +67,6 @@ export const ListLocation = () => {
             setSelectedLocation(location);
             const locationJetskis = jetskiData?.filter((jetski) => jetski.jetski_location_id === location.location_id) || [];
             const locationUsers = userData?.filter((user) => user.user_location_id === location.location_id) || [];
-            console.log(userData)
             setLocationJetskis(locationJetskis);
             setLocationUsers(locationUsers);
             setIsModalOpen(true);
@@ -77,21 +77,28 @@ export const ListLocation = () => {
 
     const handleDeleteClick = async (locationId: number) => {
         try {
-            await deleteLocation(locationId);
-            setLocationData((prevData) => prevData?.filter((loc) => loc.location_id !== locationId) || null);
+            const deletionResult = await deleteLocation(locationId);
+            if (deletionResult.error === "ExistingReservations") {
+                setError("Cannot delete location with existing reservations. Please remove all the reservations from this location to continue.");
+            } else if (deletionResult.error) {
+                setError(deletionResult.error);
+            } else {
+                setLocationData((prevData) => prevData?.filter((loc) => loc.location_id !== locationId) || null);
+            }
         } catch (error) {
             setError("Error deleting location");
         }
-    };
-
+    };   
+    
     return (
-        <CardWrapper headerLabel="Locations" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+        <CardWrapper headerLabel="Locations" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard" className="shadow-md md:w-[750px] lg:w-[900px]">
             <div className="space-y-4">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead>
                         <tr>
                             <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Location Name</th>
                             <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
+                            <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                             {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
                                 <th className="px-6 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase text-center tracking-wider">Actions</th>
                             )}
@@ -103,6 +110,9 @@ export const ListLocation = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">{location.location_name}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     {userData?.find((user) => user.user_id === location.location_manager_id)?.name || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {userData?.find((user) => user.user_id === location.location_manager_id)?.contactNumber || 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                                     <Button variant="yellow" onClick={() => handleDetailsClick(location)}>Details</Button>
@@ -117,7 +127,13 @@ export const ListLocation = () => {
                         ))}
                     </tbody>
                 </table>
-                {error && <div className="text-red-500 mt-4">{`Error: ${error}`}</div>}
+                <div className="mt-4 text-center">
+                    {error && (
+                        <div className="text-red-500">
+                            <p>{error}</p>
+                        </div>
+                    )}
+                </div>
             </div>
             {isModalOpen && selectedLocation && locationJetskis && locationUsers && (
                 <LocationDetailsModal
@@ -125,6 +141,7 @@ export const ListLocation = () => {
                     jetskis={locationJetskis} 
                     users={locationUsers}
                     onClose={handleCloseModal}
+                    reservationsData={reservationsData}
                 />
             )}
 

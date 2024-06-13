@@ -1,15 +1,54 @@
 import React from 'react';
 import Modal from '../ui/Modal';
-import { Location, Jetski, User } from '@prisma/client';
+import { Location, Jetski, User, UserRole } from '@prisma/client';
+import { ExtendedReservation } from '@/types';
 
+const convertUserRole = (userRole: UserRole): string => {
+  switch(userRole){
+    case "ADMIN":
+      return "Administrator"
+    case "MODERATOR":
+      return "Manager"
+    case "USER":
+      return "Worker"
+    case "GUEST":
+      return "New user"
+    default:
+      return "Unknown role";
+  }
+};
 interface LocationDetailsModalProps {
   location: Location;
   jetskis: Jetski[];
   users: User[];
   onClose: () => void;
+  reservationsData: ExtendedReservation[];
 }
 
-const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, jetskis, users, onClose }) => {
+const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, jetskis, users, onClose, reservationsData }) => {
+  
+  const getJetskiStatus = (jetskiId: number): string => {
+    const now = new Date().getTime();
+
+    const relevantReservation = reservationsData?.find(reservation =>
+        reservation.reservation_jetski_list.some(jetski => jetski.jetski_id === jetskiId) &&
+        (reservation.isCurrentlyRunning || reservation.startTime.getTime() > now)
+    );
+
+    if (relevantReservation) {
+        if (relevantReservation.isCurrentlyRunning) {
+            return "Currently Running";
+        } else {
+            const timeUntilNext = relevantReservation.startTime.getTime() - now;
+            const hours = Math.floor(timeUntilNext / (60 * 60 * 1000));
+            const minutes = Math.floor((timeUntilNext % (60 * 60 * 1000)) / (60 * 1000));
+            return `Next in ${hours} hours ${minutes} minutes`;
+        }
+    } else {
+        return "No reservation for rest of the day.";
+    }
+  };
+
   return (
     <Modal onClose={onClose}>
       <div className="p-15">
@@ -31,6 +70,7 @@ const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, j
                     <tr key={jetski.jetski_id}>
                         <td className="px-6 py-4 whitespace-nowrap">{jetski.jetski_registration}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{jetski.jetski_model}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getJetskiStatus(jetski.jetski_id)}</td>
                     </tr>
                 )
             ))}
@@ -44,13 +84,15 @@ const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, j
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map(user => (
                 <tr key={user.user_id}>
                   <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.user_role}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{convertUserRole(user.user_role)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{user.contactNumber?  user.contactNumber : "N/A"} </td>
                 </tr>
               ))}
             </tbody>

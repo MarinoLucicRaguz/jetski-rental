@@ -1,9 +1,9 @@
 "use client"
 
-import { useSession } from "next-auth/react";
+import { useSessionData } from "@/components/wrapper/useSessionData";
 
 export const useCurrentUser = () => {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSessionData();
 
   if (status === 'loading') {
     return null;

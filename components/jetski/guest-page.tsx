@@ -6,6 +6,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { useEffect, useState } from "react";
 import { signOutUser } from "@/actions/signOutAction";
 import { Button } from "@/components/ui/button";
+import SignOutButton from "../auth/sign-out-button";
 
 export const GuestPage = () => {
   const [showError, setShowError] = useState(false);
@@ -28,9 +29,9 @@ export const GuestPage = () => {
     return (
       <div className="fixed inset-0 flex flex-col justify-center items-center bg-yellow-500 bg-opacity-75 text-white">
         <AwaitPermission message="You need to be granted rights to view this page." />
-        <Button onClick={handleLogout} variant="secondary" className="mt-4">
-          Logout
-        </Button>
+        <SignOutButton className="mt-4 w-30">
+
+        </SignOutButton>
       </div>
     );
   }

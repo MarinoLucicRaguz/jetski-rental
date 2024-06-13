@@ -116,7 +116,6 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
         setSuccess("");
     
         values.jetski_registration = values.jetski_registration.toUpperCase()
-
         try {
             const data = await editJetski(jetskiId, values);
             setError(data.error || "");
@@ -152,33 +151,37 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
                         control={form.control}
                         name="jetski_location_id"
                         render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="border-solid sans-serif text-bold ">
-                                Location:
-                            </FormLabel>
-                            <FormControl className="rounded-sm text-center bg-black text-white border-solid ml-80 w-40 p-2">
-                            <select
-                                {...form.register("jetski_location_id")}
-                                disabled={isPending}
-                                value={field.value === null ? "" : field.value}
-                                onChange={(e) => {
-                                    field.onChange(e.target.value === "" ? null : e.target.value);
-                                }}>
-                                <option value="" hidden disabled>No location </option>
-                                {locationData.map((location) => (
-                                <option
-                                    key={location.location_id}
-                                    value={location.location_id}
-                                >
-                                    {location.location_name.toUpperCase()}
-                                </option>
-                                ))}
-                            </select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
+                            <FormItem>
+                                <FormLabel className="border-solid sans-serif text-bold ">
+                                    Location:
+                                </FormLabel>
+                                <FormControl className="rounded-sm text-center bg-black text-white border-solid ml-80 w-40 p-2">
+                                    <select
+                                        {...field}
+                                        disabled={isPending}
+                                        value={field.value === null ? "" : field.value.toString()}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            field.onChange(value === "" ? null : parseInt(value, 10));
+                                        }}
+                                    >
+                                        <option value="">No location</option>
+                                        {locationData.map((location) => (
+                                            <option
+                                                key={location.location_id}
+                                                value={location.location_id.toString()}
+                                            >
+                                                {location.location_name.toUpperCase()}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
                         )}
                     />
+
+
                     <FormField
                         control={form.control}
                         name="jetski_model"

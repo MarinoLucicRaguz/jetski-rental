@@ -12,14 +12,15 @@ model Location {
   location_id          Int           @id @default(autoincrement())
   location_name        String        @unique
 
-  location_manager_id  String?
-  location_manager     User?    @relation("Manager", fields: [location_manager_id], references: [user_id])
-
-
+  location_manager_id  String?       @unique
+  location_manager     User?         @relation("ManagedLocation", fields: [location_manager_id], references: [user_id])
+  
+  isActive  Boolean? @default(true)
 
   jetski_location_list Jetski[]
   reservations_list    Reservation[]
-  user_location_list   User[]
+  user_location_list   User[]        @relation("UserLocation")
+
 }
 
 model User {
@@ -27,12 +28,14 @@ model User {
   name             String?
   email            String?    @unique
   password         String?
+  contactNumber    String?    @unique
+  
   user_status      UserStatus @default(ACTIVE)
   user_role        UserRole   @default(GUEST)
   user_location_id Int?
-  user_location    Location?  @relation(fields: [user_location_id], references: [location_id])
+  user_location    Location?  @relation("UserLocation", fields: [user_location_id], references: [location_id])
 
-  managed_locations Location[] @relation("Manager")
+  managed_location Location? @relation("ManagedLocation")
 }
 
 model Jetski {
@@ -58,6 +61,8 @@ model Reservation {
   contactNumber           String
   totalPrice              Float
   discount                Float
+  isCurrentlyRunning      Boolean? @default(false)
+  hasItFinished           Boolean? @default(false)
 
   rentaloption_id         Int @default(0)
   reservation_location_id Int
