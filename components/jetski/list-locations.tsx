@@ -11,10 +11,9 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { listJetski } from "@/actions/listJetskis";
 import { getUsers } from "@/actions/getUsers";
 import LocationDetailsModal from "../modal/locationDetails";
-import { ExtendedReservation } from "@/types";
-import { getTodayReservationData } from "@/actions/getTodayReservation";
 import { FormError } from "../form-error";
-import { FormSuccess } from "../form-success";
+import { getReservationByJetskiIds } from "@/actions/getFirstReservationByJetskiId";
+import { ExtendedReservation } from "@/types";
 
 export const ListLocation = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -26,7 +25,7 @@ export const ListLocation = () => {
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
     const [locationJetskis, setLocationJetskis] = useState<Jetski[] | null>([]);
     const [locationUsers, setLocationUsers] = useState<User[] | null>([]);
-    const [reservationsData, setReservationsData] = useState<ExtendedReservation[]>([]);
+    const [reservationData, setReservationData] = useState<{ [key: number]: ExtendedReservation | null }>({});
 
     const router = useRouter();
     const user = useCurrentUser();
@@ -44,9 +43,6 @@ export const ListLocation = () => {
                 setJetskiData(jetskis)
                 const users = await getUsers();
                 setUserData(users);
-                const reservations = await getTodayReservationData()
-                if(reservations)
-                    setReservationsData(reservations);
             } catch (error) {
                 setError("Error fetching locations");
             }
@@ -60,22 +56,26 @@ export const ListLocation = () => {
     };
     
     const handleCloseModal = () => {
-    setIsModalOpen(false);
+        setIsModalOpen(false);
     };
 
-    const handleDetailsClick = async (location: Location) =>
-    {
+    const handleDetailsClick = async (location: Location) => {
         try {
             setSelectedLocation(location);
             const locationJetskis = jetskiData?.filter((jetski) => jetski.jetski_location_id === location.location_id) || [];
             const locationUsers = userData?.filter((user) => user.user_location_id === location.location_id) || [];
+
+            const jetskiIds = locationJetskis.map(jetski => jetski.jetski_id);
+            const reservations = await getReservationByJetskiIds(jetskiIds);
+
             setLocationJetskis(locationJetskis);
             setLocationUsers(locationUsers);
+            setReservationData(reservations);
             setIsModalOpen(true);
         } catch (error) {
             setError("Error fetching details");
         }
-    }
+    };
 
     const handleDeleteClick = async (locationId: number) => {
         try {
@@ -139,10 +139,9 @@ export const ListLocation = () => {
                     jetskis={locationJetskis} 
                     users={locationUsers}
                     onClose={handleCloseModal}
-                    reservationsData={reservationsData}
+                    reservationsData={reservationData}
                 />
             )}
-
         </CardWrapper>
     );
 };

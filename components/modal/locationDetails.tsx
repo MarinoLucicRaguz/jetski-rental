@@ -17,34 +17,31 @@ const convertUserRole = (userRole: UserRole): string => {
       return "Unknown role";
   }
 };
+
 interface LocationDetailsModalProps {
   location: Location;
   jetskis: Jetski[];
   users: User[];
   onClose: () => void;
-  reservationsData: ExtendedReservation[];
+  reservationsData: { [key: number]: ExtendedReservation | null };
 }
 
 const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, jetskis, users, onClose, reservationsData }) => {
-  
   const getJetskiStatus = (jetskiId: number): string => {
     const now = new Date().getTime();
-
-    const relevantReservation = reservationsData?.find(reservation =>
-        reservation.reservation_jetski_list.some(jetski => jetski.jetski_id === jetskiId)
-    );
+    const relevantReservation = reservationsData[jetskiId];
 
     if (relevantReservation) {
         if (relevantReservation.isCurrentlyRunning) {
             return "Currently Running";
         } else {
-            const timeUntilNext = relevantReservation.startTime.getTime() - now;
+            const timeUntilNext = new Date(relevantReservation.startTime).getTime() - now;
             const hours = Math.floor(timeUntilNext / (60 * 60 * 1000));
             const minutes = Math.floor((timeUntilNext % (60 * 60 * 1000)) / (60 * 1000));
             return `Next in ${hours} hours ${minutes} minutes`;
         }
     } else {
-        return "No reservation for rest of the day.";
+        return "No reservation in future for this jetski.";
     }
   };
 
@@ -64,15 +61,15 @@ const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, j
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-            {jetskis.map(jetski => (
+              {jetskis.map(jetski => (
                 jetski.jetski_status === "AVAILABLE" && (
-                    <tr key={jetski.jetski_id}>
-                        <td className="px-6 py-4 whitespace-nowrap">{jetski.jetski_registration}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{jetski.jetski_model}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{getJetskiStatus(jetski.jetski_id)}</td>
-                    </tr>
+                  <tr key={jetski.jetski_id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{jetski.jetski_registration}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{jetski.jetski_model}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{getJetskiStatus(jetski.jetski_id)}</td>
+                  </tr>
                 )
-            ))}
+              ))}
             </tbody>
           </table>
         </div>

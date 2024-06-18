@@ -7,6 +7,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { RentalOptions } from "@prisma/client";
+import { FormError } from "../form-error";
 
 type rentalOptionSortBy = "rentaloption_description"| "duration"| "rentalprice" | "isAvailable";
 
@@ -42,18 +43,23 @@ export const ListRentalOptions = () => {
 
     const handleDeleteClick = async (rentaloption_id: number) => {
         try {
-            await deleteRentalOption(rentaloption_id);
-            setRentalOptionsData(prevData =>
-                prevData?.map(option => {
-                    if (option.rentaloption_id === rentaloption_id) {
-                        return {
-                            ...option,
-                            isAvailable: !option.isAvailable
-                        };
-                    }
-                    return option;
-                }) || null
-            );            
+            const response = await deleteRentalOption(rentaloption_id);
+            
+            if (response.success) {
+                setRentalOptionsData(prevData =>
+                    prevData?.map(option => {
+                        if (option.rentaloption_id === rentaloption_id) {
+                            return {
+                                ...option,
+                                isAvailable: !option.isAvailable
+                            };
+                        }
+                        return option;
+                    }) || null
+                );
+            } else {
+                setError(response.error);
+            }
         } catch (error) {
             setError("Error deleting rental option");
         }
@@ -123,10 +129,12 @@ export const ListRentalOptions = () => {
                     ))}
                 </tbody>
             </table>
+            <div className="mt-4 text-center">
+                <FormError message={error}/>
+            </div>
             <div className="mt-4 flex justify-center">
                 <Button variant="ghost" onClick={handleGoBack}>Go back</Button>
             </div>
-            {error && <div className="text-red-500">{`Error: ${error}`}</div>}
         </div>
     );
 };

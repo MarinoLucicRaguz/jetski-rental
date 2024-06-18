@@ -15,14 +15,14 @@ const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start:
   const slotStartTime = new Date(rentDate);
   const now = new Date();
 
-  if (rentDate.toDateString() === now.toDateString()) {
+  if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7) ) {
     slotStartTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
   } else {
     slotStartTime.setHours(7, 0, 0, 0);
   }
 
   const dayEndTime = new Date(rentDate);
-  dayEndTime.setHours(23, 0, 0, 0); 
+  dayEndTime.setHours(21, 0, 0, 0); 
 
   while (slotStartTime < dayEndTime) {
     const slotEndTime = new Date(slotStartTime);

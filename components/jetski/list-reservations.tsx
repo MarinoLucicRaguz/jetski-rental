@@ -383,7 +383,7 @@ export const ListReservations = () => {
                                                                                     <TrashIcon />
                                                                                 </Button>
                                                                             </PopoverTrigger>
-                                                                            <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
+                                                                            <PopoverContent className="popover-content p-4 bg-white shadow border border-solid rounded-lg">
                                                                                 <h3 className="text-lg font-semibold">Are you sure?</h3>
                                                                                 <p>Do you really want to delete this reservation?</p>
                                                                                 <div className="flex justify-end space-x-2 mt-4">
@@ -403,7 +403,7 @@ export const ListReservations = () => {
                                                                             <TrashIcon />
                                                                         </Button>
                                                                     </PopoverTrigger>
-                                                                    <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
+                                                                    <PopoverContent className="popover-content p-4 bg-white shadow border border-solid rounded-lg">
                                                                         <h3 className="text-lg font-semibold">Are you sure?</h3>
                                                                         <p>Do you really want to delete this reservation?</p>
                                                                         <div className="flex justify-end space-x-2 mt-4">

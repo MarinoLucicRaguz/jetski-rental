@@ -27,7 +27,10 @@ export const DashboardPage = () => {
       try {
         const locationData = await listLocation();
         if (locationData) setLocations(locationData);
-        const reservationsData = await listReservationsByDate(new Date());
+        const currentDate = new Date();
+        currentDate.setHours(currentDate.getHours());
+        console.log(currentDate)
+        const reservationsData = await listReservationsByDate(currentDate);
         if (reservationsData) {
           setReservations(reservationsData);
         }
