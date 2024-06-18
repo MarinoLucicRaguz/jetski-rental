@@ -12,7 +12,13 @@ interface AvailabilitySlot {
 const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start: Date, end: Date }[] => {
   const slots = [];
   const slotStartTime = new Date(rentDate);
-  slotStartTime.setHours(7, 0, 0, 0);
+
+  const now = new Date();
+  if (rentDate.toDateString() === now.toDateString()) {
+    slotStartTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
+  } else {
+    slotStartTime.setHours(7, 0, 0, 0);
+  }
 
   const dayEndTime = new Date(rentDate);
   dayEndTime.setHours(19, 0, 0, 0);

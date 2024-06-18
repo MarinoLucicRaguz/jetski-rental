@@ -43,8 +43,6 @@ export const getAllJetskis = async () => {
 }
 
 export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
-
-    console.log(startTime, endTime)
     try {
         const availableJetskis = await db.jetski.findMany({
             where: {

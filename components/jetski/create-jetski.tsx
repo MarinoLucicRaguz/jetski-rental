@@ -114,7 +114,7 @@ export const JetskiForm = () => {
                                         <Input
                                             {...field}
                                             disabled={isPending}
-                                            placeholder="DB-12345"
+                                            placeholder="ST-12345"
                                         />
                                     </FormControl>
                                     <FormMessage />

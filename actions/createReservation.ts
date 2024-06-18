@@ -27,6 +27,8 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     const startDateTime = DateTime.fromJSDate(new Date(startTime));
     const endDateTime = DateTime.fromJSDate(new Date(endTime));
 
+    if (reservation_jetski_list.length )
+
     // Check if the start time is in the past
     if (startDateTime < now) {
         return { error: "You have selected a starting time that has already passed!" };
@@ -54,8 +56,8 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
                     },
                 },
                 NOT: [
-                    { endTime: { lt: startTime } },
-                    { startTime: { gt: endTime } },
+                    { endTime: { lte: startTime } },
+                    { startTime: { gte: endTime } },
                 ],
             },
         });

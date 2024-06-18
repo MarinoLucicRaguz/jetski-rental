@@ -20,6 +20,7 @@ export const fetchReservations = async (): Promise<ExtendedReservation[] | null>
 
 export const fetchTodayReservation = async(): Promise<ExtendedReservation[] | null> => {
     try {
+        const now = new Date();
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
 

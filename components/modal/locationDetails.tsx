@@ -31,8 +31,7 @@ const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, j
     const now = new Date().getTime();
 
     const relevantReservation = reservationsData?.find(reservation =>
-        reservation.reservation_jetski_list.some(jetski => jetski.jetski_id === jetskiId) &&
-        (reservation.isCurrentlyRunning || reservation.startTime.getTime() > now)
+        reservation.reservation_jetski_list.some(jetski => jetski.jetski_id === jetskiId)
     );
 
     if (relevantReservation) {
@@ -61,7 +60,7 @@ const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, j
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currently rented</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next reservation</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">

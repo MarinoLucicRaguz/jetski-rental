@@ -11,16 +11,12 @@ datasource db {
 model Location {
   location_id          Int           @id @default(autoincrement())
   location_name        String        @unique
-
   location_manager_id  String?       @unique
-  location_manager     User?         @relation("ManagedLocation", fields: [location_manager_id], references: [user_id])
-  
-  isActive  Boolean? @default(true)
-
+  isActive             Boolean?      @default(true)
   jetski_location_list Jetski[]
+  location_manager     User?         @relation("ManagedLocation", fields: [location_manager_id], references: [user_id])
   reservations_list    Reservation[]
   user_location_list   User[]        @relation("UserLocation")
-
 }
 
 model User {
@@ -29,13 +25,11 @@ model User {
   email            String?    @unique
   password         String?
   contactNumber    String?    @unique
-  
   user_status      UserStatus @default(ACTIVE)
   user_role        UserRole   @default(GUEST)
   user_location_id Int?
+  managed_location Location?  @relation("ManagedLocation")
   user_location    Location?  @relation("UserLocation", fields: [user_location_id], references: [location_id])
-
-  managed_location Location? @relation("ManagedLocation")
 }
 
 model Jetski {
@@ -56,24 +50,22 @@ model Reservation {
   startTime               DateTime
   endTime                 DateTime
   createdAt               DateTime @default(now())
-  
   reservationOwner        String
   contactNumber           String
   totalPrice              Float
   discount                Float
   isCurrentlyRunning      Boolean? @default(false)
   hasItFinished           Boolean? @default(false)
-
-  rentaloption_id         Int @default(0)
+  rentaloption_id         Int      @default(0)
   reservation_location_id Int
   reservation_location    Location @relation(fields: [reservation_location_id], references: [location_id])
   reservation_jetski_list Jetski[] @relation("JetskiToReservation")
 }
 
 model RentalOptions {
-  rentaloption_id          Int    @id @default(autoincrement())
+  rentaloption_id          Int     @id @default(autoincrement())
   rentaloption_description String
-  duration                 Int    
+  duration                 Int
   rentalprice              Float
   isAvailable              Boolean @default(true)
 }
