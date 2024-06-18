@@ -27,19 +27,26 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     const startDateTime = DateTime.fromJSDate(new Date(startTime));
     const endDateTime = DateTime.fromJSDate(new Date(endTime));
 
-    if (reservation_jetski_list.length )
+    const rentalOption = await db.rentalOptions.findUnique({where: {rentaloption_id}});
 
-    // Check if the start time is in the past
+    if(rentalOption?.rentaloption_description === "SAFARI" && reservation_jetski_list.length < 2)
+    {
+        return {error: "Safari tour needs minimum two jetskis. One for guide and one for the guest."};
+    }
+
+    if(rentalOption?.rentaloption_description === "REGULAR" && reservation_jetski_list.length < 1)
+        {
+            return {error: "Regular tour needs minimum one jetski."};
+        }
+
     if (startDateTime < now) {
         return { error: "You have selected a starting time that has already passed!" };
     }
 
-    // Ensure endTime is after startTime
     if (startDateTime >= endDateTime) {
         return { error: "End time must be after start time." };
     }
 
-    // Validate location exists
     const locationExists = await db.location.findUnique({
         where: { location_id: reservation_location_id },
     });

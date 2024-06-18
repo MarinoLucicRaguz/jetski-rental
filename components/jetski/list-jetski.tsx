@@ -10,6 +10,8 @@ import { Menu, MenuItem } from "@mui/material";
 import Spinner from "../ui/spinner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { deleteJetski } from "@/actions/deleteJetski";
+import { ExtendedReservation } from "@/types";
+import { getCurrentlyRunningJetskis } from "@/actions/getCurrentlyRunningJetkis";
 
 function convertStatusToText(currentStatus: statusJetski)
 {
@@ -39,6 +41,7 @@ export const ListJetski = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [sortBy, setSortBy] = useState<JetskiSortBy>("jetski_registration");
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+    const [runningJetski, setRunningJetski] = useState<Jetski[] |null>([]);
     const router = useRouter();
 
     const user= useCurrentUser();
@@ -48,6 +51,7 @@ export const ListJetski = () => {
             try {
                 const locations = await listLocation();
                 setLocationNames(locations);
+                
             } catch (error) {
                 setError("Error fetching locations");
             }
@@ -62,7 +66,16 @@ export const ListJetski = () => {
             }
         };
 
-        Promise.all([fetchLocations(), fetchJetskis()]).then(() => {
+        const fetchCurrentlyRunningJetskis = async () => {
+            try {
+                const jetski = await getCurrentlyRunningJetskis();
+                setRunningJetski(jetski);
+            }catch (error) {
+                setError("Error fetching current running jetskis");
+            }
+        };
+
+        Promise.all([fetchLocations(), fetchJetskis(), fetchCurrentlyRunningJetskis()]).then(() => {
             setLoadingData(false); 
         });
     }, []);
@@ -236,17 +249,23 @@ export const ListJetski = () => {
                                     </td>
                                     {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
                                     <td className="px-6 py-4">
-                                        {jetski.jetski_status !== 'NOT_IN_FLEET' && (
-                                            <>
-                                            <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>
-                                            <Button className="ml-2" variant="yellow" onClick={() => handleJetskiStatusClick(jetski.jetski_id)}>
-                                                {jetski.jetski_status === 'AVAILABLE' ? "Send for repair" : "Return from repair"}
-                                            </Button>
-                                            <Button className="ml-2" variant="destructive" onClick={() => handleJetskiRemoveClick(jetski.jetski_id)}>
-                                                Remove
-                                            </Button>
-                                        </>
-                                        )}
+                                        {jetski.jetski_status !== 'NOT_IN_FLEET' ? (
+                                            runningJetski?.find(j => j.jetski_id === jetski.jetski_id) ? (
+                                                <span>Jetski is currently running. We can't do any actions to it.</span>
+                                            ) : (
+                                                <>
+                                                    <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>
+                                                    <Button className="ml-2" variant="yellow" onClick={() => handleJetskiStatusClick(jetski.jetski_id)}>
+                                                        {jetski.jetski_status === 'AVAILABLE' ? "Send for repair" : "Return from repair"}
+                                                    </Button>
+                                                    <Button className="ml-2" variant="destructive" onClick={() => handleJetskiRemoveClick(jetski.jetski_id)}>
+                                                        Remove
+                                                    </Button>
+                                                </>
+                                            )
+                                        ) : 
+                                        <span>Jetski has been decommissioned. </span>
+                                        }
                                     </td>
                                     )}
                                 </tr>

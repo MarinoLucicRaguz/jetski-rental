@@ -18,18 +18,31 @@ export const fetchReservations = async (): Promise<ExtendedReservation[] | null>
     }
 }
 
+export const checkWhichJetskisAreCurrentlyRunning = async () => {
+    try {
+        const jetskis = await db.reservation.findMany({
+            where: {
+                isCurrentlyRunning: true
+            },
+            select: {
+                reservation_jetski_list: true
+            }
+        });
+        return jetskis.flatMap(reservation => reservation.reservation_jetski_list);
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
+
+
 export const fetchTodayReservation = async(): Promise<ExtendedReservation[] | null> => {
     try {
-        const now = new Date();
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
 
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
-
-        console.log('Start of day:', startOfDay);
-        console.log('End of day:', endOfDay);
-
         const reservations = await db.reservation.findMany({
             where: {
                 AND: [

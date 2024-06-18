@@ -25,6 +25,11 @@ type sortReservationBy = "startTime" | "totalPrice" | "reservationOwner" | "rent
 const getStatusColor = (reservation: ExtendedReservation) => {
     const hasUnavailableJetski = reservation.reservation_jetski_list.some(jetski => jetski.jetski_status !== "AVAILABLE");
 
+    if (reservation.hasItFinished)
+    {
+        return { color: 'bg-gray-500', label: 'Finished' };
+    }
+
     if (hasUnavailableJetski) {
         return { color: 'bg-red-500', label: 'Issue' };
     } else if (reservation.isCurrentlyRunning) {
@@ -349,7 +354,7 @@ export const ListReservations = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 {reservation.reservation_jetski_list && reservation.reservation_jetski_list.map(jetski => (
-                                                    <div key={jetski.jetski_id} className={jetski.jetski_status !== "AVAILABLE" ? "text-red-500" : ""}>
+                                                    <div key={jetski.jetski_id} className={(jetski.jetski_status !== "AVAILABLE" && !reservation.hasItFinished)? "text-red-500" : ""}>
                                                         {jetski.jetski_registration}
                                                     </div>
                                                 ))}
@@ -363,26 +368,30 @@ export const ListReservations = () => {
                                                                 <Button className="mr-2" onClick={() => reservation.isCurrentlyRunning ? handleEndReservationButton(reservation.reservation_id) : handleStartReservationButton(reservation.reservation_id)}>
                                                                     {reservation.isCurrentlyRunning ? "End" : "Start"}
                                                                 </Button>
-                                                                <Button className="mr-2" variant={"constructive"} onClick={() => handleEditButton(reservation.reservation_id)}>
-                                                                    <Pencil1Icon />
-                                                                </Button>
-                                                                <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
-                                                                    <PopoverTrigger asChild>
-                                                                        <Button className="mr-2" variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
-                                                                            <TrashIcon />
+                                                                {!reservation.isCurrentlyRunning && (
+                                                                    <>
+                                                                        <Button className="mr-2" variant={"constructive"} onClick={() => handleEditButton(reservation.reservation_id)}>
+                                                                            <Pencil1Icon />
                                                                         </Button>
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
-                                                                        <h3 className="text-lg font-semibold">Are you sure?</h3>
-                                                                        <p>Do you really want to delete this reservation?</p>
-                                                                        <div className="flex justify-end space-x-2 mt-4">
-                                                                            <Button variant="outline" onClick={cancelDelete}>Cancel</Button>
-                                                                            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
-                                                                        </div>
-                                                                    </PopoverContent>
-                                                                </Popover>
+                                                                        <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
+                                                                            <PopoverTrigger asChild>
+                                                                                <Button className="mr-2" variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
+                                                                                    <TrashIcon />
+                                                                                </Button>
+                                                                            </PopoverTrigger>
+                                                                            <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
+                                                                                <h3 className="text-lg font-semibold">Are you sure?</h3>
+                                                                                <p>Do you really want to delete this reservation?</p>
+                                                                                <div className="flex justify-end space-x-2 mt-4">
+                                                                                    <Button variant="outline" onClick={cancelDelete}>Cancel</Button>
+                                                                                    <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                                                                                </div>
+                                                                            </PopoverContent>
+                                                                        </Popover>
+                                                                    </>
+                                                                )}
                                                             </>
-                                                        ): (
+                                                        ) : (
                                                             <p>Reservation has finished.</p>
                                                         )}
                                                     </div>

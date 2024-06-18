@@ -12,7 +12,7 @@ export const updateJetskiStatus = async (jetskiId: number) => {
         return { error: "Jetski with this ID does not exist!" }; // Should never happen, but just in case!
     }
     
-    let newStatus: statusJetski = "NOT_IN_FLEET";
+    let newStatus: statusJetski = "NOT_AVAILABLE";
 
     if (existingJetski.jetski_status !== "AVAILABLE") {
         newStatus = "AVAILABLE";

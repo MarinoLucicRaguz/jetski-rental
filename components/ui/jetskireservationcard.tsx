@@ -17,7 +17,7 @@ const JetskiReservationCard: React.FC<JetskiReservationCardProps> = ({ jetski, r
         const endTime = new Date(reservation.endTime);
 
         if (jetski.jetski_status !== "AVAILABLE") {
-            return { backgroundColor: "bg-red-400", statusText: "Jetski isn't available" };
+            return { backgroundColor: "bg-red-400", statusText: "Error: Jetski isn't available" };
         }
 
         const anyJetskiNotAvailable = reservation.reservation_jetski_list.some(jetskiItem =>
@@ -25,13 +25,13 @@ const JetskiReservationCard: React.FC<JetskiReservationCardProps> = ({ jetski, r
         );
 
         if (anyJetskiNotAvailable) {
-            return { backgroundColor: "bg-purple-200", statusText: "Other jetski in reservation isn't available" };
+            return { backgroundColor: "bg-red-400", statusText: "Error: One of the jetskis in reservation isn't available" };
         } else if (reservation.isCurrentlyRunning) {
             return { backgroundColor: "bg-green-200", statusText: "Reservation is currently running" };
         } else if (now < startTime) {
             return { backgroundColor: "bg-yellow-200", statusText: "Reservation is upcoming" };
         } else if (now >= startTime && now <= endTime) {
-            return { backgroundColor: "bg-blue-200", statusText: "Reservation is ongoing" };
+            return { backgroundColor: "bg-blue-200", statusText: "Reservation is about to start" };
         } else if (reservation.hasItFinished || (reservation.endTime<=now && !reservation.isCurrentlyRunning)) {
             return { backgroundColor: "bg-gray-200", statusText: "Reservation has finished" };
         } else {
@@ -64,7 +64,7 @@ const JetskiReservationCard: React.FC<JetskiReservationCardProps> = ({ jetski, r
                                     <p><span className="font-semibold">Time:</span> {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(reservation.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</p>
                                 </div>
                                 <div className={`rounded-lg shadow-sm flex flex-col p-2 ${backgroundColor}`}>
-                                    <h4 className="font-bold">Reservation Status</h4>
+                                    <h4 className="font-bold">Status</h4>
                                     <p className="text-sm">{statusText}</p>
                                 </div>
                             </div>
