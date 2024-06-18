@@ -5,7 +5,7 @@ import { CardWrapper } from "../auth/card-wrapper";
 import { listReservationsByDate } from "@/actions/listReservationsForDate";
 import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 import { Button } from "../ui/button";
-import { CalendarIcon, TrashIcon, ClipboardCopyIcon, Pencil1Icon } from "@radix-ui/react-icons";
+import { CalendarIcon, TrashIcon, ClipboardCopyIcon, Pencil1Icon, DownloadIcon } from "@radix-ui/react-icons";
 import { Calendar } from "../ui/calendar";
 import { format } from "date-fns";
 import { Jetski, Location, RentalOptions, Reservation } from "@prisma/client";
@@ -238,6 +238,28 @@ export const ListReservations = () => {
         setConfirmPopover(null);
     };
 
+    const formatReservationsForFile = () => {
+        return sortedReservations.map(reservation => {
+            const location = locationNames?.find(loc => loc.location_id === reservation.reservation_location_id);
+            const jetskis = reservation.reservation_jetski_list?.map(jetski => jetski.jetski_registration).join(" - ") || "";
+            const status = getStatusColor(reservation).label;
+
+            return `\nOwner: ${reservation.reservationOwner}\nLocation: ${location?.location_name}\nJetskis: ${jetskis}\nStart Time: ${reservation.startTime}\nEnd Time: ${reservation.endTime}\nTotal Price: ${reservation.totalPrice}€\nStatus: ${status}\n\n`;
+        }).join("\n");
+    };
+
+    const downloadReservationsAsFile = () => {
+        const content = formatReservationsForFile();
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reservations_${format(rentDate, 'yyyyMMdd')}.txt`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+    };
     return (
         <CardWrapper headerLabel="Reservation Schedule" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard" className="shadow-md md:w-[750px] lg:w-[1500px]">
             <div className="p-4 bg-white shadow rounded-lg">
@@ -287,6 +309,9 @@ export const ListReservations = () => {
                 <Button onClick={copyToClipboard} className="mb-4">
                     <ClipboardCopyIcon className="mr-2" /> Copy to Clipboard
                 </Button>
+                <Button className="ml-2" onClick={downloadReservationsAsFile}>
+                    <DownloadIcon className="mr-2 h-4 w-4" /> Save as
+                </Button>
                 <div className="p-10 bg-white rounded-sm ">
                     <div className="flex flex-col space-y-4">
                         <table className="w-full text-sm text-left text-gray-500">
@@ -329,22 +354,21 @@ export const ListReservations = () => {
                                                     </div>
                                                 ))}
                                             </td>
-                                            <td className="px-6 py-4">{reservation.rentaloption_id === 1 ? "Regular" : "Safari" }</td>
+                                            <td className="px-6 py-4">{rentalOptions.find(rentalOptions => rentalOptions.rentaloption_id === reservation.rentaloption_id)?.rentaloption_description}</td>
                                             {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
                                                 <td className="px-6 py-4">
-                                                    <div className="flex gap-1">
-                                                    <div>
+                                                    <div className="flex">
                                                         {!reservation.hasItFinished ? (
                                                             <>
-                                                                <Button onClick={() => reservation.isCurrentlyRunning ? handleEndReservationButton(reservation.reservation_id) : handleStartReservationButton(reservation.reservation_id)}>
+                                                                <Button className="mr-2" onClick={() => reservation.isCurrentlyRunning ? handleEndReservationButton(reservation.reservation_id) : handleStartReservationButton(reservation.reservation_id)}>
                                                                     {reservation.isCurrentlyRunning ? "End" : "Start"}
                                                                 </Button>
-                                                                <Button variant={"constructive"} onClick={() => handleEditButton(reservation.reservation_id)}>
+                                                                <Button className="mr-2" variant={"constructive"} onClick={() => handleEditButton(reservation.reservation_id)}>
                                                                     <Pencil1Icon />
                                                                 </Button>
                                                                 <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
                                                                     <PopoverTrigger asChild>
-                                                                        <Button variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
+                                                                        <Button className="mr-2" variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
                                                                             <TrashIcon />
                                                                         </Button>
                                                                     </PopoverTrigger>
@@ -361,8 +385,6 @@ export const ListReservations = () => {
                                                         ): (
                                                             <p>Reservation has finished.</p>
                                                         )}
-                                                    </div>
-
                                                     </div>
                                                 </td>
                                             )}

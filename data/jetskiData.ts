@@ -9,6 +9,15 @@ export const getJetskiById =async (jetski_id:number) => {
     }
 }
 
+export const getJetskisByLocation =async (jetski_location_id:number) => {
+    try{
+        const jetSki = await db.jetski.findMany({where:{jetski_location_id}});
+        return jetSki;
+    } catch{
+        return null;
+    }
+}
+
 export const getJetskiByName =async (jetski_registration:string) => {
     try{
         const jetSki = await db.jetski.findUnique(

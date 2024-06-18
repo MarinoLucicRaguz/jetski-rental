@@ -107,7 +107,7 @@ export const getReservationByLocation = async (location_id: number): Promise<Ext
   try {
     const now = new Date();
     const oneHourAgo = new Date(now);
-    oneHourAgo.setHours(now.getHours() - 1);
+    oneHourAgo.setHours(now.getHours() - 9);
 
     const tomorrow = new Date(oneHourAgo);
     tomorrow.setDate(oneHourAgo.getDate() + 1);
