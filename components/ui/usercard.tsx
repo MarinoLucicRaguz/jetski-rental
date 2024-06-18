@@ -4,6 +4,7 @@ import { listLocation } from "@/actions/listLocations";
 import { Button } from "./button";
 import parsePhoneNumberFromString from "libphonenumber-js";
 import { PhoneInput } from "react-international-phone";
+import 'react-international-phone/style.css';
 
 const convertUserRole = (userRole: UserRole): string => {
   switch (userRole) {
@@ -31,7 +32,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSave, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
   const [phone, setPhone] = useState<string>(user.contactNumber || "");
-  const [isValidPhoneNumber, setIsValidPhoneNumber] = useState(true); 
+  const [isValidPhoneNumber, setIsValidPhoneNumber] = useState(true);
   const [isFormValid, setIsFormValid] = useState(true);
 
   useEffect(() => {
@@ -140,7 +141,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSave, onDelete }) => {
         {isEditing ? (
           <select
             name="user_role"
-            value={editedUser.user_role}
+            value={editedUser.user_role || ""}
             onChange={(e) =>
               setEditedUser((prevUser) => ({
                 ...prevUser,
@@ -167,7 +168,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onSave, onDelete }) => {
             onChange={(e) =>
               setEditedUser((prevUser) => ({
                 ...prevUser,
-                user_location_id: parseInt(e.target.value, 10),
+                user_location_id: parseInt(e.target.value, 10) || null,
               }))
             }
             className="border border-gray-300 rounded-md p-2"

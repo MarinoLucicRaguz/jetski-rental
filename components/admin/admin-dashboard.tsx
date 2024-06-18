@@ -60,7 +60,6 @@ const AdminDashboard = () => {
           prevUsers.map((u) => (u.user_id === editedUser.user_id ? { ...u, ...editedUser } : u))
         );
         setTimeout(() => setSuccess(""), 1500);
-
       }
     } catch (error) {
       setError("Failed to update user.");
@@ -68,20 +67,6 @@ const AdminDashboard = () => {
       setTimeout(() => setError(""), 2500);
     }
   };
-  
-
-  if (user && user.role !== "ADMIN") {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
-  }
 
   const handleDeleteUser = async (userId: string) => {
     try {
@@ -90,7 +75,7 @@ const AdminDashboard = () => {
         setError(response.error);
         setTimeout(() => setError(""), 1500);
       } else {
-        setSuccess("User deleted successfuly.");
+        setSuccess("User deleted successfully.");
         setUsers((prevUsers) => prevUsers.filter((u) => u.user_id !== userId));
         setTimeout(() => setSuccess(""), 1500);
       }
@@ -100,6 +85,19 @@ const AdminDashboard = () => {
       setTimeout(() => setError(""), 2500);
     }
   };
+
+  if (user && user.role !== "ADMIN") {
+    return (
+      <>
+        {showError && (
+          <ErrorPopup
+            message="You need to be an administrator to view this page."
+            onClose={() => setShowError(false)}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <CardWrapper className="w-full" headerLabel="Admin dashboard" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
@@ -118,12 +116,12 @@ const AdminDashboard = () => {
           {users.length > 0 ? (
             users.map((user) => (
               <tr key={user.user_id} className="bg-white border-b">
-                  <UserCard user={user} onSave={handleSaveUser} onDelete={() => handleDeleteUser(user.user_id)} />
+                <UserCard user={user} onSave={handleSaveUser} onDelete={() => handleDeleteUser(user.user_id)} />
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={5} className="px-6 py-4 text-center">
+              <td colSpan={6} className="px-6 py-4 text-center">
                 No users found
               </td>
             </tr>
