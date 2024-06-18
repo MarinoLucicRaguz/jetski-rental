@@ -360,7 +360,7 @@ export const ListReservations = () => {
                                                 ))}
                                             </td>
                                             <td className="px-6 py-4">{rentalOptions.find(rentalOptions => rentalOptions.rentaloption_id === reservation.rentaloption_id)?.rentaloption_description}</td>
-                                            {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                                            {(user?.role === "ADMIN" || (user?.role === "MODERATOR" && reservation.reservation_location_id === user.location_id)) && (
                                                 <td className="px-6 py-4">
                                                     <div className="flex">
                                                         {!reservation.hasItFinished ? (
@@ -396,7 +396,23 @@ export const ListReservations = () => {
                                                                 )}
                                                             </>
                                                         ) : (
-                                                            <p>Reservation has finished.</p>
+                                                            <>
+                                                                <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button className="mr-2" variant={"destructive"} onClick={() => handleDeleteClick(reservation.reservation_id)}>
+                                                                            <TrashIcon />
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="p-4 bg-white shadow border border-solid rounded-lg">
+                                                                        <h3 className="text-lg font-semibold">Are you sure?</h3>
+                                                                        <p>Do you really want to delete this reservation?</p>
+                                                                        <div className="flex justify-end space-x-2 mt-4">
+                                                                            <Button variant="outline" onClick={cancelDelete}>Cancel</Button>
+                                                                            <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            </>
                                                         )}
                                                     </div>
                                                 </td>

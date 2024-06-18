@@ -8,6 +8,7 @@ declare module 'next-auth/react' {
 export type ExtendedUser = DefaultSession["user"] &{
     role: UserRole;
     status: UserStatus;
+    location_id: number;
 }
 
 declare module "next-auth"{

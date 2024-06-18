@@ -13,6 +13,8 @@ import { getUsers } from "@/actions/getUsers";
 import LocationDetailsModal from "../modal/locationDetails";
 import { ExtendedReservation } from "@/types";
 import { getTodayReservationData } from "@/actions/getTodayReservation";
+import { FormError } from "../form-error";
+import { FormSuccess } from "../form-success";
 
 export const ListLocation = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -115,10 +117,10 @@ export const ListLocation = () => {
                                     {userData?.find((user) => user.user_id === location.location_manager_id)?.contactNumber || 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                    <Button variant="yellow" onClick={() => handleDetailsClick(location)}>Details</Button>
-                                    {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                                <Button variant="yellow" onClick={() => handleDetailsClick(location)}>Details</Button>
+                                    {(user?.role === "ADMIN" || (user?.role === "MODERATOR" && location.location_id === user.location_id)) && (
                                         <>
-                                            <Button  onClick={() => handleEditClick(location.location_id)}>Edit</Button>
+                                            <Button onClick={() => handleEditClick(location.location_id)}>Edit</Button>
                                             <Button variant="destructive" onClick={() => handleDeleteClick(location.location_id)}>Delete</Button>
                                         </>
                                     )}
@@ -128,11 +130,7 @@ export const ListLocation = () => {
                     </tbody>
                 </table>
                 <div className="mt-4 text-center">
-                    {error && (
-                        <div className="text-red-500">
-                            <p>{error}</p>
-                        </div>
-                    )}
+                    <FormError message={error}/>
                 </div>
             </div>
             {isModalOpen && selectedLocation && locationJetskis && locationUsers && (

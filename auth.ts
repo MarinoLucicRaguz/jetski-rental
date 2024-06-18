@@ -22,6 +22,11 @@ export const {
         if (token.status && session.user){
           session.user.status = token.status as UserStatus;
         }
+
+        if (token.location_id && session.user){
+          session.user.location_id = token.location_id as number;
+        }
+        
         return session;
       },
       async jwt({ token }){
@@ -40,6 +45,8 @@ export const {
         }
         token.role = existingUser.user_role;
         token.status = existingUser.user_status;
+        token.location_id = existingUser.user_location_id;
+
         return token;
       }
     },

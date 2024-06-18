@@ -156,7 +156,7 @@ export const JetSkiReservationForm =() => {
           <>
             {showError && (
               <ErrorPopup
-                message="You need to be an administrator or moderator to view this page."
+                message="You need to be an administrator or manager to view this page."
                 onClose={() => setShowError(false)}
               />
             )}
@@ -300,22 +300,30 @@ export const JetSkiReservationForm =() => {
                                 Location of reservation: 
                             </FormLabel>
                             <FormControl className="w-60 bg-black text-white rounded-sm text-center border-solid p-1">
-                                <select value={selectedLocation ? selectedLocation.location_id : ''} onChange={(event) => {
-                                    const selectedLocationId = event.target.value;
-                                    if(availableLocations)
-                                    {
-                                        const selectedLocation = availableLocations.find(location => location.location_id.toString() === selectedLocationId);
-                                        setSelectedLocation(selectedLocation);
-                                        form.setValue("reservation_location_id", selectedLocationId !== '' ? Number(selectedLocationId) : 0);
-                                        console.log(selectedLocationId)
-                                    }
-                                }}>
+                                <select
+                                    value={selectedLocation ? selectedLocation.location_id : ''}
+                                    onChange={(event) => {
+                                        const selectedLocationId = event.target.value;
+                                        if (availableLocations) {
+                                            const selectedLocation = availableLocations.find(location => location.location_id.toString() === selectedLocationId);
+                                            setSelectedLocation(selectedLocation);
+                                            form.setValue("reservation_location_id", selectedLocationId !== '' ? Number(selectedLocationId) : 0);
+                                            console.log(selectedLocationId);
+                                        }
+                                    }}
+                                >
                                     <option value="">Select a location!</option>
-                                    {availableLocations && availableLocations.map(location => (
-                                        <option key={location.location_id} value={location.location_id}>
-                                            {location.location_name}
+                                    {user?.location_id ? (
+                                        <option value={user.location_id}>
+                                            {availableLocations && availableLocations.find(location => location.location_id === user.location_id)?.location_name}
                                         </option>
-                                    ))}
+                                    ) : (
+                                        availableLocations && availableLocations.map(location => (
+                                            <option key={location.location_id} value={location.location_id}>
+                                                {location.location_name}
+                                            </option>
+                                        ))
+                                    )}
                                 </select>
                             </FormControl>
                         </FormItem>
