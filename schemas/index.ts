@@ -19,6 +19,10 @@ export const RegisterSchema = z.object({
     })
 });
 
+export const ChangePassword = z.object({
+    password: z.string().min(6, {message: "Minimum length is 6 charachters!"}),
+})
+
 export const EditUserSchema = z.object({
     name: z.string().nullable().optional(),
     email: z.string().nullable().optional(),

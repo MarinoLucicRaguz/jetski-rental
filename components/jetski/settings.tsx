@@ -18,7 +18,7 @@ const SettingsPage = () => {
   const [name, setName] = useState(user?.name || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [phone, setPhone]= useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const router = useRouter();
@@ -31,9 +31,8 @@ const SettingsPage = () => {
           if (currentUser?.contactNumber) {
             setPhone(currentUser.contactNumber);
           }
-          if(currentUser?.name)
-          {
-            setName(currentUser.name)
+          if (currentUser?.name) {
+            setName(currentUser.name);
           }
         }
       } catch (error) {
@@ -43,7 +42,6 @@ const SettingsPage = () => {
 
     fetchUserDetails();
   }, [user?.email]);
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,13 +53,18 @@ const SettingsPage = () => {
         throw new Error("User email not found");
       }
 
-      const response = await updateUserDetails({ 
-        email: user.email, 
-        name, 
-        currentPassword, 
-        newPassword,
-        phone
-      });
+      const updateData: any = {
+        email: user.email,
+        name,
+        phone,
+      };
+
+      if (currentPassword && newPassword) {
+        updateData.currentPassword = currentPassword;
+        updateData.newPassword = newPassword;
+      }
+
+      const response = await updateUserDetails(updateData);
 
       if (response.error) {
         throw new Error(response.error);
@@ -70,15 +73,15 @@ const SettingsPage = () => {
       setSuccess("Details updated successfully.");
       router.refresh();
     } catch (err) {
-      setError("Failed to update details.");
+      setError("Failed to update details: " +  err);
     }
   };
 
   return (
     <CardWrapper headerLabel="My profile" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
-        <div>
+      <div>
         <form onSubmit={handleSubmit}>
-            <div className="mb-4">
+          <div className="mb-4">
             <TextField
               label="Name"
               variant="outlined"
@@ -87,48 +90,45 @@ const SettingsPage = () => {
               fullWidth
               required
             />
-            </div>
-            <div className="mb-4">
+          </div>
+          <div className="mb-4">
             <PhoneInput
               defaultCountry="hr"
               autoFocus={true}
               onChange={(value) => {
-                  setPhone(value);
+                setPhone(value);
               }}
               value={phone}
               className={error ? "border-red-500" : ""}
             />
-            <FormError message={error} />
-            </div>
-            <div className="mb-4">
-                <TextField
-                label="Current password"
-                variant="outlined"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                fullWidth
-                required
-                />
-            </div>
-            <div className="mb-4">
-                <TextField
-                label="New password"
-                variant="outlined"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                fullWidth
-                required
-                />
-            </div>
-            <Button type="submit">
+          </div>
+          <div className="mb-4">
+            <TextField
+              label="Current password"
+              variant="outlined"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              fullWidth
+            />
+          </div>
+          <div className="mb-4">
+            <TextField
+              label="New password"
+              variant="outlined"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              fullWidth
+            />
+          </div>
+          <Button type="submit">
             Save Changes
-            </Button>
+          </Button>
         </form>
         <FormError message={error} />
         <FormSuccess message={success} />
-    </div>
+      </div>
     </CardWrapper>
   );
 };

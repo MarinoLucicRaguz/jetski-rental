@@ -1,13 +1,14 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { ChangePassword } from "@/schemas";
 import { hash, compare } from "bcryptjs";
 
 interface UpdateUserDetailsParams {
   email: string;
   name: string;
-  currentPassword: string;
-  newPassword: string;
+  currentPassword?: string;
+  newPassword?: string;
   phone: string;
 }
 
@@ -18,9 +19,25 @@ export const updateUserDetails = async ({ email, name, currentPassword, newPassw
     if (!user || !user.password) {
       return { error: "User not found" };
     }
-    const passwordMatch = await compare(currentPassword, user.password);
-    if (!passwordMatch) {
-      return { error: "Current password is incorrect" };
+
+    if (currentPassword && newPassword) {
+      const passwordMatch = await compare(currentPassword, user.password);
+      if (!passwordMatch) {
+        return { error: "Current password is incorrect" };
+      }
+
+      const validatedField = ChangePassword.safeParse({ password: newPassword });
+      if (!validatedField.success) {
+        return { error: "New password doesn't match requirements." };
+      }
+
+      const hashedNewPassword = await hash(newPassword, 10);
+      await db.user.update({
+        where: { email },
+        data: {
+          password: hashedNewPassword,
+        },
+      });
     }
 
     const existingPhone = await db.user.findUnique({
@@ -31,20 +48,15 @@ export const updateUserDetails = async ({ email, name, currentPassword, newPassw
         }
       }
     });
-    
 
-    if(existingPhone)
-    {
-      return { error: "Phone is already used by another worker. "}; 
+    if (existingPhone) {
+      return { error: "Phone is already used by another worker." };
     }
-
-    const hashedNewPassword = await hash(newPassword, 10);
 
     const updatedUser = await db.user.update({
       where: { email },
       data: {
         name,
-        password: hashedNewPassword,
         contactNumber: phone,
       },
     });

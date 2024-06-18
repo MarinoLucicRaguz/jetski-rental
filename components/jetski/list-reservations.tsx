@@ -365,7 +365,11 @@ export const ListReservations = () => {
                                                     <div className="flex">
                                                         {!reservation.hasItFinished ? (
                                                             <>
-                                                                <Button className="mr-2" onClick={() => reservation.isCurrentlyRunning ? handleEndReservationButton(reservation.reservation_id) : handleStartReservationButton(reservation.reservation_id)}>
+                                                                <Button 
+                                                                    className="mr-2" 
+                                                                    disabled={reservation.reservation_jetski_list.some(jetski => jetski.jetski_status !== "AVAILABLE")}
+                                                                    onClick={() => reservation.isCurrentlyRunning ? handleEndReservationButton(reservation.reservation_id) : handleStartReservationButton(reservation.reservation_id)}
+                                                                >
                                                                     {reservation.isCurrentlyRunning ? "End" : "Start"}
                                                                 </Button>
                                                                 {!reservation.isCurrentlyRunning && (
