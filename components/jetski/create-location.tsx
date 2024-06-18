@@ -110,6 +110,7 @@ export const LocationForm = () => {
                                 <FormMessage />
                             </FormItem>
                         )} />
+                        {user && user.role==="ADMIN" && (
                         <FormField control={form.control} name="user_id" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Manager</FormLabel>
@@ -140,6 +141,7 @@ export const LocationForm = () => {
                                 <FormMessage />
                             </FormItem>
                         )} />
+                    )}
                     </div>
                     <FormError message={error} />
                     <FormSuccess message={success} />

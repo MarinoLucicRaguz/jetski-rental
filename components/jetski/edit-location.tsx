@@ -118,11 +118,12 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
                                 <FormMessage />
                             </FormItem>
                         )} />
-                        <FormField
-                            control={form.control}
-                            name="user_id"
-                            render={({ field }) => (
-                                <FormItem>
+                        {user && user.role==="ADMIN" && (
+                          <FormField
+                          control={form.control}
+                          name="user_id"
+                          render={({ field }) => (
+                            <FormItem>
                                     <FormLabel>Manager</FormLabel>
                                     <FormControl>
                                     <Select
@@ -143,7 +144,7 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
                                           const selectedUserId = e.target.value;
                                           form.setValue("user_id", selectedUserId === "" ? null : selectedUserId);
                                         }}
-                                      >
+                                        >
                                         <MenuItem value="">
                                           <em>No manager</em>
                                         </MenuItem>
@@ -157,7 +158,8 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
                                     <FormMessage />
                                 </FormItem>
                             )}
-                        />
+                            />
+                          )}
                     </div>
                     <FormError message={error} />
                     <FormSuccess message={success} />

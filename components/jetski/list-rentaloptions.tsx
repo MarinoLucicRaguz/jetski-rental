@@ -95,7 +95,7 @@ export const ListRentalOptions = () => {
                         <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("duration")}>Duration</th>
                         <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("isAvailable")}>Availability</th>
                         <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("rentalprice")}>Price</th>
-                        {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                        {user?.role === "ADMIN" && (
                             <th className="px-6 py-3 text-center">Actions</th>
                         )}
                     </tr>
@@ -108,7 +108,7 @@ export const ListRentalOptions = () => {
                                 <td className="px-4 py-2">{rental.duration} minutes</td>
                                 <td className="px-4 py-2">{rental.isAvailable ? "Available" : "Not available"}</td>
                                 <td className="px-4 py-2">{rental.rentalprice.toPrecision(3)} €</td>
-                                {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
+                                {user?.role === "ADMIN" && (
                                     <td className="px-4 py-2">
                                         <Button onClick={() => handleEditClick(rental.rentaloption_id)}>Edit</Button>
                                         {rental.isAvailable === true ? (

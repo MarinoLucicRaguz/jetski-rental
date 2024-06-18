@@ -48,7 +48,7 @@ export const EditReservationOptionForm =({rentalOptionId}: {rentalOptionId: numb
         }
       }, [user, router]);
       
-      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+      if (user && user.role !== "ADMIN") {
         return (
           <>
             {showError && (

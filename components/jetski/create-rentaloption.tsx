@@ -1,9 +1,3 @@
-// model RentalOptions {
-//     rentaloption_id          Int    @id @default(autoincrement())
-//     rentaloption_description String
-//     duration                 Int    @unique
-//     rentalprice              Float
-//   }
 "use client"
 
 import * as z from "zod";
