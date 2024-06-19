@@ -12,13 +12,17 @@ export const createJetski = async (values: z.infer<typeof JetskiSchema>) => {
         return { error: "Invalid fields", success: undefined };
     }
 
+    
     const { jetski_registration, jetski_location_id, jetski_topSpeed, jetski_kW, jetski_manufacturingYear, jetski_model } = validatedFields.data;
-
     const existingJetski = await getJetskiByName(jetski_registration);
     if (existingJetski) {
-        return { error: "Jetski with that registration already exists!!!", success: undefined };
+        return { error: "Jetski with that registration already exists!", success: undefined };
     }
-
+    
+    if (!jetski_location_id)
+        {
+        return {error: "Jetski dosen't have location. Please select valid location."};   
+    }
     try {
         await db.jetski.create({
             data: {

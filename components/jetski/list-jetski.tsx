@@ -247,7 +247,7 @@ export const ListJetski = () => {
                                     <td className="px-6 py-4">
                                         {getLocationName(jetski.jetski_location_id, locationNames)}
                                     </td>
-                                    {(user?.role==="ADMIN" || user?.role==="MODERATOR") && (
+                                    {(user?.role==="ADMIN" || (user?.role==="MODERATOR" && jetski.jetski_location_id === user.location_id)) && (
                                     <td className="px-6 py-4">
                                         {jetski.jetski_status !== 'NOT_IN_FLEET' ? (
                                             runningJetski?.find(j => j.jetski_id === jetski.jetski_id) ? (

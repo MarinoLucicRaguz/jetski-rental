@@ -12,6 +12,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     }
 
     const {
+        rentDate,
         startTime,
         endTime,
         reservation_jetski_list,
@@ -23,9 +24,26 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
         discount
     } = validatedFields.data;
 
+    let newStartTime;
+
+    if (rentDate.getDate() !== startTime.getDate()){
+        newStartTime = new Date(
+            rentDate.getFullYear(),
+            rentDate.getMonth(),
+            rentDate.getDate(),
+            startTime.getHours(),
+            startTime.getMinutes()
+        );
+    } else {
+        newStartTime = startTime;
+    }
+
+    const startDateTime = DateTime.fromJSDate(newStartTime);
     const now = DateTime.now();
-    const startDateTime = DateTime.fromJSDate(new Date(startTime));
     const endDateTime = DateTime.fromJSDate(new Date(endTime));
+
+    console.log(startDateTime);
+    console.log(rentDate)
 
     const rentalOption = await db.rentalOptions.findUnique({where: {rentaloption_id}});
 
@@ -79,7 +97,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     try {
         const reservation = await db.reservation.create({
             data: {
-                startTime,
+                startTime: newStartTime, // Use newStartTime here
                 endTime,
                 reservationOwner,
                 contactNumber,

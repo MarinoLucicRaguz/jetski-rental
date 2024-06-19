@@ -13,7 +13,6 @@ import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Jetski, Location, RentalOptions, Reservation } from "@prisma/client";
-import { createReservation } from "@/actions/createReservation";
 import { listAvailableJetskis } from "@/actions/listAvailableJetskis";
 import { listLocation } from "@/actions/listLocations";
 import { FormError } from "../form-error";
@@ -123,6 +122,13 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
         };
         fetchData();
     }, [reservationId]);
+
+    useEffect(() => {
+        if (selectedRentalOption && startTime) {
+            updateEndTime(startTime, selectedRentalOption);
+        }
+    }, [selectedRentalOption]);
+    
 
     const setReservationData = (reservationData: ExtendedReservation, rentalData: RentalOptions[], locationData: Location[]) =>{
         const locationOpt = availableLocations?.find(option => option.location_id===reservationData.reservation_location_id);

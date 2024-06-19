@@ -87,21 +87,25 @@ export const JetskiForm = () => {
         );
     }
 
-    const onSubmit = (values: z.infer<typeof JetskiSchema>) => {
+    const onSubmit = async (values: z.infer<typeof JetskiSchema>) => {
         setError("");
         setSuccess("");
-
-        startTransition(() => {
-            createJetski(values)
-                .then((data) => {
-                    if (data.error) {
-                        setError(data.error);
-                    } else {
-                        setSuccess(data.success);
-                    }
-                });
+    
+        startTransition(async () => {
+            try {
+                const data = await createJetski(values);
+                if (data.error) {
+                    setError(data.error);
+                } else {
+                    setSuccess(data.success);
+                }
+            } catch (error) {
+                setError("An error occurred while creating the jetski.");
+                console.error("Error creating jetski:", error);
+            }
         });
     };
+    
 
     return (
         <CardWrapper

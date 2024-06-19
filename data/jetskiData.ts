@@ -46,7 +46,12 @@ const orderByOptions = [
     {jetski_location_id: 'asc' as const},
 ];
 
+const BUFFER_MINUTES = 5;
+
 export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
+    const adjustedStartTime = new Date(startTime.getTime() - BUFFER_MINUTES * 60 * 1000);
+    const adjustedEndTime = new Date(endTime.getTime() + BUFFER_MINUTES * 60 * 1000);
+
     try {
         const availableJetskis = await db.jetski.findMany({
             where: {
@@ -54,28 +59,28 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
                     jetski_reservations: {
                         some: {
                             OR: [
-                                { 
+                                {
                                     AND: [
-                                        { startTime: { lte: startTime } },
-                                        { endTime: { gt: startTime } }
+                                        { startTime: { lte: adjustedStartTime } },
+                                        { endTime: { gt: adjustedStartTime } }
                                     ]
                                 },
-                                { 
+                                {
                                     AND: [
-                                        { startTime: { lt: endTime } }, 
-                                        { endTime: { gte: endTime } }
+                                        { startTime: { lt: adjustedEndTime } },
+                                        { endTime: { gte: adjustedEndTime } }
                                     ]
                                 },
-                                { 
+                                {
                                     AND: [
-                                        { startTime: { gte: startTime } },
-                                        { startTime: { lt: endTime } } 
+                                        { startTime: { gte: adjustedStartTime } },
+                                        { startTime: { lt: adjustedEndTime } }
                                     ]
                                 },
-                                { 
+                                {
                                     AND: [
-                                        { endTime: { gt: startTime } },
-                                        { endTime: { lte: endTime } }
+                                        { endTime: { gt: adjustedStartTime } },
+                                        { endTime: { lte: adjustedEndTime } }
                                     ]
                                 }
                             ]
@@ -83,7 +88,10 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
                     }
                 },
                 jetski_status: "AVAILABLE"
-            }, orderBy: orderByOptions,
+            },
+            orderBy: {
+                jetski_id: 'asc',
+            }
         });
 
         return availableJetskis;

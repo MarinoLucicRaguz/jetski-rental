@@ -179,8 +179,8 @@ export const JetSkiReservationForm =() => {
             debounceTimeChange(updateEndTime, updatedStartTime);        }
     };
     
-    const handleStartTimeChange = (selectedTime: Date) => {
-        if (rentDate) {
+    const handleStartTimeChange = (selectedTime: Date | null) => {
+        if (rentDate && selectedTime && !isNaN(selectedTime.getTime())) {
             const updatedStartTime = new Date(
                 rentDate.getFullYear(),
                 rentDate.getMonth(),
@@ -188,12 +188,13 @@ export const JetSkiReservationForm =() => {
                 selectedTime.getHours(),
                 selectedTime.getMinutes()
             );
+            console.log(updatedStartTime)
             setStartTime(updatedStartTime);
             updateEndTime(updatedStartTime);
         } else {
-            console.log("Rent date is not set. Please select the rent date first.");
+            console.log("Rent date is not set or invalid time. Please select the rent date first.");
         }
-    };
+    };    
     
     const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
         setSelectedJetski(prevSelectedJetski => 
@@ -280,15 +281,16 @@ export const JetSkiReservationForm =() => {
                                 minTime={new Date(new Date().setHours(7, 0))}
                                 maxTime={new Date(new Date().setHours(19, 30))}
                                 skipDisabled={true}
-                                value={startTime}
+                                value={startTime ||null}
                                 onChange={(newValue) => {
-                                    field.onChange(newValue);
                                     if (newValue) {
+                                        field.onChange(newValue);
                                         handleStartTimeChange(newValue);
                                     }
                                 }}
                                 views={['hours', 'minutes']}
                                 ampm={false}
+                                disabled={!rentDate}
                             />
                         </FormItem>
                     )} />
@@ -340,6 +342,7 @@ export const JetSkiReservationForm =() => {
                                 setRentalOption(selectedOption || undefined);
                                 form.setValue("rentaloption_id", selectedId);
                             }}
+                            disabled={!rentDate}
                         >
                             <option value="">Select a rental option!</option>
                             {rentalOptions?.map((option) => (

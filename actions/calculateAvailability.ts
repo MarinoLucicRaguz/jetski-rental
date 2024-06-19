@@ -10,6 +10,8 @@ interface AvailabilitySlot {
   location?: number;
 }
 
+const BUFFER_MINUTES = 5;
+
 const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start: Date, end: Date }[] => {
   const slots = [];
   const slotStartTime = new Date(rentDate);
@@ -100,7 +102,8 @@ export const calculateAvailability = async (
       const reservationStartTime = new Date(reservation.startTime);
       const reservationEndTime = new Date(reservation.endTime);
       return (
-        (reservationStartTime < slot.end && reservationEndTime > slot.start)
+        (reservationStartTime < slot.end && reservationEndTime > slot.start) ||
+        (reservationStartTime < new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000) && reservationEndTime > slot.start)
       );
     });
   
