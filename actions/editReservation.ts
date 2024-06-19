@@ -23,7 +23,18 @@ export const editReservation = async (values: z.infer<typeof EditReservationSche
         rentaloption_id,
         discount
     } = validatedFields.data;
-
+    
+    const rentalOption = await db.rentalOptions.findUnique({where: {rentaloption_id}});
+    if(rentalOption?.rentaloption_description === "SAFARI" && reservation_jetski_list.length < 2)
+        {
+            return {error: "Safari tour needs minimum two jetskis. One for guide and one for the guest."};
+        }
+    
+        if(rentalOption?.rentaloption_description === "REGULAR" && reservation_jetski_list.length < 1)
+            {
+                return {error: "Regular tour needs minimum one jetski."};
+            }
+    
     const now = DateTime.now();
     const startDateTime = DateTime.fromJSDate(new Date(startTime));
     const endDateTime = DateTime.fromJSDate(new Date(endTime));
@@ -48,6 +59,14 @@ export const editReservation = async (values: z.infer<typeof EditReservationSche
 
     // Check jet ski availability
     const jetskiAvailabilityChecks = reservation_jetski_list.map(async jetski => {
+        const jetskiStatus = await db.jetski.findUnique({
+            where: { jetski_id: jetski.jetski_id },
+            select: { jetski_status: true },
+        });
+
+        if (jetskiStatus?.jetski_status !== "AVAILABLE") {
+            return false;
+        }
         const reservations = await db.reservation.findMany({
             where: {
                 reservation_jetski_list: {
@@ -68,7 +87,7 @@ export const editReservation = async (values: z.infer<typeof EditReservationSche
 
     const results = await Promise.all(jetskiAvailabilityChecks);
     if (results.some(isAvailable => !isAvailable)) {
-        return { error: "One or more jet skis are not available in the chosen time slot." };
+        return { error: "One or more jetskis are not available in the chosen time slot." };
     }
 
     try {

@@ -313,7 +313,7 @@ export const JetSkiReservationForm =() => {
                                     }}
                                 >
                                     <option value="">Select a location!</option>
-                                    {user?.location_id ? (
+                                    {user && user.role!=="ADMIN" &&user?.location_id ? (
                                         <option value={user.location_id}>
                                             {availableLocations && availableLocations.find(location => location.location_id === user.location_id)?.location_name}
                                         </option>
@@ -369,7 +369,7 @@ export const JetSkiReservationForm =() => {
                                                 type="checkbox"
                                                 onChange={(e) => handleCheckboxChange(jetski, e.target.checked)}
                                             />
-                                            {" " + jetski.jetski_registration + " - " + availableLocations?.find(loc => loc.location_id===jetski.jetski_location_id)?.location_name}
+                                            {" " + jetski.jetski_registration + " - " + (availableLocations?.find(loc => loc.location_id===jetski.jetski_location_id)?.location_name || "No location")}
                                         </label>
                                     </div>
                                 ))}

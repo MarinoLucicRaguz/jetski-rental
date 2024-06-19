@@ -42,6 +42,10 @@ export const getAllJetskis = async () => {
     }
 }
 
+const orderByOptions = [
+    {jetski_location_id: 'asc' as const},
+];
+
 export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
     try {
         const availableJetskis = await db.jetski.findMany({
@@ -79,7 +83,7 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
                     }
                 },
                 jetski_status: "AVAILABLE"
-            }
+            }, orderBy: orderByOptions,
         });
 
         return availableJetskis;

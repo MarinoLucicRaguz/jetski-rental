@@ -15,7 +15,19 @@ export const deleteLocation = async (locationId: number) => {
     });
 
     if (existingReservations.length > 0) {
-        return { error: "ExistingReservations" };
+        return { error: "Existing reservations are associated with this location." };
+    }
+
+    if (existingLocation.location_manager_id) {
+        return { error: "A manager is assigned to this location." };
+    }
+
+    const assignedJetskis = await db.jetski.findMany({
+        where: { jetski_location_id: locationId },
+    });
+
+    if (assignedJetskis.length > 0) {
+        return { error: "Jetskis are assigned to this location." };
     }
 
     try {
@@ -25,6 +37,7 @@ export const deleteLocation = async (locationId: number) => {
 
         return { success: "Location deleted successfully!" };
     } catch (error) {
+        console.error("Error deleting location:", error);
         return { error: "Failed to delete location!" };
     }
 };

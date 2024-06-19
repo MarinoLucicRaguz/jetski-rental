@@ -38,6 +38,10 @@ const LocationDetailsModal: React.FC<LocationDetailsModalProps> = ({ location, j
             const timeUntilNext = new Date(relevantReservation.startTime).getTime() - now;
             const hours = Math.floor(timeUntilNext / (60 * 60 * 1000));
             const minutes = Math.floor((timeUntilNext % (60 * 60 * 1000)) / (60 * 1000));
+            if (hours==0)
+            {
+                return `Next in ${minutes} minutes`;
+            }
             return `Next in ${hours} hours ${minutes} minutes`;
         }
     } else {

@@ -407,7 +407,13 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
                                 <div>
                                     {availableJetskis.map((jetski) => (
                                         <div key={jetski.jetski_id} className="block">
-                                            <label style={{ fontWeight: 'bold', fontFamily: 'TimesNewRoman' }}>
+                                            <label 
+                                                style={{ 
+                                                    fontWeight: 'bold', 
+                                                    fontFamily: 'TimesNewRoman', 
+                                                    color: jetski.jetski_status !== "AVAILABLE" ? 'red' : 'inherit' 
+                                                }}
+                                            >
                                                 <input
                                                     type="checkbox"
                                                     onChange={(e) => handleCheckboxChange(jetski, e.target.checked)}
@@ -432,7 +438,7 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
                                             <Input
                                                 {...field}
                                                 disabled={isPending}
-                                                value={currentReservation ? currentReservation.reservationOwner : ""}
+                                                value={field.value}
                                             />
                                         </FormControl>
                                         <FormMessage />
