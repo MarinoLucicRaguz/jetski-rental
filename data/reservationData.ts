@@ -37,19 +37,30 @@ export const checkWhichJetskisAreCurrentlyRunning = async () => {
 
 export const findReservationUsingRentalOption = async (rentaloption_id: number) => {
     try {
+        const currentDate = new Date();
+
         const rentalOptions = await db.reservation.findFirst({
             where: {
-                rentaloption_id
+                rentaloption_id,
+                OR: [
+                    {
+                        endTime: {
+                            gte: currentDate
+                        }
+                    },
+                    {
+                        hasItFinished: false
+                    }
+                ]
             }
-        })
+        });
 
         return rentalOptions;
-    } catch (error)
-    {
+    } catch (error) {
         console.log(error);
         return null;
     }
-}
+};
 
 export const getFirstReservationsByJetskiIds = async (jetski_ids: number[]): Promise<{ [key: number]: ExtendedReservation | null }> => {
     try {

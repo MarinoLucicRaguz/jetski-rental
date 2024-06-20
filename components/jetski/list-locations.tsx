@@ -51,6 +51,15 @@ export const ListLocation = () => {
         fetchData();
     }, [startTransition]);
 
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError("");
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+    
     const handleEditClick = (locationId: number) => {
         router.push(`/location/${locationId}/editlocation`);
     };
@@ -115,14 +124,18 @@ export const ListLocation = () => {
                                     {userData?.find((user) => user.user_id === location.location_manager_id)?.contactNumber || 'N/A'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                <Button variant="yellow" onClick={() => handleDetailsClick(location)}>Details</Button>
-                                    {(user?.role === "ADMIN" || (user?.role === "MODERATOR" && location.location_id === user.location_id)) && (
+                                    <Button variant="yellow" onClick={() => handleDetailsClick(location)}>Details</Button>
+                                    {user?.role === "ADMIN" && (
                                         <>
                                             <Button onClick={() => handleEditClick(location.location_id)}>Edit</Button>
                                             <Button variant="destructive" onClick={() => handleDeleteClick(location.location_id)}>Delete</Button>
                                         </>
                                     )}
+                                    {user?.role === "MODERATOR" && location.location_id === user.location_id && (
+                                        <Button onClick={() => handleEditClick(location.location_id)}>Edit</Button>
+                                    )}
                                 </td>
+
                             </tr>
                         ))}
                     </tbody>

@@ -81,12 +81,12 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
                     },
                 },
                 NOT: [
-                    { endTime: { lte: startTime } },
+                    { endTime: { lte: newStartTime } },
                     { startTime: { gte: endTime } },
                 ],
             },
         });
-        return reservations.length === 0;
+        return reservations
     });
 
     const results = await Promise.all(jetskiAvailabilityChecks);

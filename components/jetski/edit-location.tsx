@@ -20,6 +20,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import ErrorPopup from "../ui/errorpopup";
 import { getAuthUsers } from "@/actions/getAuthUsers";
 import { MenuItem, Select } from "@mui/material";
+import { getModUsers } from "@/actions/getModUsers";
 
 
 
@@ -71,7 +72,7 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
           try {
             const [pulledLocationData, users] = await Promise.all([
               pullLocationById(locationId),
-              getAuthUsers()
+              getModUsers()
             ]);
             setLocationData(pulledLocationData);
             if(users)

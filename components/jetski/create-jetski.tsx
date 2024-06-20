@@ -91,6 +91,11 @@ export const JetskiForm = () => {
         setError("");
         setSuccess("");
     
+        if (!values.jetski_location_id) {
+            setError("Please select a valid location.");
+            return;
+        }
+
         startTransition(async () => {
             try {
                 const data = await createJetski(values);
