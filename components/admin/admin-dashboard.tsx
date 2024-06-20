@@ -28,13 +28,17 @@ const convertUserRole = (userRole: UserRole): string => {
   }
 };
 
+type SortKey = keyof Pick<User, "name" | "email" | "user_role" | "user_location_id"> | "location";
+
 const AdminDashboard = () => {
   const user = useCurrentUser();
   const [showError, setShowError] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [locations, setLocations] = useState<Location[]| null>([]);
+  const [locations, setLocations] = useState<Location[] | null>([]);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortOrder, setSortOrder] = useState<string>("asc");
   const router = useRouter();
 
   useEffect(() => {
@@ -85,6 +89,27 @@ const AdminDashboard = () => {
     router.push(`/admindashboard/${userId}/edituser/`);
   };
 
+  const handleSort = (key: SortKey) => {
+    let order = sortOrder === "asc" ? "desc" : "asc";
+    if (sortKey !== key) {
+      order = "asc";
+    }
+    setSortKey(key);
+    setSortOrder(order);
+  };
+
+  const sortedUsers = [...users].sort((a, b) => {
+    let result = 0;
+    if (sortKey === "location") {
+      const locationA = locations?.find(location => location.location_id === a.user_location_id)?.location_name || "";
+      const locationB = locations?.find(location => location.location_id === b.user_location_id)?.location_name || "";
+      result = locationA.localeCompare(locationB);
+    } else {
+      result = (a[sortKey] || "").toString().localeCompare((b[sortKey] || "").toString());
+    }
+    return sortOrder === "asc" ? result : -result;
+  });
+
   if (user && user.role !== "ADMIN") {
     return (
       <>
@@ -108,23 +133,23 @@ const AdminDashboard = () => {
       <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-gray-100 rounded-sm">
           <tr>
-            <th className="px-6 py-3">Name</th>
-            <th className="px-6 py-3">Email</th>
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("name")}>Name</th>
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("email")}>Email</th>
             <th className="px-6 py-3">Contact</th>
-            <th className="px-6 py-3">Role</th>
-            <th className="px-6 py-3">Location</th>
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("user_role")}>Role</th>
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort("location")}>Location</th>
             <th className="px-6 py-3">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {users.length > 0 ? (
-            users.map((user) => (
+          {sortedUsers.length > 0 ? (
+            sortedUsers.map((user) => (
               <tr key={user.user_id} className="bg-white border-b">
                 <td className="px-6 py-3">{user.name}</td>
                 <td className="px-6 py-3">{user.email}</td>
                 <td className="px-6 py-3">{user.contactNumber}</td>
                 <td className="px-6 py-3">{convertUserRole(user.user_role)}</td>
-                <td className="px-6 py-3">{locations?.find(location => location.location_id===user.user_location_id)?.location_name || "No location"}</td>
+                <td className="px-6 py-3">{locations?.find(location => location.location_id === user.user_location_id)?.location_name || "No location"}</td>
                 <td className="px-6 py-3 flex space-x-2">
                   <Button
                     className="ml-2"

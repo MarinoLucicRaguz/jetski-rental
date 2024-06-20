@@ -68,6 +68,7 @@ export const calculateAvailability = async (
 
   const availabilitySlots: AvailabilitySlot[] = [];
 
+  console.log(location)
   let availableJetskis;
   if (!location) {
     availableJetskis = await db.jetski.findMany({
@@ -94,6 +95,7 @@ export const calculateAvailability = async (
 
   while (currentSlotIndex < slots.length) {
     const slot = slots[currentSlotIndex];
+    const slotStart = slot.start;
     const slotEndWithBuffer = new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000);
 
     const overlappingReservations = reservations.filter((reservation) => {
@@ -106,19 +108,25 @@ export const calculateAvailability = async (
       );
     });
 
-    const reservedJetskis = overlappingReservations.reduce((count, reservation) => {
+    // Filter out reservations that don't match the location (if location is provided)
+    const locationFilteredReservations = overlappingReservations.filter((reservation) => {
+      return !location || reservation.reservation_jetski_list.some(jetski => jetski.jetski_location_id === location);
+    });
+
+    const reservedJetskis = locationFilteredReservations.reduce((count, reservation) => {
       return count + reservation.reservation_jetski_list.length;
     }, 0);
 
     const availableJetskisCount = totalAvailableJetskis - reservedJetskis;
 
+    console.log(reservedJetskis)
     if (availableJetskisCount >= jetskiCount) {
       availabilitySlots.push({
         start_time: slot.start.toTimeString().slice(0, 5),
         end_time: slot.end.toTimeString().slice(0, 5),
         available_jetskis: availableJetskisCount,
       });
-      currentSlotIndex += Math.floor(60 / 5); // Skip slots in 1-hour increments
+      currentSlotIndex += Math.floor(60 / 5);
     } else {
       currentSlotIndex += 1;
     }

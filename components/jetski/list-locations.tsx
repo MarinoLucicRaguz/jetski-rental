@@ -101,9 +101,7 @@ export const ListLocation = () => {
                             <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Location Name</th>
                             <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
                             <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                            {(user?.role === "ADMIN" || user?.role === "MODERATOR") && (
-                                <th className="px-6 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase text-center tracking-wider">Actions</th>
-                            )}
+                            <th className="px-6 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase text-center tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
