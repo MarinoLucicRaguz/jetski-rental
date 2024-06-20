@@ -43,3 +43,19 @@ export const getAuthenticatedUsers = async()=>{
         return null;
     }
 }
+
+export const getModerators = async()=>{
+    try{
+        const users = await db.user.findMany({
+            where: {
+                OR: [
+                    {user_role: "MODERATOR"}
+                ]
+            }
+        })
+
+        return users;
+    } catch {
+        return null;
+    }
+}

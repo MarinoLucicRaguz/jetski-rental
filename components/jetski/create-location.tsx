@@ -24,8 +24,8 @@ import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import ErrorPopup from "../ui/errorpopup";
 import { User } from "@prisma/client";
-import { getAuthUsers } from "@/actions/getAuthUsers";
 import { MenuItem, Select } from "@mui/material";
+import { getModUsers } from "@/actions/getModUsers";
 
 export const LocationForm = () => {
     const [error, setError] = useState<string | undefined>("");
@@ -71,7 +71,7 @@ export const LocationForm = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const users = await getAuthUsers();
+                const users = await getModUsers();
                 setUsers(users);
             } catch (error) {
                 setError("Unable to fetch users. There has been an error!");

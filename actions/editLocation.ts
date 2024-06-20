@@ -24,6 +24,12 @@ export const editLocation = async (locationId: number, values: z.infer<typeof Lo
     }
 
     try {
+        // Find the current manager of the location
+        const currentManager = await db.location.findUnique({
+            where: { location_id: locationId },
+            select: { location_manager_id: true },
+        });
+
         let locationDataToUpdate: any = { location_name: finalName };
 
         if (user_id !== null) {
@@ -57,8 +63,17 @@ export const editLocation = async (locationId: number, values: z.infer<typeof Lo
             });
         }
 
+        // If the current manager is being removed (user_id is null), update their role to "Worker"
+        if (currentManager && currentManager.location_manager_id && user_id === null) {
+            await db.user.update({
+                where: { user_id: currentManager.location_manager_id },
+                data: { user_role: "USER" },  // Assuming "USER" is the role for "Worker"
+            });
+        }
+
         return { success: "Location successfully updated" };
     } catch (error) {
+        console.error("Error updating location:", error);
         return { error: "Failed to update location" };
     }
 };
