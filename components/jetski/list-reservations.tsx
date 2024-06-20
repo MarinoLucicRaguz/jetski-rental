@@ -348,7 +348,7 @@ export const ListReservations = () => {
                                             <td className="px-6 py-4">{location ? location.location_name : 'No location found'}</td>
                                             <td className="px-6 py-4">{reservation.reservationOwner}</td>
                                             <td className="px-6 py-4">{reservation.contactNumber}</td>
-                                            <td className="px-6 py-4">{reservation.totalPrice} €</td>
+                                            <td className="px-6 py-4">{(reservation.totalPrice * (1 - reservation.discount/100)).toFixed(2)} €</td>
                                             <td className="px-6 py-4">
                                                 {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(reservation.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                                             </td>

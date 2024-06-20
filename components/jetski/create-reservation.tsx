@@ -126,21 +126,25 @@ export const JetSkiReservationForm =() => {
     
         fetchJetskis();
     }, [startTime, selectedRentalOption, endTime]);    
+
+    useEffect(() => {
+        form.setValue("discount", discount);
+    }, [discount]);
     
     useEffect(() => {
-        let jetskiAmplifier = selectedRentalOption?.rentaloption_description === "SAFARI"  ? selectedJetski.length - 1 : selectedJetski.length;
-
-        if(jetskiAmplifier<=0)
-            {
-                jetskiAmplifier=1;
-            }
-        if (selectedRentalOption) {
-            const basePrice = selectedRentalOption.rentalprice*jetskiAmplifier;
-            const calculatedDiscount = (basePrice * discount) / 100;
-            setTotalPrice(basePrice - calculatedDiscount);    
-            form.setValue("totalPrice", totalPrice);
+        let jetskiAmplifier = selectedRentalOption?.rentaloption_description === "SAFARI" ? selectedJetski.length - 1 : selectedJetski.length;
+    
+        if (jetskiAmplifier <= 0) {
+            jetskiAmplifier = 1;
         }
-    }, [selectedRentalOption, discount, selectedJetski]);
+    
+        if (selectedRentalOption) {
+            const basePrice = selectedRentalOption.rentalprice * jetskiAmplifier;
+            setTotalPrice(basePrice);
+            form.setValue("totalPrice", basePrice);
+        }
+    }, [selectedRentalOption, selectedJetski]);
+    
 
     useEffect(() => {
         if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
@@ -440,7 +444,7 @@ export const JetSkiReservationForm =() => {
                     <input type="hidden" {...form.register("discount")} value={discount} />
                     <div className="flex justify-between">
                         <strong>Total Price:</strong>
-                        <span>{totalPrice.toFixed(2)} €</span>
+                        <span>{(totalPrice * (1 - discount / 100)).toFixed(2)} €</span>
                     </div>
                     <FormError message={error}/>
                     <FormSuccess message={success}/>

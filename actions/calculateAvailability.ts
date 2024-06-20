@@ -17,18 +17,17 @@ const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start:
   const slotStartTime = new Date(rentDate);
   const now = new Date();
 
-  if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7) ) {
+  if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7)) {
     slotStartTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
   } else {
     slotStartTime.setHours(7, 0, 0, 0);
   }
 
   const dayEndTime = new Date(rentDate);
-  dayEndTime.setHours(21, 0, 0, 0); 
+  dayEndTime.setHours(21, 0, 0, 0);
 
   while (slotStartTime < dayEndTime) {
     const slotEndTime = new Date(slotStartTime);
-    
     slotEndTime.setMinutes(slotStartTime.getMinutes() + durationMinutes);
 
     if (slotEndTime > dayEndTime) break;
@@ -70,15 +69,13 @@ export const calculateAvailability = async (
   const availabilitySlots: AvailabilitySlot[] = [];
 
   let availableJetskis;
-  if(!location)
-  {
-     availableJetskis = await db.jetski.findMany({
+  if (!location) {
+    availableJetskis = await db.jetski.findMany({
       where: {
         jetski_status: 'AVAILABLE',
       },
     });
-  }
-  else{
+  } else {
     availableJetskis = await db.jetski.findMany({
       where: {
         jetski_status: 'AVAILABLE',
@@ -89,43 +86,43 @@ export const calculateAvailability = async (
 
   const totalAvailableJetskis = availableJetskis.length;
 
-  let currentSlotIndex = 0;
-
   if (rentalOption.rentaloption_description === "SAFARI") {
     jetskiCount += 1;
   }
-  
+
+  let currentSlotIndex = 0;
+
   while (currentSlotIndex < slots.length) {
     const slot = slots[currentSlotIndex];
-  
+    const slotEndWithBuffer = new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000);
+
     const overlappingReservations = reservations.filter((reservation) => {
       const reservationStartTime = new Date(reservation.startTime);
       const reservationEndTime = new Date(reservation.endTime);
+      const reservationEndWithBuffer = new Date(reservationEndTime.getTime() + BUFFER_MINUTES * 60 * 1000);
       return (
         (reservationStartTime < slot.end && reservationEndTime > slot.start) ||
-        (reservationStartTime < new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000) && reservationEndTime > slot.start)
+        (reservationStartTime < slotEndWithBuffer && reservationEndWithBuffer > slot.start)
       );
     });
-  
+
     const reservedJetskis = overlappingReservations.reduce((count, reservation) => {
       return count + reservation.reservation_jetski_list.length;
     }, 0);
-  
+
     const availableJetskisCount = totalAvailableJetskis - reservedJetskis;
-  
+
     if (availableJetskisCount >= jetskiCount) {
       availabilitySlots.push({
         start_time: slot.start.toTimeString().slice(0, 5),
         end_time: slot.end.toTimeString().slice(0, 5),
         available_jetskis: availableJetskisCount,
       });
-  
-      currentSlotIndex += Math.floor(60 / 5); 
+      currentSlotIndex += Math.floor(60 / 5); // Skip slots in 1-hour increments
     } else {
       currentSlotIndex += 1;
     }
   }
-  
 
   return availabilitySlots;
 };
