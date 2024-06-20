@@ -2,6 +2,14 @@ import * as z from "zod";
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { UserRole, UserStatus } from "@prisma/client";
 
+const zPhone = z.string().refine((value) => {
+    const phone = parsePhoneNumberFromString(value, 'NG');
+    return phone && phone.isValid();
+  }, {
+    message: "Invalid phone number"
+});
+  
+
 export const LoginSchema = z.object({
     email: z.string().email({
         message: "Email is required"
@@ -22,15 +30,25 @@ export const RegisterSchema = z.object({
 export const ChangePassword = z.object({
     password: z.string().min(6, {message: "Minimum length is 6 charachters!"}),
 })
+const userRoleErrorMessage = "Invalid user role. Please select a valid role.";
+
+export const CreateUserSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email format"),
+    user_role: z.nativeEnum(UserRole),
+    user_location_id: z.number().nullable().optional(),
+    contactNumber: zPhone,
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+});
 
 export const EditUserSchema = z.object({
-    name: z.string().nullable().optional(),
-    email: z.string().nullable().optional(),
-    password: z.string().nullable().optional(),
-    user_status: z.nativeEnum(UserStatus).optional(),
-    user_role: z.nativeEnum(UserRole).optional(),
+    name: z.string().min(1),
+    email: z.string().email("Invalid email format"),
+    user_role: z.nativeEnum(UserRole).refine(value => Object.values(UserRole).includes(value as UserRole), {
+        message: userRoleErrorMessage,
+      }),
     user_location_id: z.number().nullable().optional(),
-    contactNumber: z.string().nullable().optional(),
+    contactNumber: zPhone,
 });
 
 export const JetskiSchema = z.object({
@@ -91,14 +109,6 @@ export const LocationSchema = z.object({
 
 const today = new Date();
 today.setHours(0,0,0,0);
-
-const zPhone = z.string().refine((value) => {
-    const phone = parsePhoneNumberFromString(value, 'NG');
-    return phone && phone.isValid();
-  }, {
-    message: "Invalid phone number"
-});
-  
 
 export const JetskiReservationSchema = z.object({
     rentDate: z.date().refine(date => date>=today,

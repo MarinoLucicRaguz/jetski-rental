@@ -5,35 +5,53 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ErrorPopup from "../ui/errorpopup";
 import { CardWrapper } from "../auth/card-wrapper";
-import { User } from "@prisma/client";
+import { Location, User, UserRole } from "@prisma/client";
 import { getUsers } from "@/actions/getUsers";
-import UserCard from "../ui/usercard";
-import { editUser } from "@/actions/editUser";
 import { FormError } from "../form-error";
 import { FormSuccess } from "../form-success";
 import { deleteUser } from "@/actions/deleteUser";
+import { Button } from "../ui/button";
+import { listLocation } from "@/actions/listLocations";
+
+const convertUserRole = (userRole: UserRole): string => {
+  switch (userRole) {
+    case "ADMIN":
+      return "Administrator";
+    case "MODERATOR":
+      return "Manager";
+    case "USER":
+      return "Worker";
+    case "GUEST":
+      return "New user";
+    default:
+      return "Unknown role";
+  }
+};
 
 const AdminDashboard = () => {
   const user = useCurrentUser();
   const [showError, setShowError] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [locations, setLocations] = useState<Location[]| null>([]);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
         const users = await getUsers();
         if (users) {
           setUsers(users);
         }
+        const locations = await listLocation();
+        setLocations(locations);
       } catch (error) {
         setError("Error while fetching users.");
         console.error("Failed to fetch data: ", error);
       }
     };
-    fetchUsers();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -44,29 +62,6 @@ const AdminDashboard = () => {
       }, 3000);
     }
   }, [user, router]);
-
-  const handleSaveUser = async (editedUser: Partial<User>) => {
-    try {
-      const response = await editUser(editedUser.user_id as string, {
-        ...editedUser,
-        user_location_id: editedUser.user_location_id || null, 
-      });
-      if (response.error) {
-        setError(response.error);
-        setTimeout(() => setError(""), 1500);
-      } else {
-        setSuccess("User successfully updated");
-        setUsers((prevUsers) =>
-          prevUsers.map((u) => (u.user_id === editedUser.user_id ? { ...u, ...editedUser } : u))
-        );
-        setTimeout(() => setSuccess(""), 1500);
-      }
-    } catch (error) {
-      setError("Failed to update user.");
-      console.error("Error updating user: ", error);
-      setTimeout(() => setError(""), 2500);
-    }
-  };
 
   const handleDeleteUser = async (userId: string) => {
     try {
@@ -86,6 +81,10 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleEditUser = (userId: string) => {
+    router.push(`/admindashboard/${userId}/edituser/`);
+  };
+
   if (user && user.role !== "ADMIN") {
     return (
       <>
@@ -101,6 +100,11 @@ const AdminDashboard = () => {
 
   return (
     <CardWrapper className="w-full" headerLabel="Admin dashboard" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+      <div>
+      <Button className="p-3 mb-2" onClick={() => router.push("/admindashboard/createuser")}>
+        Create new user
+      </Button>
+      </div>
       <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-gray-100 rounded-sm">
           <tr>
@@ -108,7 +112,7 @@ const AdminDashboard = () => {
             <th className="px-6 py-3">Email</th>
             <th className="px-6 py-3">Contact</th>
             <th className="px-6 py-3">Role</th>
-            <th className="px-6 py-3">Locations</th>
+            <th className="px-6 py-3">Location</th>
             <th className="px-6 py-3">Actions</th>
           </tr>
         </thead>
@@ -116,7 +120,27 @@ const AdminDashboard = () => {
           {users.length > 0 ? (
             users.map((user) => (
               <tr key={user.user_id} className="bg-white border-b">
-                <UserCard user={user} onSave={handleSaveUser} onDelete={() => handleDeleteUser(user.user_id)} />
+                <td className="px-6 py-3">{user.name}</td>
+                <td className="px-6 py-3">{user.email}</td>
+                <td className="px-6 py-3">{user.contactNumber}</td>
+                <td className="px-6 py-3">{convertUserRole(user.user_role)}</td>
+                <td className="px-6 py-3">{locations?.find(location => location.location_id===user.user_location_id)?.location_name || "No location"}</td>
+                <td className="px-6 py-3 flex space-x-2">
+                  <Button
+                    className="ml-2"
+                    onClick={() => handleEditUser(user.user_id)}
+                    variant="default"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="ml-2"
+                    onClick={() => handleDeleteUser(user.user_id)}
+                  >
+                    Delete
+                  </Button>
+                </td>
               </tr>
             ))
           ) : (

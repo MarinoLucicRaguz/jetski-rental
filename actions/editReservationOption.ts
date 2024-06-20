@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import * as z from "zod";
 
 import { ReservationOptionSchema } from "@/schemas";
-import { getRentalOptionByDuration } from "@/data/rentalOptionData";
 
 const parseCurrencyValue = (value: string): number => {
     console.log("Input value:", value);
