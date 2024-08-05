@@ -109,7 +109,7 @@ export const LocationSchema = z.object({
 
 const today = new Date();
 today.setHours(0,0,0,0);
-console.log(today)
+console.log("Server Date (UTC):", new Date().toISOString());
 
 export const JetskiReservationSchema = z.object({
     rentDate: z.date().refine(date => date>=today,
