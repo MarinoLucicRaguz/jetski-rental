@@ -29,6 +29,7 @@ import { ExtendedReservation } from "@/types";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import ErrorPopup from "../ui/errorpopup";
+import { DateTime } from "luxon";
 
 
 export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: number }) => {
@@ -270,6 +271,11 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
 
     const onSubmit = async (values: z.infer<typeof EditReservationSchema>) => {
         console.log("Form submitted with values:", values);
+        const updatedRentDate = DateTime.fromJSDate(values.rentDate)
+            .plus({ hours: 3 })
+            .toJSDate();
+
+        values.rentDate = updatedRentDate;
         setError("");
         setSuccess("");
 
