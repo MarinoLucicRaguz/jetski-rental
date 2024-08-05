@@ -1,4 +1,3 @@
-import { signOutUser } from "@/actions/signOutAction"
 import { AdminDashboardButton } from "@/components/auth/admin-dashboard-button"
 import { CreateJetskiButton } from "@/components/auth/create-jetski-button"
 import { CreateLocationButton } from "@/components/auth/create-location-button"

@@ -1,5 +1,3 @@
-// data/reservationData.ts
-
 import { db } from "@/lib/db";
 import { ExtendedReservation } from "@/types";
 
@@ -134,17 +132,12 @@ export const fetchTodayReservation = async(): Promise<ExtendedReservation[] | nu
 
 export const fetchReservationsByDate = async (date: Date): Promise<ExtendedReservation[] | null> => {
     try {
-        console.log('Fetching reservations for date:', date );
-
         const startOfDay = new Date(date);
-
+        
         startOfDay.setHours(0, 0, 0, 0);
 
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
-
-        console.log('Start of day:', startOfDay);
-        console.log('End of day:', endOfDay);
 
         const reservations = await db.reservation.findMany({
             where: {
@@ -186,7 +179,7 @@ export const getReservationById = async (reservation_id: number): Promise<Extend
     }
 }
 
-export const getReservationByLocation = async (location_id: number): Promise<ExtendedReservation[] | null> => {
+export const getReservationByLocationForToday = async (location_id: number): Promise<ExtendedReservation[] | null> => {
     try {
       const now = new Date();
   

@@ -39,7 +39,7 @@ model Jetski {
   jetski_topSpeed          String
   jetski_kW                String
   jetski_manufacturingYear String
-  jetski_status            statusJetski  @default(AVAILABLE)
+  jetski_status            JetskiStatus  @default(AVAILABLE)
   jetski_location_id       Int?
   jetski_location          Location?     @relation(fields: [jetski_location_id], references: [location_id])
   jetski_reservations      Reservation[] @relation("JetskiToReservation")
@@ -70,16 +70,14 @@ model RentalOptions {
   isAvailable              Boolean @default(true)
 }
 
-enum rentalOptionType {
+enum RentalOptionType {
   SAFARI
   REGULAR_TOUR
-  NONE
 }
 
-enum statusJetski {
+enum JetskiStatus {
   AVAILABLE
   NOT_AVAILABLE
-  OUT_OF_FUEL
   NOT_IN_FLEET
 }
 

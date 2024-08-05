@@ -20,8 +20,6 @@ function convertStatusToText(currentStatus: statusJetski)
             return "Operational";
         case "NOT_AVAILABLE":
             return "Temporary out of service.";
-        case "OUT_OF_FUEL":
-            return "Out of fuel."
         case "NOT_IN_FLEET":
             return "Decommissioned."
         default:
