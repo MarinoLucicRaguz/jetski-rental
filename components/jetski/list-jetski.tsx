@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useMemo } from "react";
 import { listJetski } from "@/actions/listJetskis";
-import { Jetski, Location, statusJetski } from "@prisma/client";
+import { Jetski, Location, JetskiStatus } from "@prisma/client";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { updateJetskiStatus } from "@/actions/updateJetskiStatus";
@@ -10,10 +10,9 @@ import { Menu, MenuItem } from "@mui/material";
 import Spinner from "../ui/spinner";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { deleteJetski } from "@/actions/deleteJetski";
-import { ExtendedReservation } from "@/types";
 import { getCurrentlyRunningJetskis } from "@/actions/getCurrentlyRunningJetkis";
 
-function convertStatusToText(currentStatus: statusJetski)
+function convertStatusToText(currentStatus: JetskiStatus)
 {
     switch(currentStatus){
         case "AVAILABLE":
