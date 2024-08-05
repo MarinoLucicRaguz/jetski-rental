@@ -4,10 +4,10 @@ import { fetchReservationsByDate } from "@/data/reservationData";
 import { DateTime } from "luxon";
 
 export const listReservationsByDate = async (date: Date) => {
-    console.log("Checking information: ", date)
-    const nextDayDate = DateTime.fromJSDate(date).plus({ days: 1 }).toJSDate();
     
-    const reservationsByDate = await fetchReservationsByDate(nextDayDate);
+    const adjustedDate = DateTime.fromJSDate(date).plus({ hours: 2 }).toJSDate();
+    
+    const reservationsByDate = await fetchReservationsByDate(adjustedDate);
 
     return reservationsByDate;
 }
