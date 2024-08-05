@@ -3,10 +3,8 @@
 import { db } from "@/lib/db";
 import * as z from "zod";
 import bcryptjs from "bcryptjs";
-
 import { RegisterSchema } from "@/schemas";
 import { getUserByEmail } from "@/data/userData";
-
 
 export const register = async( values: z.infer<typeof RegisterSchema>)=>{
     const validatedField = RegisterSchema.safeParse(values);
@@ -16,15 +14,14 @@ export const register = async( values: z.infer<typeof RegisterSchema>)=>{
     }
 
     const {email,password,name } = validatedField.data;
-
-    const hashedPassword = await bcryptjs.hash(password, 10);
-
     const existingUser = await getUserByEmail(email);
-
+    
     if (existingUser){
         return {error: "Email already in use!"};
     };
 
+    const hashedPassword = await bcryptjs.hash(password, 10);
+    
     await db.user.create({
         data:{
             name,
@@ -33,8 +30,7 @@ export const register = async( values: z.infer<typeof RegisterSchema>)=>{
         }
     })
 
-
     return {
-        success: "User has been created"
+        success: "Account has been created."
     }
 }

@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { SessionProvider } from 'next-auth/react' //remove
 import { SessionDataProvider } from '@/components/wrapper/SessionDataWrapper'
 import { auth } from '@/auth'
 import './globals.css'

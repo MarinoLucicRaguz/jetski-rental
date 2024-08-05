@@ -249,7 +249,7 @@ export const ListJetski = () => {
                                     <td className="px-6 py-4">
                                         {jetski.jetski_status !== 'NOT_IN_FLEET' ? (
                                             runningJetski?.find(j => j.jetski_id === jetski.jetski_id) ? (
-                                                <span>Jetski is currently running. We can't do any actions to it.</span>
+                                            <span>Jetski is currently running. We can&#39;t do any actions to it.</span>
                                             ) : (
                                                 <>
                                                     <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>

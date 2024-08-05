@@ -41,31 +41,6 @@ export const CreateUserPage = () => {
     }
   }, [user, router]);
 
-  if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
-  }
-
-  const form = useForm<z.infer<typeof CreateUserSchema>>({
-    resolver: zodResolver(CreateUserSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      user_role: undefined,
-      user_location_id: null,
-      contactNumber: "",
-    },
-  });
-
   useEffect(() => {
     const fetchLocations = async () => {
       try {
@@ -84,6 +59,31 @@ export const CreateUserPage = () => {
 
     fetchLocations();
   }, [startTransition]);
+
+  const form = useForm<z.infer<typeof CreateUserSchema>>({
+    resolver: zodResolver(CreateUserSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      user_role: undefined,
+      user_location_id: null,
+      contactNumber: "",
+    },
+  });
+
+  if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+    return (
+      <>
+        {showError && (
+          <ErrorPopup
+            message="You need to be an administrator to view this page."
+            onClose={() => setShowError(false)}
+          />
+        )}
+      </>
+    );
+  }
 
   const handlePhoneChange = (value: string) => {
     setPhone(value);

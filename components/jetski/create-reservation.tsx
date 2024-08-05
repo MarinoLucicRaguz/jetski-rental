@@ -88,7 +88,7 @@ export const JetSkiReservationForm =() => {
     
     useEffect(() => {
         form.setValue("reservation_jetski_list", selectedJetski);
-    }, [selectedJetski]);
+    }, [selectedJetski, form]);
         
     useEffect(() => {
         if (rentDate && startTime) {
@@ -102,7 +102,7 @@ export const JetSkiReservationForm =() => {
             setStartTime(adjustedStartTime);
             updateEndTime(adjustedStartTime);
         }
-    }, [rentDate]);
+    }, [rentDate, form]);
 
     useEffect(() => {
         if (startTime && selectedRentalOption) {

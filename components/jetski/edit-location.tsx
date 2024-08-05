@@ -37,28 +37,6 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
 
     const user = useCurrentUser();
 
-    useEffect(() => {
-        if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
-          setShowError(true);
-          setTimeout(() => {
-            router.push("/dashboard");
-          }, 3000);
-        }
-      }, [user, router]);
-      
-      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
-        return (
-          <>
-            {showError && (
-              <ErrorPopup
-                message="You need to be an administrator to view this page."
-                onClose={() => setShowError(false)}
-              />
-            )}
-          </>
-        );
-    }
-
     const form = useForm<z.infer<typeof LocationSchema>>({
         resolver: zodResolver(LocationSchema),
         defaultValues: {
@@ -92,6 +70,29 @@ export const EditLocationForm = ({locationId}: {locationId: number}) => {
     
         fetchData();
       }, [locationId, form]);
+
+      
+    useEffect(() => {
+      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        setShowError(true);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 3000);
+      }
+    }, [user, router]);
+    
+    if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+      return (
+        <>
+          {showError && (
+            <ErrorPopup
+              message="You need to be an administrator to view this page."
+              onClose={() => setShowError(false)}
+            />
+          )}
+        </>
+      );
+    }
 
     const onSubmit = async (values: z.infer<typeof LocationSchema>) => {
         setError("");

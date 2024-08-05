@@ -64,19 +64,6 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
           }, 3000);
         }
       }, [user, router]);
-      
-      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
-        return (
-          <>
-            {showError && (
-              <ErrorPopup
-                message="You need to be an administrator to view this page."
-                onClose={() => setShowError(false)}
-              />
-            )}
-          </>
-        );
-    }
     
     const form = useForm<z.infer<typeof EditReservationSchema>>({
         resolver: zodResolver(EditReservationSchema),
@@ -129,85 +116,10 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
         }
     }, [selectedRentalOption]);
     
-
-    const setReservationData = (reservationData: ExtendedReservation, rentalData: RentalOptions[], locationData: Location[]) =>{
-        const locationOpt = availableLocations?.find(option => option.location_id===reservationData.reservation_location_id);
-        setSelectedLocation(locationOpt);
-        
-        const rentalOpt = rentalData?.find(option => option.rentaloption_id===reservationData.rentaloption_id);
-        setRentalOption(rentalOpt);
-        
-        setRentDate(new Date(reservationData.startTime.getFullYear(), reservationData.startTime.getMonth(), reservationData.startTime.getDate()));
-        setStartTime(reservationData.startTime);
-        setEndTime(reservationData.endTime);
-        setPhone(reservationData.contactNumber);
-        setSelectedJetski(reservationData.reservation_jetski_list)
-        setDiscount(reservationData.discount);
-
-        form.setValue("rentDate", reservationData.startTime);
-        form.setValue("startTime", reservationData.startTime);
-        form.setValue("endTime", reservationData.endTime);
-        form.setValue("discount", reservationData.discount);
-        form.setValue("rentaloption_id", rentalOpt?.rentaloption_id || 0);
-        form.setValue("reservation_location_id", reservationData.reservation_location_id);
-        form.setValue("reservationOwner", reservationData.reservationOwner);
-        form.setValue("contactNumber", reservationData.contactNumber);
-        form.setValue("reservation_jetski_list", reservationData.reservation_jetski_list);
-    }
-
     useEffect(() => {
         form.setValue("reservation_jetski_list", selectedJetski);
     }, [selectedJetski]);
 
-    const handleRentDateTimeChange = (selectedRentDate: Date | undefined) => {
-        if (selectedRentDate && startTime && selectedRentalOption) {
-            setRentDate(selectedRentDate);
-            const updatedStartTime = new Date(
-                    selectedRentDate.getFullYear(),
-                    selectedRentDate.getMonth(),
-                    selectedRentDate.getDate(),
-                    startTime.getHours(),
-                    startTime.getMinutes()
-                );
-            setStartTime(updatedStartTime);
-            updateEndTime(updatedStartTime, selectedRentalOption);
-            setSelectedJetski([]);
-        }else {
-            console.log("There has been an issue with fetching data when changing date.");
-        }
-    };
-
-    const handleStartTimeChange = (selectedTime: Date | null) => {
-        if (rentDate && selectedTime && selectedRentalOption) {
-            const updatedStartTime = new Date(
-                rentDate.getFullYear(),
-                rentDate.getMonth(),
-                rentDate.getDate(),
-                selectedTime.getHours(),
-                selectedTime.getMinutes()
-            );
-            setStartTime(updatedStartTime);
-            updateEndTime(updatedStartTime, selectedRentalOption);
-            setSelectedJetski([]); 
-        } else {
-            console.log(selectedRentalOption)
-            console.log("Rent date is not set. Please select the rent date first.");
-        }
-    };
-
-    const updateEndTime = (startDateTime: Date, rentalOption: RentalOptions) => {
-        const endTimeDate = add(startDateTime, { minutes: rentalOption.duration });
-        setEndTime(endTimeDate);
-        form.setValue('endTime', endTimeDate);
-    };
-
-    const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
-        setSelectedJetski(prevSelectedJetski =>
-            isChecked
-                ? [...prevSelectedJetski, jetski]
-                : prevSelectedJetski.filter(j => j.jetski_id !== jetski.jetski_id)
-        );
-    };
 
     useEffect(() => {
         const fetchJetskis = async () => {
@@ -267,6 +179,94 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
             form.setValue("totalPrice", basePrice);
         }
     }, [selectedRentalOption, selectedJetski]);
+
+    if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
+
+    const setReservationData = (reservationData: ExtendedReservation, rentalData: RentalOptions[], locationData: Location[]) =>{
+        const locationOpt = availableLocations?.find(option => option.location_id===reservationData.reservation_location_id);
+        setSelectedLocation(locationOpt);
+        
+        const rentalOpt = rentalData?.find(option => option.rentaloption_id===reservationData.rentaloption_id);
+        setRentalOption(rentalOpt);
+        
+        setRentDate(new Date(reservationData.startTime.getFullYear(), reservationData.startTime.getMonth(), reservationData.startTime.getDate()));
+        setStartTime(reservationData.startTime);
+        setEndTime(reservationData.endTime);
+        setPhone(reservationData.contactNumber);
+        setSelectedJetski(reservationData.reservation_jetski_list)
+        setDiscount(reservationData.discount);
+
+        form.setValue("rentDate", reservationData.startTime);
+        form.setValue("startTime", reservationData.startTime);
+        form.setValue("endTime", reservationData.endTime);
+        form.setValue("discount", reservationData.discount);
+        form.setValue("rentaloption_id", rentalOpt?.rentaloption_id || 0);
+        form.setValue("reservation_location_id", reservationData.reservation_location_id);
+        form.setValue("reservationOwner", reservationData.reservationOwner);
+        form.setValue("contactNumber", reservationData.contactNumber);
+        form.setValue("reservation_jetski_list", reservationData.reservation_jetski_list);
+    }
+
+    const handleRentDateTimeChange = (selectedRentDate: Date | undefined) => {
+        if (selectedRentDate && startTime && selectedRentalOption) {
+            setRentDate(selectedRentDate);
+            const updatedStartTime = new Date(
+                    selectedRentDate.getFullYear(),
+                    selectedRentDate.getMonth(),
+                    selectedRentDate.getDate(),
+                    startTime.getHours(),
+                    startTime.getMinutes()
+                );
+            setStartTime(updatedStartTime);
+            updateEndTime(updatedStartTime, selectedRentalOption);
+            setSelectedJetski([]);
+        }else {
+            console.log("There has been an issue with fetching data when changing date.");
+        }
+    };
+
+    const handleStartTimeChange = (selectedTime: Date | null) => {
+        if (rentDate && selectedTime && selectedRentalOption) {
+            const updatedStartTime = new Date(
+                rentDate.getFullYear(),
+                rentDate.getMonth(),
+                rentDate.getDate(),
+                selectedTime.getHours(),
+                selectedTime.getMinutes()
+            );
+            setStartTime(updatedStartTime);
+            updateEndTime(updatedStartTime, selectedRentalOption);
+            setSelectedJetski([]); 
+        } else {
+            console.log(selectedRentalOption)
+            console.log("Rent date is not set. Please select the rent date first.");
+        }
+    };
+
+    const updateEndTime = (startDateTime: Date, rentalOption: RentalOptions) => {
+        const endTimeDate = add(startDateTime, { minutes: rentalOption.duration });
+        setEndTime(endTimeDate);
+        form.setValue('endTime', endTimeDate);
+    };
+
+    const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
+        setSelectedJetski(prevSelectedJetski =>
+            isChecked
+                ? [...prevSelectedJetski, jetski]
+                : prevSelectedJetski.filter(j => j.jetski_id !== jetski.jetski_id)
+        );
+    };
 
     const onSubmit = async (values: z.infer<typeof EditReservationSchema>) => {
         console.log("Form submitted with values:", values);

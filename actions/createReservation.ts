@@ -42,9 +42,6 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     const now = DateTime.now();
     const endDateTime = DateTime.fromJSDate(new Date(endTime));
 
-    console.log(startDateTime);
-    console.log(rentDate)
-
     const rentalOption = await db.rentalOptions.findUnique({where: {rentaloption_id}});
 
     if(rentalOption?.rentaloption_description === "SAFARI" && reservation_jetski_list.length < 2)
@@ -97,7 +94,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     try {
         const reservation = await db.reservation.create({
             data: {
-                startTime: newStartTime, // Use newStartTime here
+                startTime: newStartTime,
                 endTime,
                 reservationOwner,
                 contactNumber,

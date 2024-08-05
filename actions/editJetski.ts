@@ -22,7 +22,7 @@ export const editJetski = async (jetskiId: number, values: z.infer<typeof Jetski
     const existingJetski = await getJetskiByName(jetski_registration);
     
     if (existingJetski && existingJetski.jetski_id !== jetskiId) {
-        return { error: "Jetski with that registration already exists!", success: undefined };
+        return { error: "Jetski with that registration already exists!" };
     }
 
     try {

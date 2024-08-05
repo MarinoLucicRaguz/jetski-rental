@@ -71,7 +71,6 @@ export const calculateAvailability = async (
 
   const availabilitySlots: AvailabilitySlot[] = [];
 
-  console.log(location)
   let availableJetskis;
   if (!location) {
     availableJetskis = await db.jetski.findMany({
@@ -98,20 +97,17 @@ export const calculateAvailability = async (
 
   while (currentSlotIndex < slots.length) {
     const slot = slots[currentSlotIndex];
-    const slotStart = slot.start;
     const slotEndWithBuffer = new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000);
-
+    
     const overlappingReservations = reservations.filter((reservation) => {
       const reservationStartTime = new Date(reservation.startTime);
       const reservationEndTime = new Date(reservation.endTime);
       const reservationEndWithBuffer = new Date(reservationEndTime.getTime() + BUFFER_MINUTES * 60 * 1000);
       return (
-        (reservationStartTime < slot.end && reservationEndTime > slot.start) ||
         (reservationStartTime < slotEndWithBuffer && reservationEndWithBuffer > slot.start)
       );
     });
 
-    // Filter out reservations that don't match the location (if location is provided)
     const locationFilteredReservations = overlappingReservations.filter((reservation) => {
       return !location || reservation.reservation_jetski_list.some(jetski => jetski.jetski_location_id === location);
     });
@@ -122,7 +118,6 @@ export const calculateAvailability = async (
 
     const availableJetskisCount = totalAvailableJetskis - reservedJetskis;
 
-    console.log(reservedJetskis)
     if (availableJetskisCount >= jetskiCount) {
       availabilitySlots.push({
         start_time: slot.start.toTimeString().slice(0, 5),

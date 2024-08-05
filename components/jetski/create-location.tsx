@@ -55,6 +55,18 @@ export const LocationForm = () => {
         }
     }, [user, router]);
 
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const users = await getModUsers();
+                setUsers(users);
+            } catch (error) {
+                setError("Unable to fetch users. There has been an error!");
+            }
+        };
+        fetchUsers();
+    }, []);
+
     if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
         return (
             <>
@@ -67,18 +79,6 @@ export const LocationForm = () => {
             </>
         );
     }
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const users = await getModUsers();
-                setUsers(users);
-            } catch (error) {
-                setError("Unable to fetch users. There has been an error!");
-            }
-        };
-        fetchUsers();
-    }, []);
 
     const onSubmit = (values: z.infer<typeof LocationSchema>) => {
         setError("");

@@ -40,20 +40,7 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
           }, 3000);
         }
       }, [user, router]);
-      
-      if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
-        return (
-          <>
-            {showError && (
-              <ErrorPopup
-                message="You need to be an administrator to view this page."
-                onClose={() => setShowError(false)}
-              />
-            )}
-          </>
-        );
-    }
-
+ 
     const form = useForm<z.infer<typeof JetskiSchema>>({
         resolver: zodResolver(JetskiSchema),
         defaultValues: {
@@ -63,7 +50,6 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
             jetski_topSpeed: jetskiData?.jetski_topSpeed,
             jetski_kW: jetskiData?.jetski_kW,
             jetski_manufacturingYear: jetskiData?.jetski_manufacturingYear,
-
         },
     });
 
@@ -110,6 +96,20 @@ export const EditJetskiForm = ({jetskiId}: {jetskiId: number}) => {
     
         fetchData();
     }, [startTransition]);
+
+         
+    if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
 
     const onSubmit = async (values: z.infer<typeof JetskiSchema>) => {
         setError("");

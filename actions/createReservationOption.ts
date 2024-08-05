@@ -6,10 +6,7 @@ import { ReservationOptionSchema } from "@/schemas";
 import { getRentalOptionByDuration } from "@/data/rentalOptionData";
 
 const parseCurrencyValue = (value: string): number => {
-    console.log("Input value:", value);
-
     const numericValue = parseFloat(value.replace(/[^0-9.]/g, ""));
-    console.log("Numeric value:", numericValue);
 
     const exchangeRates: Record<string, number> = {
         "USD": 1.06593,
@@ -32,17 +29,13 @@ const parseCurrencyValue = (value: string): number => {
             break;
         }
     }
-    console.log("Detected currency:", currencyCode);
 
     if (!exchangeRates[currencyCode]) {
         throw new Error(`Unsupported currency: ${currencyCode}`);
     }
 
     const exchangeRate = exchangeRates[currencyCode];
-    console.log("Exchange rate:", exchangeRate);
-
     const valueInEur = currencyCode === "EUR" ? numericValue : numericValue / exchangeRate;
-    console.log("Value in EUR:", valueInEur);
 
     return valueInEur;
 };

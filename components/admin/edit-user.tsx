@@ -42,19 +42,6 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
     }
   }, [user, router]);
 
-  if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
-  }
-
   const form = useForm<z.infer<typeof EditUserSchema>>({
     resolver: zodResolver(EditUserSchema),
     defaultValues: {
@@ -103,6 +90,19 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
     fetchLocations();
   }, [userId, startTransition, form]);
 
+  if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+    return (
+      <>
+        {showError && (
+          <ErrorPopup
+            message="You need to be an administrator to view this page."
+            onClose={() => setShowError(false)}
+          />
+        )}
+      </>
+    );
+  }
+  
   const handlePhoneChange = (value: string) => {
     setPhone(value);
     setIsValidPhoneNumber(!!value);

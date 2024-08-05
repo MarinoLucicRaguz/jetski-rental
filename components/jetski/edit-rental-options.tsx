@@ -47,19 +47,6 @@ export const EditReservationOptionForm =({rentalOptionId}: {rentalOptionId: numb
           }, 3000);
         }
       }, [user, router]);
-      
-      if (user && user.role !== "ADMIN") {
-        return (
-          <>
-            {showError && (
-              <ErrorPopup
-                message="You need to be an administrator to view this page."
-                onClose={() => setShowError(false)}
-              />
-            )}
-          </>
-        );
-    }
 
     useEffect(() => {
         const fetchData = async () => {
@@ -85,6 +72,18 @@ export const EditReservationOptionForm =({rentalOptionId}: {rentalOptionId: numb
         },
     })
     
+    if (user && user.role !== "ADMIN") {
+        return (
+          <>
+            {showError && (
+              <ErrorPopup
+                message="You need to be an administrator to view this page."
+                onClose={() => setShowError(false)}
+              />
+            )}
+          </>
+        );
+    }
 
     const onSubmit = (values: z.infer<typeof ReservationOptionSchema>) => {
         console.log("Submitted values:", values);

@@ -25,7 +25,6 @@ export const createUser = async (values: z.infer<typeof CreateUserSchema>) => {
     }
     const user_status = UserStatus.ACTIVE;
 
-    // Check if the user is trying to set a location where they are already a manager
     if (user_role === "MODERATOR" && user_location_id) {
         const locationWithManager = await db.location.findUnique({ where: { location_id: user_location_id } });
         if (locationWithManager && locationWithManager.location_manager_id !== null) {
