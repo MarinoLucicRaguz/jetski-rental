@@ -88,6 +88,7 @@ export const ListReservations = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                console.log(rentDate)
                 const data = await listReservationsByDate(rentDate);
                 if (data) {
                     data.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
