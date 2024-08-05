@@ -1,6 +1,7 @@
 import * as z from "zod";
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { UserRole, UserStatus } from "@prisma/client";
+import { DateTime } from "luxon";
 
 const zPhone = z.string().refine((value) => {
     const phone = parsePhoneNumberFromString(value, 'NG');
@@ -107,17 +108,19 @@ export const LocationSchema = z.object({
     user_id: z.string().nullable()
 });
 
-const today = new Date();
-today.setHours(0,0,0,0);
+const toUTC = (date: Date) => DateTime.fromJSDate(date).toUTC().toJSDate();
+
+const todayUTC = toUTC(new Date());
+todayUTC.setHours(0, 0, 0, 0);
 console.log("Server Date (UTC):", new Date().toISOString());
 
 export const JetskiReservationSchema = z.object({
-    rentDate: z.date().refine(date => date>=today,
+    rentDate: z.date().refine(date => date>=todayUTC,
         {
             message: "Rent date can't be in past!",
         }
     ),
-    startTime: z.date().refine(date => date>=today,{
+    startTime: z.date().refine(date => date>=todayUTC,{
         message: "Start time cannot be in the past!"
     }),
     endTime: z.date(),
@@ -132,12 +135,12 @@ export const JetskiReservationSchema = z.object({
 
 export const EditReservationSchema = z.object({
     reservation_id: z.number(),
-    rentDate: z.date().refine(date => date>=today,
+    rentDate: z.date().refine(date => date>=todayUTC,
         {
             message: "Rent date can't be in past!",
         }
     ),
-    startTime: z.date().refine(date => date>=today,{
+    startTime: z.date().refine(date => date>=todayUTC,{
         message: "Start time cannot be in the past!"
     }),
     endTime: z.date(),

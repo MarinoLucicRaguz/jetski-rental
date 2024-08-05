@@ -8,7 +8,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     const validatedFields = JetskiReservationSchema.safeParse(values);
 
     if (!validatedFields.success) {
-        return { error: "Invalid fields" };
+        return { error: "Invalid fields"};
     }
 
     const {
@@ -38,10 +38,9 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
         newStartTime = startTime;
     }
 
-    const startDateTime = DateTime.fromJSDate(newStartTime).toUTC();
-    const now = DateTime.now().toUTC();
-    const endDateTime = DateTime.fromJSDate(new Date(endTime)).toUTC();
-    console.log(endDateTime)
+    const startDateTime = DateTime.fromJSDate(newStartTime);
+    const now = DateTime.now();
+    const endDateTime = DateTime.fromJSDate(new Date(endTime));
 
     const rentalOption = await db.rentalOptions.findUnique({where: {rentaloption_id}});
 
