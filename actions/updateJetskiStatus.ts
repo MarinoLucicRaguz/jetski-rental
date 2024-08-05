@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 
 import { getJetskiById } from "@/data/jetskiData";
-import { statusJetski } from "@prisma/client";
+import { JetskiStatus } from "@prisma/client";
 
 export const updateJetskiStatus = async (jetskiId: number) => {
     const existingJetski = await getJetskiById(jetskiId);
@@ -12,7 +12,7 @@ export const updateJetskiStatus = async (jetskiId: number) => {
         return { error: "Jetski with this ID does not exist!" }; // Should never happen, but just in case!
     }
     
-    let newStatus: statusJetski = "NOT_AVAILABLE";
+    let newStatus: JetskiStatus = "NOT_AVAILABLE";
 
     if (existingJetski.jetski_status !== "AVAILABLE") {
         newStatus = "AVAILABLE";
