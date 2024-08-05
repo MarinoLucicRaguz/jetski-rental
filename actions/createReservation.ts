@@ -6,6 +6,7 @@ import { DateTime } from "luxon";
 
 export const createReservation = async (values: z.infer<typeof JetskiReservationSchema>) => {
     const validatedFields = JetskiReservationSchema.safeParse(values);
+    console.log(values)
 
     if (!validatedFields.success) {
         return { error: "Invalid fields"};
