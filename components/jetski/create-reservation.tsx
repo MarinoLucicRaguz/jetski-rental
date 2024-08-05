@@ -29,6 +29,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import ErrorPopup from "../ui/errorpopup";
 import { debounce } from "lodash";
 import 'react-international-phone/style.css';
+import { DateTime } from "luxon";
 
 export const JetSkiReservationForm =() => {
     const [error, setError] = useState<string | undefined>("");
@@ -218,6 +219,12 @@ export const JetSkiReservationForm =() => {
 
     const onSubmit = async (values: z.infer<typeof JetskiReservationSchema>) => {
         console.log("Form submitted with values:", values);
+        const updatedRentDate = DateTime.fromJSDate(values.rentDate)
+            .plus({ hours: 3 })
+            .toJSDate();
+
+        values.rentDate = updatedRentDate;
+        console.log("Updated values with modified rentDate:", values);
         setError("");
         setSuccess("");
     
