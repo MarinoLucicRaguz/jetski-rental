@@ -122,7 +122,7 @@ const SettingsPage = () => {
               fullWidth
             />
           </div>
-          <Button type="submit">
+          <Button className="mb-4 w-full" type="submit">
             Save Changes
           </Button>
         </form>
