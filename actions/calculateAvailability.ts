@@ -17,7 +17,7 @@ const generateDynamicSlots = (rentDate: Date, durationMinutes: number, timezoneO
 
   const slotStartTime = new Date(rentDate);
   const now = new Date();
-  now.setMinutes(now.getMinutes()- timezoneOffset)
+  now.setMinutes(now.getMinutes() - timezoneOffset)
 
   console.log("generateDynamicSlots - now: " ,now)
   if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7)) {
@@ -65,6 +65,7 @@ export const calculateAvailability = async (
   
   startTime.setHours(9, 0, 0, 0);
   endTime.setHours(20, 0, 0, 0);
+  rentDate.setMinutes(rentDate.getMinutes() - timezoneOffset)
   
   console.log(dateString)
   console.log("Calculate availability - RentDate: ", rentDate)
@@ -83,12 +84,6 @@ export const calculateAvailability = async (
     },
   });
   
-  rentDate.setMinutes(rentDate.getMinutes() - timezoneOffset)
-
-  console.log("Calculate availability 2- RentDate: ", rentDate)
-  console.log("Calculate availability 2- StartTime: ", startTime)
-  console.log("Calculate availability 2- EndTime: " , endTime)
-
   const slots = generateDynamicSlots(rentDate, rentalOption.duration, timezoneOffset);
   
   const availabilitySlots: AvailabilitySlot[] = [];
