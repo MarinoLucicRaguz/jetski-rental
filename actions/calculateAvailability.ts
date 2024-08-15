@@ -60,13 +60,12 @@ export const calculateAvailability = async (
 ): Promise<AvailabilitySlot[]> => {
   const rentDate = new Date(dateString)
   
-  rentDate.setMinutes(rentDate.getMinutes()- timezoneOffset)
   const startTime = new Date(dateString);
   const endTime = new Date(dateString);
-
+  
   startTime.setHours(9, 0, 0, 0);
   endTime.setHours(20, 0, 0, 0);
-
+  
   console.log(dateString)
   console.log("Calculate availability - RentDate: ", rentDate)
   console.log("Calculate availability - StartTime: ", startTime)
@@ -83,9 +82,15 @@ export const calculateAvailability = async (
       reservation_jetski_list: true,
     },
   });
+  
+  rentDate.setMinutes(rentDate.getMinutes() - timezoneOffset)
+
+  console.log("Calculate availability 2- RentDate: ", rentDate)
+  console.log("Calculate availability 2- StartTime: ", startTime)
+  console.log("Calculate availability 2- EndTime: " , endTime)
 
   const slots = generateDynamicSlots(rentDate, rentalOption.duration, timezoneOffset);
-
+  
   const availabilitySlots: AvailabilitySlot[] = [];
 
   let availableJetskis;
