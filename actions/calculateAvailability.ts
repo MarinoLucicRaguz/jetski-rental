@@ -51,10 +51,13 @@ export const calculateAvailability = async (
 ): Promise<AvailabilitySlot[]> => {
   const startTime = new Date(rentDate);
   startTime.setHours(0, 0, 0, 0);
-
   const endTime = new Date(rentDate);
   endTime.setHours(23, 59, 59, 999);
-
+  
+  console.log(startTime)
+  
+  console.log(endTime)
+  
   const reservations = await db.reservation.findMany({
     where: {
       startTime: {
