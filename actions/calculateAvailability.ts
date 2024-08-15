@@ -48,15 +48,16 @@ console.log("lateststarttime ", latestStartTime)
 };
 
 export const calculateAvailability = async (
-  rentDate: Date,
+  dateString: string,
   jetskiCount: number,
   rentalOption: RentalOptions,
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
-  const startTime = new Date(rentDate);
+  const rentDate = new Date(dateString)
+  const startTime = new Date(dateString);
   startTime.setHours(0, 0, 0, 0);
   
-  const endTime = new Date(rentDate);
+  const endTime = new Date(dateString);
   endTime.setHours(23, 59, 59, 999);
   console.log("rentdate : ", rentDate)
 
