@@ -1,5 +1,9 @@
 "use server";
 
+//UKOLIKO JE DATE DOHVACEN SA KLIJENT STRANE ONDA IDE + TIMEZONEDIFF
+//AKO JE DOHVACEN NA SERVER STRANI ONDA IDE - TIMEZONEDIFF
+//AKO POSTAVLJAS VRIJEDNOST ONDA JE HARDCODAN
+
 import { db } from "@/lib/db";
 import { RentalOptions } from "@prisma/client";
 
@@ -36,7 +40,7 @@ const generateDynamicSlots = (
   console.log("Postavljeno početno vrijeme za generiranje slotova ", startTime)
 
   const latestStartTime = new Date(rentDate);
-  latestStartTime.setHours(19, 30 + timezoneOffset, 0, 0);
+  latestStartTime.setHours(19, 30, 0, 0);
 
   console.log("Zadnje startno vrijeme: ", latestStartTime)
 
@@ -50,8 +54,10 @@ const generateDynamicSlots = (
 
     startTime.setMinutes(startTime.getMinutes() + 5);
   }
+  console.log(startTime)
+  console.log(latestStartTime)
 
-  console.log(slots)
+  console.log(endTime )
   return slots;
 };
 
