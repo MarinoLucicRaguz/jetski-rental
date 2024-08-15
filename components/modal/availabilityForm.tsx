@@ -63,8 +63,10 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
     if (data.rentDate && data.jetskiCount && data.rentalOption) {
       try {
         let slots;
+        console.log(data.rentDate)
         if (includeLocation && data.location)
         {
+        
           slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption, data.location.location_id);
         }
         else{
