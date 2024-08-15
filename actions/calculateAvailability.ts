@@ -12,17 +12,21 @@ interface AvailabilitySlot {
 
 const BUFFER_MINUTES = 5;
 
-const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start: Date, end: Date }[] => {
+const generateDynamicSlots = (rentDate: Date, durationMinutes: number, timezoneOffset: number): { start: Date, end: Date }[] => {
   const slots = [];
+
   const slotStartTime = new Date(rentDate);
   const now = new Date();
-  console.log("vrijeme sada: " ,now)
-  console.log("slootstarttime: ", slotStartTime)
+  now.setMinutes(now.getMinutes()- timezoneOffset)
+
+  console.log("generateDynamicSlots - now: " ,now)
   if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7)) {
     slotStartTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
   } else {
     slotStartTime.setHours(7, 0, 0, 0);
   }
+  
+  console.log("generateDynamicSlots - slotStartTime: ", slotStartTime)
 
   const dayEndTime = new Date(rentDate);
   dayEndTime.setHours(21, 0, 0, 0);
@@ -51,19 +55,22 @@ export const calculateAvailability = async (
   dateString: string,
   jetskiCount: number,
   rentalOption: RentalOptions,
+  timezoneOffset: number,
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
   const rentDate = new Date(dateString)
+  
+  rentDate.setMinutes(rentDate.getMinutes()- timezoneOffset)
   const startTime = new Date(dateString);
-  startTime.setHours(0, 0, 0, 0);
-  
   const endTime = new Date(dateString);
-  endTime.setHours(23, 59, 59, 999);
-  console.log("rentdate : ", rentDate)
 
-  console.log("starttime ", startTime)
-  
-  console.log("endtime " , endTime)
+  startTime.setHours(9, 0, 0, 0);
+  endTime.setHours(20, 0, 0, 0);
+
+  console.log(dateString)
+  console.log("Calculate availability - RentDate: ", rentDate)
+  console.log("Calculate availability - StartTime: ", startTime)
+  console.log("Calculate availability - EndTime: " , endTime)
   
   const reservations = await db.reservation.findMany({
     where: {
@@ -77,7 +84,7 @@ export const calculateAvailability = async (
     },
   });
 
-  const slots = generateDynamicSlots(rentDate, rentalOption.duration);
+  const slots = generateDynamicSlots(rentDate, rentalOption.duration, timezoneOffset);
 
   const availabilitySlots: AvailabilitySlot[] = [];
 
