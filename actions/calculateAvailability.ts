@@ -67,8 +67,8 @@ export const calculateAvailability = async (
   const startTime = new Date(dateString);
   const endTime = new Date(dateString);
   
-  startTime.setHours(9, 0, 0, 0);
-  endTime.setHours(20, 0, 0, 0);
+  startTime.setHours(9+hourDiff, 0, 0, 0);
+  endTime.setHours(20+hourDiff, 0, 0, 0);
   rentDate.setMinutes(rentDate.getMinutes() - timezoneOffset)
   
   console.log(dateString)
