@@ -12,42 +12,45 @@ interface AvailabilitySlot {
 
 const BUFFER_MINUTES = 5;
 
-const generateDynamicSlots = (rentDate: Date, durationMinutes: number, timezoneOffset: number): { start: Date, end: Date }[] => {
+const generateDynamicSlots = (
+  rentDate: Date,
+  durationMinutes: number,
+  startTime: Date,
+  endTime: Date,
+  timezoneOffset: number
+): { start: Date, end: Date }[] => {
   const slots = [];
 
-  const slotStartTime = new Date(rentDate);
   const now = new Date();
-  now.setMinutes(now.getMinutes() - timezoneOffset)
+  now.setMinutes(now.getMinutes() + timezoneOffset);
 
-  console.log("generateDynamicSlots - now: " ,now)
+  console.log("Trenutno vrijeme pri generiranju slotova: ", now);
+
   if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7)) {
-    slotStartTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
+    startTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
   } else {
-    slotStartTime.setHours(7 , 0, 0, 0);
+    startTime.setHours(7, 0, 0, 0); //potencijalno zamijenit s globalnom varijablom ili iz postavke
   }
   
-  console.log("generateDynamicSlots - slotStartTime: ", slotStartTime)
-
-  const dayEndTime = new Date(rentDate);
-  dayEndTime.setHours(21, 0, 0, 0);
+  console.log("Postavljeno početno vrijeme za generiranje slotova ", startTime)
 
   const latestStartTime = new Date(rentDate);
-  latestStartTime.setHours(19, 25, 0, 0);
+  latestStartTime.setHours(17, 30 + timezoneOffset, 0, 0);
 
-console.log("dayendtime: ", dayEndTime)
-console.log("lateststarttime ", latestStartTime)
+  console.log("Zadnje startno vrijeme: ", latestStartTime)
 
-  while (slotStartTime < dayEndTime) {
-    const slotEndTime = new Date(slotStartTime);
-    slotEndTime.setMinutes(slotStartTime.getMinutes() + durationMinutes);
+  while (startTime < endTime  && startTime <= latestStartTime) {
+    const slotEndTime = new Date(startTime);
+    slotEndTime.setMinutes(startTime.getMinutes() + durationMinutes);
 
-    if (slotEndTime > dayEndTime || slotStartTime > latestStartTime) break;
+    if (slotEndTime > endTime) break;
 
-    slots.push({ start: new Date(slotStartTime), end: new Date(slotEndTime) });
+    slots.push({ start: new Date(startTime), end: new Date(slotEndTime) });
 
-    slotStartTime.setMinutes(slotStartTime.getMinutes() + 5);
+    startTime.setMinutes(startTime.getMinutes() + 5);
   }
 
+  console.log(slots)
   return slots;
 };
 
@@ -59,15 +62,13 @@ export const calculateAvailability = async (
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
   const rentDate = new Date(dateString)
-  const hourDiff = timezoneOffset/60;
   const startTime = new Date(dateString);
   const endTime = new Date(dateString);
   
   startTime.setHours(9, 0 + timezoneOffset, 0, 0);
-  endTime.setHours(20 , 0 + timezoneOffset, 0, 0);
-
+  endTime.setHours(19 , 30 + timezoneOffset, 0, 0);
   rentDate.setMinutes(rentDate.getMinutes() - timezoneOffset)
-  
+
   console.log("Calculate availability - RentDate: ", rentDate)
   console.log("Calculate availability - StartTime: ", startTime)
   console.log("Calculate availability - EndTime: " , endTime)
@@ -84,7 +85,7 @@ export const calculateAvailability = async (
     },
   });
   
-  const slots = generateDynamicSlots(rentDate, rentalOption.duration, timezoneOffset);
+  const slots = generateDynamicSlots(rentDate, rentalOption.duration, startTime, endTime, timezoneOffset);
   
   const availabilitySlots: AvailabilitySlot[] = [];
 
