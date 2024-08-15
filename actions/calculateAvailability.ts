@@ -59,7 +59,11 @@ export const calculateAvailability = async (
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
   const rentDate = new Date(dateString)
-  
+  const hourDiff = timezoneOffset/60;
+
+  console.log(hourDiff)
+
+
   const startTime = new Date(dateString);
   const endTime = new Date(dateString);
   
