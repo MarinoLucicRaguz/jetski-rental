@@ -49,9 +49,9 @@ export const calculateAvailability = async (
   rentalOption: RentalOptions,
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
-  const startTime = new Date(rentDate);
+  const startTime = rentDate;
   startTime.setHours(0, 0, 0, 0);
-  const endTime = new Date(rentDate);
+  const endTime = rentDate;
   endTime.setHours(23, 59, 59, 999);
   
   console.log(startTime)
