@@ -58,7 +58,8 @@ export const calculateAvailability = async (
   
   const endTime = new Date(rentDate);
   endTime.setHours(23, 59, 59, 999);
-  
+  console.log("rentdate : ", rentDate)
+
   console.log("starttime ", startTime)
   
   console.log("endtime " , endTime)
