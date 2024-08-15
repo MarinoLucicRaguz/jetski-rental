@@ -22,20 +22,21 @@ const generateDynamicSlots = (
   const slots = [];
 
   const now = new Date();
-  now.setMinutes(now.getMinutes() + timezoneOffset);
+  console.log(now)
+  now.setMinutes(now.getMinutes() - timezoneOffset);
 
   console.log("Trenutno vrijeme pri generiranju slotova: ", now);
 
-  if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7)) {
+  if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 9)) {
     startTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
   } else {
-    startTime.setHours(7, 0, 0, 0); //potencijalno zamijenit s globalnom varijablom ili iz postavke
+    startTime.setHours(9, 0, 0, 0); //potencijalno zamijenit s globalnom varijablom ili iz postavke
   }
   
   console.log("Postavljeno početno vrijeme za generiranje slotova ", startTime)
 
   const latestStartTime = new Date(rentDate);
-  latestStartTime.setHours(17, 30 + timezoneOffset, 0, 0);
+  latestStartTime.setHours(19, 30 + timezoneOffset, 0, 0);
 
   console.log("Zadnje startno vrijeme: ", latestStartTime)
 
