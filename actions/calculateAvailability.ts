@@ -16,7 +16,8 @@ const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start:
   const slots = [];
   const slotStartTime = new Date(rentDate);
   const now = new Date();
-
+  console.log("vrijeme sada: " ,now)
+  console.log("slootstarttime: ", slotStartTime)
   if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 7)) {
     slotStartTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
   } else {
@@ -28,6 +29,9 @@ const generateDynamicSlots = (rentDate: Date, durationMinutes: number): { start:
 
   const latestStartTime = new Date(rentDate);
   latestStartTime.setHours(19, 25, 0, 0);
+
+console.log("dayendtime: ", dayEndTime)
+console.log("lateststarttime ", latestStartTime)
 
   while (slotStartTime < dayEndTime) {
     const slotEndTime = new Date(slotStartTime);
@@ -54,9 +58,9 @@ export const calculateAvailability = async (
   const endTime = rentDate;
   endTime.setHours(23, 59, 59, 999);
   
-  console.log(startTime)
+  console.log("starttime ", startTime)
   
-  console.log(endTime)
+  console.log("endtime " , endTime)
   
   const reservations = await db.reservation.findMany({
     where: {
