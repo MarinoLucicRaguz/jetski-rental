@@ -69,10 +69,10 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
 
         if (includeLocation && data.location)
         {
-          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption, data.location.location_id, timezoneOffset);
+          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption, data.location.location_id, timezoneOffset, userTimezone);
         }
         else{
-          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption, timezoneOffset);
+          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption, timezoneOffset, userTimezone);
         }
         setCheckedAvailability(true);
         setAvailableSlots(slots.slice(0,5));
@@ -120,7 +120,6 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
                           minute: cestMoment.minute(),
                           second: cestMoment.second(),
                         }).toDate();
-
 
                         console.log("Odabrani datum na FE kod availiability forme: ", utcDate);
                         field.onChange(utcDate);

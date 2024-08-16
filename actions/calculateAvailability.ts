@@ -69,15 +69,18 @@ export const calculateAvailability = async (
   jetskiCount: number,
   rentalOption: RentalOptions,
   timezoneOffset: number,
+  timezone: string,
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
   console.log(dateString)
   const rentDate = new Date(dateString)
-  const startTime = new Date(dateString);
-  const endTime = new Date(dateString);
 
-  startTime.setHours(9, 0  , 0, 0);
-  endTime.setHours(19, 30, 0, 0);
+  const startTimeLocal = moment.tz(`${moment().format('YYYY-MM-DD')} 09:00:00`, timezone);
+  const endTimeLocal = moment.tz(`${moment().format('YYYY-MM-DD')} 19:30:00`, timezone);
+
+  // Convert to UTC
+  const startTime = startTimeLocal.clone().utc().toDate();
+  const endTime = endTimeLocal.clone().utc().toDate();
 
   console.log("Calculate availability - RentDate: ", rentDate)
   console.log("Calculate availability - StartTime: ", startTime)
