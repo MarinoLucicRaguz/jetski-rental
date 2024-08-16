@@ -338,10 +338,10 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
                                 <FormLabel>Time of reservation</FormLabel>
                                 <TimePicker
                                     label="Select a time"
-                                    minTime={new Date(new Date().setHours(7, 0))}
+                                    minTime={new Date(new Date().setHours(9, 0))}
                                     maxTime={new Date(new Date().setHours(19, 30))}
                                     skipDisabled={true}
-                                    value={startTime ?? new Date(new Date().setHours(7, 0))}
+                                    value={startTime ?? new Date(new Date().setHours(9, 0))}
                                     onChange={(newValue) => {
                                         field.onChange(newValue);
                                         handleStartTimeChange(newValue);

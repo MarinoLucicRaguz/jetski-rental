@@ -37,7 +37,7 @@ const generateDynamicSlots = (
     startTime.setHours(9, 0, 0, 0); //potencijalno zamijenit s globalnom varijablom ili iz postavke
   }
   
-  console.log("Postavljeno početno vrijeme za generiranje slotova ", startTime)
+  console.log("Slot generating starting time: ", startTime)
 
   const latestStartTime = new Date(rentDate);
   latestStartTime.setHours(19, 30, 0, 0);
