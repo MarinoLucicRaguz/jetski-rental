@@ -14,6 +14,7 @@ import { calculateAvailability } from '@/actions/calculateAvailability';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import moment from 'moment-timezone';
 
 const AvailabilitySchema = z.object({
   rentDate: z.date().nullable(),
@@ -34,12 +35,12 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
   });
 
   const { control, handleSubmit } = methods;
-
   const [rentalOptions, setRentalOptions] = useState<RentalOptions[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);
   const [includeLocation, setIncludeLocation] = useState(false);
   const [checkedAvailability, setCheckedAvailability] = useState(false);
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,6 +62,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
 
   const handleCheckAvailability = async (data: AvailabilityFormValues) => {
     if (data.rentDate && data.jetskiCount && data.rentalOption) {
+      console.log(data.rentDate)
       try {
         let slots;
         const timezoneOffset = data.rentDate.getTimezoneOffset();
@@ -106,13 +108,30 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent>
-                    <Calendar
-                      mode="single"
-                      selected={field.value || undefined}
-                      onSelect={(date) => field.onChange(date)}
-                      disabled={(date) => date < new Date(new Date().toDateString()) 
-                    }
-                    />
+                  <Calendar
+                    mode="single"
+                    selected={field.value || undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const cestMoment = moment.tz(date, userTimezone);
+                        const utcDate = moment.utc({
+                          year: cestMoment.year(),
+                          month: cestMoment.month(),
+                          date: cestMoment.date(),
+                          hour: cestMoment.hour(),
+                          minute: cestMoment.minute(),
+                          second: cestMoment.second(),
+                        }).toDate();
+
+
+                        console.log("Odabrani datum na FE kod availiability forme: ", utcDate);
+                        field.onChange(utcDate);
+                      } else {
+                        field.onChange(null);
+                      }
+                    }}
+                    disabled={(date) => date < new Date(new Date().toDateString())}
+                  />
                   </PopoverContent>
                 </Popover>
               </FormItem>

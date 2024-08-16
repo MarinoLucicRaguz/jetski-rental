@@ -1,5 +1,8 @@
 "use server";
 
+const moment = require('moment-timezone')
+moment.tz.setDefault('CEST')
+
 //UKOLIKO JE DATE DOHVACEN SA KLIJENT STRANE ONDA IDE + TIMEZONEDIFF
 //AKO JE DOHVACEN NA SERVER STRANI ONDA IDE - TIMEZONEDIFF
 //AKO POSTAVLJAS VRIJEDNOST ONDA JE HARDCODAN
@@ -72,6 +75,13 @@ export const calculateAvailability = async (
   const startTime = new Date(dateString);
   const endTime = new Date(dateString);
   
+  const now = moment();
+  console.log("now: ", now)
+  console.log("now format: " ,now.format())
+
+  const testDate = new Date(now.format());
+  console.log("testdate - ", testDate)
+
   startTime.setHours(9, 0 , 0, 0);
   endTime.setHours(19 , 30, 0, 0);
 
