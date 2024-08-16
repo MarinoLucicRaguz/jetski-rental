@@ -65,32 +65,24 @@ const generateDynamicSlots = (
 };
 
 export const calculateAvailability = async (
-  dateString: Date,
+  date: Date,
+  dayStartTime: Date,
+  dayEndTime: Date,
   jetskiCount: number,
   rentalOption: RentalOptions,
   timezoneOffset: number,
-  timezone: string,
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
-  console.log(dateString)
-  const rentDate = new Date(dateString)
 
-  const startTimeLocal = moment.tz(`${moment().format('YYYY-MM-DD')} 09:00:00`, timezone);
-  const endTimeLocal = moment.tz(`${moment().format('YYYY-MM-DD')} 19:30:00`, timezone);
-
-  // Convert to UTC
-  const startTime = startTimeLocal.clone().utc().toDate();
-  const endTime = endTimeLocal.clone().utc().toDate();
-
-  console.log("Calculate availability - RentDate: ", rentDate)
-  console.log("Calculate availability - StartTime: ", startTime)
-  console.log("Calculate availability - EndTime: " , endTime)
+  console.log("Calculate availability - RentDate: ", date)
+  console.log("Calculate availability - StartTime: ", dayStartTime)
+  console.log("Calculate availability - EndTime: " , dayEndTime)
   
   const reservations = await db.reservation.findMany({
     where: {
       startTime: {
-        gte: startTime,
-        lt: endTime,
+        gte: dayStartTime,
+        lt: dayEndTime,
       },
     },
     include: {
@@ -98,7 +90,7 @@ export const calculateAvailability = async (
     },
   });
   
-  const slots = generateDynamicSlots(rentDate, rentalOption.duration, startTime, endTime, timezoneOffset);
+  const slots = generateDynamicSlots(date, rentalOption.duration, dayStartTime, dayEndTime, timezoneOffset);
   
   const availabilitySlots: AvailabilitySlot[] = [];
 

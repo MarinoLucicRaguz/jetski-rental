@@ -66,13 +66,18 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }
       try {
         let slots;
         const timezoneOffset = data.rentDate.getTimezoneOffset();
+        const dayStartTime = new Date(data.rentDate);
+        dayStartTime.setHours(9,0,0,0);
+        const dayEndTime = new Date(data.rentDate);
+        dayEndTime.setHours(19,30,0,0);
 
+        console.log(dayStartTime, dayEndTime);
         if (includeLocation && data.location)
         {
-          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption, data.location.location_id, timezoneOffset, userTimezone);
+          slots = await calculateAvailability(data.rentDate, dayStartTime, dayEndTime, data.jetskiCount, data.rentalOption, timezoneOffset, data.location.location_id);
         }
         else{
-          slots = await calculateAvailability(data.rentDate, data.jetskiCount, data.rentalOption, timezoneOffset, userTimezone);
+          slots = await calculateAvailability(data.rentDate, dayStartTime, dayEndTime, data.jetskiCount, data.rentalOption, timezoneOffset);
         }
         setCheckedAvailability(true);
         setAvailableSlots(slots.slice(0,5));
