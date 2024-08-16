@@ -65,25 +65,19 @@ const generateDynamicSlots = (
 };
 
 export const calculateAvailability = async (
-  dateString: string,
+  dateString: Date,
   jetskiCount: number,
   rentalOption: RentalOptions,
   timezoneOffset: number,
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
+  console.log(dateString)
   const rentDate = new Date(dateString)
   const startTime = new Date(dateString);
   const endTime = new Date(dateString);
-  
-  const now = moment();
-  console.log("now: ", now)
-  console.log("now format: " ,now.format())
 
-  const testDate = new Date(now.format());
-  console.log("testdate - ", testDate)
-
-  startTime.setHours(9, 0 , 0, 0);
-  endTime.setHours(19 , 30, 0, 0);
+  startTime.setHours(9, 0  , 0, 0);
+  endTime.setHours(19, 30, 0, 0);
 
   console.log("Calculate availability - RentDate: ", rentDate)
   console.log("Calculate availability - StartTime: ", startTime)
