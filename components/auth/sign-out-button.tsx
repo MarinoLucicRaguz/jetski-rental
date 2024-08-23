@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
 import { useRouter } from 'next/navigation';
 import { signOutUser } from '@/actions/signOutAction';
 import { Button } from '../ui/button';
+import { ArrowRightIcon } from '@radix-ui/react-icons';
 
 interface SignOutButtonProps {
   className?: string;
@@ -18,8 +19,13 @@ const SignOutButton: React.FC<SignOutButtonProps> = ({ className }) => {
   };
 
   return (
-    <Button className={`w-full mb-3 ${className}`} onClick={handleSignOut} variant="secondary">
-      Sign out
+    <Button
+      className={`mb-2 mt-2 w-60 ${className}`}
+      onClick={handleSignOut}
+      variant="secondary"
+    >
+      <ArrowRightIcon className="mr-2" />
+      Odjavi se
     </Button>
   );
 };
