@@ -1,11 +1,6 @@
 "use server";
 
 const moment = require('moment-timezone')
-moment.tz.setDefault('CEST')
-
-//UKOLIKO JE DATE DOHVACEN SA KLIJENT STRANE ONDA IDE + TIMEZONEDIFF
-//AKO JE DOHVACEN NA SERVER STRANI ONDA IDE - TIMEZONEDIFF
-//AKO POSTAVLJAS VRIJEDNOST ONDA JE HARDCODAN
 
 import { db } from "@/lib/db";
 import { RentalOptions } from "@prisma/client";
@@ -20,64 +15,45 @@ interface AvailabilitySlot {
 const BUFFER_MINUTES = 5;
 
 const generateDynamicSlots = (
-  rentDate: Date,
-  durationMinutes: number,
+  duration: number,
   startTime: Date,
   endTime: Date,
-  timezoneOffset: number
 ): { start: Date, end: Date }[] => {
   const slots = [];
+  const now = moment().tz("UTC");
 
-  const now = new Date();
-  console.log(now)
-  now.setMinutes(now.getMinutes() - timezoneOffset);
+  let start = moment(startTime).tz("UTC");
+  const end = moment(endTime).tz("UTC");
 
-  console.log("Trenutno vrijeme pri generiranju slotova: ", now);
-
-  if ((rentDate.toDateString() === now.toDateString()) && (now.getHours() > 9)) {
-    startTime.setHours(now.getHours(), Math.ceil(now.getMinutes() / 5) * 5, 0, 0);
-  } else {
-    startTime.setHours(9, 0, 0, 0); //potencijalno zamijenit s globalnom varijablom ili iz postavke
+  console.log("Početak i kraj generiranja slotova: ", start,end)
+  if (start.isSame(now, 'day') && now.isAfter(start)) {
+    start = now.clone().minute(Math.ceil(now.minute() / 5) * 5).second(0);
   }
-  
-  console.log("Slot generating starting time: ", startTime)
 
-  const latestStartTime = new Date(rentDate);
-  latestStartTime.setHours(19, 30, 0, 0);
+  while (start.isBefore(end) || start.isSame(end)) {
+    const slotEndTime = start.clone().add(duration, 'minutes');
 
-  console.log("Zadnje startno vrijeme: ", latestStartTime)
+    // if (slotEndTime.isAfter(end) && !slotEndTime.isSame(end)) break; AKO IMA PREKOVREMENOG
 
-  while (startTime < endTime  && startTime <= latestStartTime) {
-    const slotEndTime = new Date(startTime);
-    slotEndTime.setMinutes(startTime.getMinutes() + durationMinutes);
+    slots.push({ start: start.toDate(), end: slotEndTime.toDate() });
 
-    if (slotEndTime > endTime) break;
-
-    slots.push({ start: new Date(startTime), end: new Date(slotEndTime) });
-
-    startTime.setMinutes(startTime.getMinutes() + 5);
+    start.add(BUFFER_MINUTES, 'minutes');
   }
-  console.log(startTime)
-  console.log(latestStartTime)
-
-  console.log(endTime )
   return slots;
 };
 
 export const calculateAvailability = async (
-  date: Date,
   dayStartTime: Date,
   dayEndTime: Date,
   jetskiCount: number,
   rentalOption: RentalOptions,
-  timezoneOffset: number,
   location?: number,
 ): Promise<AvailabilitySlot[]> => {
-
-  console.log("Calculate availability - RentDate: ", date)
   console.log("Calculate availability - StartTime: ", dayStartTime)
   console.log("Calculate availability - EndTime: " , dayEndTime)
   
+  const slots = generateDynamicSlots(rentalOption.duration, dayStartTime, dayEndTime);
+  console.log(slots[slots.length-1]);
   const reservations = await db.reservation.findMany({
     where: {
       startTime: {
@@ -90,19 +66,19 @@ export const calculateAvailability = async (
     },
   });
   
-  const slots = generateDynamicSlots(date, rentalOption.duration, dayStartTime, dayEndTime, timezoneOffset);
   
   const availabilitySlots: AvailabilitySlot[] = [];
 
-  let availableJetskis;
+  let numberOfAvailableVehicles;
+  
   if (!location) {
-    availableJetskis = await db.jetski.findMany({
+    numberOfAvailableVehicles = await db.jetski.count({
       where: {
         jetski_status: 'AVAILABLE',
       },
     });
   } else {
-    availableJetskis = await db.jetski.findMany({
+    numberOfAvailableVehicles = await db.jetski.count({
       where: {
         jetski_status: 'AVAILABLE',
         jetski_location_id: location,
@@ -110,48 +86,84 @@ export const calculateAvailability = async (
     });
   }
 
-  const totalAvailableJetskis = availableJetskis.length;
-
   if (rentalOption.rentaloption_description === "SAFARI") {
     jetskiCount += 1;
   }
 
-  let currentSlotIndex = 0;
+  reservations.forEach((reservation) => {
+    const reservationStartTime = new Date(reservation.startTime);
+    const reservationEndTime = new Date(reservation.endTime);
+    const reservationEndWithBuffer = new Date(reservationEndTime.getTime() + BUFFER_MINUTES * 60 * 1000);
 
-  while (currentSlotIndex < slots.length) {
-    const slot = slots[currentSlotIndex];
-    const slotEndWithBuffer = new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000);
-    
-    const overlappingReservations = reservations.filter((reservation) => {
-      const reservationStartTime = new Date(reservation.startTime);
-      const reservationEndTime = new Date(reservation.endTime);
-      const reservationEndWithBuffer = new Date(reservationEndTime.getTime() + BUFFER_MINUTES * 60 * 1000);
-      return (
-        (reservationStartTime < slotEndWithBuffer && reservationEndWithBuffer > slot.start)
-      );
+    slots.forEach((slot, index) => {
+      if (
+        reservationStartTime < new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000) &&
+        reservationEndWithBuffer > slot.start
+      ) {
+        const locationFiltered = !location || reservation.reservation_jetski_list.some(jetski => jetski.jetski_location_id === location);
+        const reservedJetskis = reservation.reservation_jetski_list.length;
+
+        if (locationFiltered && (numberOfAvailableVehicles - reservedJetskis < jetskiCount)) {
+          slots.splice(index, 1); // Remove this slot
+        }
+      }
     });
+  });
 
-    const locationFilteredReservations = overlappingReservations.filter((reservation) => {
-      return !location || reservation.reservation_jetski_list.some(jetski => jetski.jetski_location_id === location);
-    });
-
-    const reservedJetskis = locationFilteredReservations.reduce((count, reservation) => {
-      return count + reservation.reservation_jetski_list.length;
-    }, 0);
-
-    const availableJetskisCount = totalAvailableJetskis - reservedJetskis;
-
-    if (availableJetskisCount >= jetskiCount) {
-      availabilitySlots.push({
-        start_time: slot.start.toTimeString().slice(0, 5),
-        end_time: slot.end.toTimeString().slice(0, 5),
-        available_jetskis: availableJetskisCount,
-      });
-      currentSlotIndex += Math.floor(60 / 5);
-    } else {
-      currentSlotIndex += 1;
-    }
-  }
+  // Convert remaining slots to AvailabilitySlot format
+  slots.forEach(slot => {
+    availabilitySlots.push(slot => ({
+      start_time: slot.start.toTimeString(),
+      end_time: slot.end.toTimeString(),
+      available_jetskis: numberOfAvailableVehicles, 
+    }))
+  });
+  slots.map(slot => ({
+    start_time: slot.start.toTimeString(),
+    end_time: slot.end.toTimeString(),
+    available_jetskis: numberOfAvailableVehicles,  // Assuming all remaining slots have the same available jetskis
+  }));
 
   return availabilitySlots;
 };
+  
+  // let currentSlotIndex = 0;
+  // while (currentSlotIndex < slots.length) {
+  //   const slot = slots[currentSlotIndex];
+  //   const slotEndWithBuffer = new Date(slot.end.getTime() + BUFFER_MINUTES * 60 * 1000);
+
+  //   const overlappingReservations = reservations.filter((reservation) => {
+  //     const reservationStartTime = new Date(reservation.startTime);
+  //     const reservationEndTime = new Date(reservation.endTime);
+  //     const reservationEndWithBuffer = new Date(reservationEndTime.getTime() + BUFFER_MINUTES * 60 * 1000);
+    
+  //     const isOverlapping = (
+  //       reservationStartTime < slotEndWithBuffer && reservationEndWithBuffer > slot.start
+  //     );
+    
+  //     return isOverlapping;
+  //   });
+    
+  //   const locationFilteredReservations = overlappingReservations.filter((reservation) => {
+  //     return !location || reservation.reservation_jetski_list.some(jetski => jetski.jetski_location_id === location);
+  //   });
+
+  //   const reservedJetskis = locationFilteredReservations.reduce((count, reservation) => {
+  //     return count + reservation.reservation_jetski_list.length;
+  //   }, 0);
+
+  //   const availableJetskisCount = numberOfAvailableVehicles - reservedJetskis;
+
+  //   if (availableJetskisCount >= jetskiCount) {
+  //     availabilitySlots.push({
+  //       start_time: slot.start.toTimeString().slice(0, 5),
+  //       end_time: slot.end.toTimeString().slice(0, 5),
+  //       available_jetskis: availableJetskisCount,
+  //     });
+  //     currentSlotIndex += Math.floor(60 / 5);
+  //   } else {
+  //     currentSlotIndex += 1;
+  //   }
+  // }
+  // return availabilitySlots;
+// };
