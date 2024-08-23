@@ -14,7 +14,7 @@ interface NavMenuDrawerProps {
 export default function NavMenuDrawer({
   userRole,
 }: NavMenuDrawerProps): JSX.Element {
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
