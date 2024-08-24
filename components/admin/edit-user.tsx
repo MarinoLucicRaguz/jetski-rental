@@ -1,43 +1,50 @@
-"use client";
+'use client';
 
-import * as z from "zod";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState, useTransition } from "react";
-import { EditUserSchema } from "@/schemas";
-import { Input } from "../ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { CardWrapper } from "@/components/auth/card-wrapper";
-import { Button } from "../ui/button";
-import { FormError } from "../form-error";
-import { FormSuccess } from "../form-success";
-import { User, Location } from "@prisma/client";
-import { editUser } from "@/actions/editUser";
-import { actionGetUserById } from "@/actions/getUserById";
-import { listLocation } from "@/actions/listLocations";
-import { useRouter } from "next/navigation";
-import { useCurrentUser } from "@/hooks/use-current-user";
-import ErrorPopup from "../ui/errorpopup";
-import { PhoneInput } from "react-international-phone";
+import * as z from 'zod';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState, useTransition } from 'react';
+import { EditUserSchema } from '@/schemas';
+import { Input } from '../ui/input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { CardWrapper } from '@/components/auth/card-wrapper';
+import { Button } from '../ui/button';
+import { FormError } from '../form-error';
+import { FormSuccess } from '../form-success';
+import { User, Location } from '@prisma/client';
+import { editUser } from '@/actions/editUser';
+import { actionGetUserById } from '@/actions/getUserById';
+import { getAllLocations } from '@/actions/getAllLocations';
+import { useRouter } from 'next/navigation';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import ErrorPopup from '../ui/errorpopup';
+import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 
 export const EditUserPage = ({ userId }: { userId: string }) => {
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
+  const [error, setError] = useState<string | undefined>('');
+  const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
   const [userData, setUserData] = useState<Partial<User>>({});
   const [locationData, setLocationData] = useState<Location[]>([]);
   const [showError, setShowError] = useState(false);
   const router = useRouter();
   const user = useCurrentUser();
-  const [phone, setPhone] = useState<string>(userData.contactNumber || "");
+  const [phone, setPhone] = useState<string>(userData.contactNumber || '');
   const [isValidPhoneNumber, setIsValidPhoneNumber] = useState(true);
 
   useEffect(() => {
-    if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+    if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
       setShowError(true);
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push('/dashboard');
       }, 3000);
     }
   }, [user, router]);
@@ -45,11 +52,11 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
   const form = useForm<z.infer<typeof EditUserSchema>>({
     resolver: zodResolver(EditUserSchema),
     defaultValues: {
-      name: userData?.name || "",
-      email: userData?.email || "",
+      name: userData?.name || '',
+      email: userData?.email || '',
       user_role: userData?.user_role || undefined,
       user_location_id: userData?.user_location_id || null,
-      contactNumber: userData?.contactNumber || "",
+      contactNumber: userData?.contactNumber || '',
     },
   });
 
@@ -59,30 +66,30 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
         const data = await actionGetUserById(userId);
         if (data) {
           setUserData(data);
-          form.setValue("name", data.name || "");
-          form.setValue("email", data.email || "");
-          form.setValue("user_role", data.user_role || undefined);
-          form.setValue("user_location_id", data.user_location_id || null);
-          form.setValue("contactNumber", data.contactNumber || "");
-          setPhone(data.contactNumber || "");
+          form.setValue('name', data.name || '');
+          form.setValue('email', data.email || '');
+          form.setValue('user_role', data.user_role || undefined);
+          form.setValue('user_location_id', data.user_location_id || null);
+          form.setValue('contactNumber', data.contactNumber || '');
+          setPhone(data.contactNumber || '');
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error('Error fetching user data:', error);
       }
     };
 
     const fetchLocations = async () => {
       try {
         startTransition(() => {
-          setError("");
+          setError('');
         });
 
-        const locations = await listLocation();
+        const locations = await getAllLocations();
         if (locations) {
           setLocationData(locations);
         }
       } catch (error) {
-        setError("Error fetching locations");
+        setError('Error fetching locations');
       }
     };
 
@@ -90,7 +97,7 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
     fetchLocations();
   }, [userId, startTransition, form]);
 
-  if (user && user.role !== "ADMIN" && user.role !== "MODERATOR") {
+  if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
     return (
       <>
         {showError && (
@@ -102,35 +109,38 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
       </>
     );
   }
-  
+
   const handlePhoneChange = (value: string) => {
     setPhone(value);
     setIsValidPhoneNumber(!!value);
   };
 
   const onSubmit = async (values: z.infer<typeof EditUserSchema>) => {
-    setError(""); 
-    setSuccess(""); 
+    setError('');
+    setSuccess('');
 
     try {
-        const data = await editUser(userId, { ...values, contactNumber: phone });
-        if (data.error) {
-            setError(data.error); // Display the error message if there's an error
-        } else {
-            setSuccess(data.success); // Display success message if user was successfully updated
-            setTimeout(() => {
-                router.push("/admindashboard"); // Redirect to dashboard after successful update
-            }, 1500);
-        }
+      const data = await editUser(userId, { ...values, contactNumber: phone });
+      if (data.error) {
+        setError(data.error); // Display the error message if there's an error
+      } else {
+        setSuccess(data.success); // Display success message if user was successfully updated
+        setTimeout(() => {
+          router.push('/admindashboard'); // Redirect to dashboard after successful update
+        }, 1500);
+      }
     } catch (error) {
-        console.error("Error editing user:", error);
-        setError("An error occurred while editing the user"); // Generic error message for unexpected errors
+      console.error('Error editing user:', error);
+      setError('An error occurred while editing the user'); // Generic error message for unexpected errors
     }
   };
 
-
   return (
-    <CardWrapper headerLabel="Edit User" backButtonLabel="Go back to user list" backButtonHref="/user/listuser">
+    <CardWrapper
+      headerLabel="Edit User"
+      backButtonLabel="Go back to user list"
+      backButtonHref="/user/listuser"
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 flex-row justify-between">
@@ -144,8 +154,8 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
                     <Input
                       {...field}
                       disabled={isPending}
-                      placeholder={userData?.name || ""}
-                      value={field.value || ""}
+                      placeholder={userData?.name || ''}
+                      value={field.value || ''}
                     />
                   </FormControl>
                   <FormMessage />
@@ -162,8 +172,8 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
                     <Input
                       {...field}
                       disabled={isPending}
-                      placeholder={userData?.email || ""}
-                      value={field.value || ""}
+                      placeholder={userData?.email || ''}
+                      value={field.value || ''}
                       type="email"
                     />
                   </FormControl>
@@ -188,7 +198,7 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
                       inputProps={{
                         name: field.name,
                         onBlur: field.onBlur,
-                        className: `w-full px-3 py-2 border ${fieldState.error ? "border-red-500" : "border-gray-300"} rounded-md focus:outline-none focus:ring focus:ring-opacity-50 ${fieldState.error ? "focus:border-red-500 focus:ring-red-200" : "focus:border-blue-300 focus:ring-blue-200"}`,
+                        className: `w-full px-3 py-2 border ${fieldState.error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring focus:ring-opacity-50 ${fieldState.error ? 'focus:border-red-500 focus:ring-red-200' : 'focus:border-blue-300 focus:ring-blue-200'}`,
                       }}
                     />
                   </FormControl>
@@ -228,13 +238,22 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
                     <select
                       {...field}
                       disabled={isPending}
-                      value={field.value !== null ? (field.value && ( field.value.toString())) : ""}
-                      onChange={(e) => field.onChange(Number(e.target.value) || null)}
+                      value={
+                        field.value !== null
+                          ? field.value && field.value.toString()
+                          : ''
+                      }
+                      onChange={(e) =>
+                        field.onChange(Number(e.target.value) || null)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-opacity-50 focus:border-blue-300 focus:ring-blue-200"
                     >
                       <option value="">No location</option>
                       {locationData.map((location) => (
-                        <option key={location.location_id} value={location.location_id.toString()}>
+                        <option
+                          key={location.location_id}
+                          value={location.location_id.toString()}
+                        >
                           {location.location_name}
                         </option>
                       ))}

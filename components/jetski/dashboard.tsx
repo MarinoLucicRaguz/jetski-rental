@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Jetski, Location } from '@prisma/client';
-import { listLocation } from '@/actions/listLocations';
+import { getAllLocations } from '@/actions/getAllLocations';
 import Spinner from '../ui/spinner';
 import AvailabilityFormModal from '../modal/availabilityForm';
 import { Button } from '../ui/button';
@@ -12,50 +12,57 @@ import { listJetskisByLocation } from '@/actions/listJetskisByLocation';
 import JetskiReservationCard from '../ui/jetskireservationcard';
 import { listReservationsByDate } from '@/actions/listReservationsForDate';
 import { ExtendedReservation } from '@/types';
+import { ERROR_MESSAGE } from '@/types/message';
+import { DrawingPinIcon } from '@radix-ui/react-icons';
 
 export const DashboardPage = () => {
-  const [locations, setLocations] = useState<Location[]>([]);
   const [reservations, setReservations] = useState<ExtendedReservation[]>([]);
+  const [locationsData, setLocationsData] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
   const [jetskis, setJetskis] = useState<Jetski[]>([]);
-  const [error, setError] = useState<string | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
+
+  const currentDate = new Date();
 
   useEffect(() => {
-    const fetchLocation = async () => {
+    const getData = async () => {
       try {
-        const locationData = await listLocation();
-        if (locationData) setLocations(locationData);
-        const currentDate = new Date();
-        currentDate.setHours(currentDate.getHours());
-        console.log(currentDate);
+        const locations = await getAllLocations();
         const reservationsData = await listReservationsByDate(currentDate);
-        if (reservationsData) {
+
+        if (locations && reservationsData) {
+          setLocationsData(locations);
           setReservations(reservationsData);
+        } else {
+          setError(ERROR_MESSAGE.DATA_LOADING_ERROR);
         }
-        console.log(reservationsData);
       } catch (error) {
-        setError('Failed to fetch locations');
+        setError(ERROR_MESSAGE.DEFAULT_ERROR);
         console.error(error);
       }
     };
 
-    fetchLocation();
+    getData();
   }, []);
 
   useEffect(() => {
     if (selectedLocation) {
       const fetchJetskis = async () => {
         try {
-          const jetskiData = await listJetskisByLocation(
+          const jetskis = await listJetskisByLocation(
             selectedLocation.location_id
           );
-          if (jetskiData) setJetskis(jetskiData);
+          if (jetskis) setJetskis(jetskis);
+          else {
+            setError(ERROR_MESSAGE.DATA_LOADING_ERROR);
+          }
         } catch (error) {
-          setError('Failed to fetch jetskis');
+          setError(ERROR_MESSAGE.DEFAULT_ERROR);
           console.error(error);
         }
       };
@@ -81,20 +88,17 @@ export const DashboardPage = () => {
   };
 
   const handleLocationSelect = (locationId: number | null) => {
-    const selected = locations.find((loc) => loc.location_id === locationId);
+    const selected = locationsData.find(
+      (loc) => loc.location_id === locationId
+    );
     setSelectedLocation(selected || null);
     handleCloseMenu();
   };
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="py-4">
-        <div className="container mx-auto text-center text-white font-bold text-xl">
-          DASHBOARD
-        </div>
-      </header>
       <div className="flex-grow flex justify-center bg-sky-500 p-6">
-        {locations && locations.length > 0 ? (
+        {locationsData && locationsData.length > 0 ? (
           selectedLocation ? (
             <div className="flex overflow-x-auto space-x-4">
               {jetskis.length > 0 ? (
@@ -103,7 +107,7 @@ export const DashboardPage = () => {
                     <JetskiReservationCard
                       jetski={jetski}
                       reservations={reservations}
-                      locations={locations}
+                      locations={locationsData}
                     />
                   </div>
                 ))
@@ -114,7 +118,7 @@ export const DashboardPage = () => {
               )}
             </div>
           ) : (
-            locations.map((location) => (
+            locationsData.map((location) => (
               <div key={location.location_id} className="m-4">
                 <ReservationCard location={location} />
               </div>
@@ -129,6 +133,7 @@ export const DashboardPage = () => {
       <div className="absolute top-4 right-8 flex items-center space-x-4">
         {/* <Button onClick={handleOpenModal}>Check Availability</Button> */}
         <Button className="w-40" onClick={handleOpenMenu}>
+          <DrawingPinIcon className="mr-2" />
           {selectedLocation?.location_name || 'All locations'}
         </Button>
         <Menu
@@ -139,7 +144,7 @@ export const DashboardPage = () => {
           <MenuItem onClick={() => handleLocationSelect(null)}>
             All locations
           </MenuItem>
-          {locations?.map((location) => (
+          {locationsData?.map((location) => (
             <MenuItem
               key={location.location_id}
               onClick={() => handleLocationSelect(location.location_id)}
