@@ -2,20 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { CardWrapper } from '../auth/card-wrapper';
-import { listReservationsByDate } from '@/actions/listReservationsForDate';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@radix-ui/react-popover';
+import { getReservationsByDate } from '@/actions/listReservationsForDate';
+import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
 import { Button } from '../ui/button';
-import {
-  CalendarIcon,
-  TrashIcon,
-  ClipboardCopyIcon,
-  Pencil1Icon,
-  DownloadIcon,
-} from '@radix-ui/react-icons';
+import { CalendarIcon, TrashIcon, ClipboardCopyIcon, Pencil1Icon, DownloadIcon } from '@radix-ui/react-icons';
 import { Calendar } from '../ui/calendar';
 import { format } from 'date-fns';
 import { Jetski, Location, RentalOptions, Reservation } from '@prisma/client';
@@ -25,22 +15,15 @@ import { deleteReservation } from '@/actions/deleteReservation';
 import { useRouter } from 'next/navigation';
 import { ExtendedReservation } from '@/types';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { getAllReservationOptions } from '@/actions/listReservationOptions';
-import { listJetski } from '@/actions/listJetskis';
+import { getAllRentalOptions } from '@/actions/listReservationOptions';
+import { GetAllJetskis } from '@/actions/listJetskis';
 import { startReservation } from '@/actions/startReservation';
 import { endReservation } from '@/actions/endReservation';
 
-type sortReservationBy =
-  | 'startTime'
-  | 'totalPrice'
-  | 'reservationOwner'
-  | 'rentaloption_id'
-  | 'reservation_location_id';
+type sortReservationBy = 'startTime' | 'totalPrice' | 'reservationOwner' | 'rentaloption_id' | 'reservation_location_id';
 
 const getStatusColor = (reservation: ExtendedReservation) => {
-  const hasUnavailableJetski = reservation.reservation_jetski_list.some(
-    (jetski) => jetski.jetski_status !== 'AVAILABLE'
-  );
+  const hasUnavailableJetski = reservation.reservation_jetski_list.some((jetski) => jetski.jetski_status !== 'AVAILABLE');
 
   if (reservation.hasItFinished) {
     return { color: 'bg-gray-500', label: 'Finished' };
@@ -59,20 +42,14 @@ const getStatusColor = (reservation: ExtendedReservation) => {
 
 export const ListReservations = () => {
   const [error, setError] = useState('');
-  const [reservationData, setReservationData] = useState<ExtendedReservation[]>(
-    []
-  );
+  const [reservationData, setReservationData] = useState<ExtendedReservation[]>([]);
   const [rentDate, setRentDate] = useState(new Date());
   const [locationNames, setLocationNames] = useState<Location[] | null>([]);
   const [jetskiData, setJetskiData] = useState<Jetski[]>([]);
   const [selectedJetski, setSelectedJetski] = useState<number | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
-  const [locationAnchorEl, setLocationAnchorEl] = useState<null | HTMLElement>(
-    null
-  );
-  const [jetskiAnchorEl, setJetskiAnchorEl] = useState<null | HTMLElement>(
-    null
-  );
+  const [locationAnchorEl, setLocationAnchorEl] = useState<null | HTMLElement>(null);
+  const [jetskiAnchorEl, setJetskiAnchorEl] = useState<null | HTMLElement>(null);
   const [confirmPopover, setConfirmPopover] = useState<null | number>(null);
   const [rentalOptions, setRentalOptions] = useState<RentalOptions[]>([]);
   const [sortBy, setSortBy] = useState<sortReservationBy>('startTime');
@@ -87,12 +64,12 @@ export const ListReservations = () => {
         const locationData = await getAllLocations();
         setLocationNames(locationData);
 
-        const rentaloptions = await getAllReservationOptions();
+        const rentaloptions = await getAllRentalOptions();
         if (rentaloptions) {
           setRentalOptions(rentaloptions);
         }
 
-        const jetskis = await listJetski();
+        const jetskis = await GetAllJetskis();
         if (jetskis) {
           setJetskiData(jetskis);
         }
@@ -107,12 +84,9 @@ export const ListReservations = () => {
     const fetchData = async () => {
       try {
         console.log(rentDate);
-        const data = await listReservationsByDate(rentDate);
+        const data = await getReservationsByDate(rentDate);
         if (data) {
-          data.sort(
-            (a, b) =>
-              new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-          );
+          data.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
         }
         setReservationData(data || []);
       } catch (error) {
@@ -124,8 +98,7 @@ export const ListReservations = () => {
   }, [rentDate]);
 
   const handleSort = (key: sortReservationBy) => {
-    if (sortBy === key)
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    if (sortBy === key) setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     else {
       setSortBy(key);
       setSortDirection('asc');
@@ -135,12 +108,8 @@ export const ListReservations = () => {
   const filteredReservations = useMemo(() => {
     return reservationData.filter(
       (reservation) =>
-        (selectedLocation === null ||
-          reservation.reservation_location_id === selectedLocation) &&
-        (selectedJetski === null ||
-          reservation.reservation_jetski_list.some(
-            (jetski) => jetski.jetski_id === selectedJetski
-          ))
+        (selectedLocation === null || reservation.reservation_location_id === selectedLocation) &&
+        (selectedJetski === null || reservation.reservation_jetski_list.some((jetski) => jetski.jetski_id === selectedJetski))
     );
   }, [reservationData, selectedLocation, selectedJetski]);
 
@@ -238,13 +207,8 @@ export const ListReservations = () => {
   const formatReservationsForClipboard = () => {
     return filteredReservations
       .map((reservation) => {
-        const location = locationNames?.find(
-          (loc) => loc.location_id === reservation.reservation_location_id
-        );
-        const jetskis =
-          reservation.reservation_jetski_list
-            ?.map((jetski) => jetski.jetski_registration)
-            .join(' - ') || '';
+        const location = locationNames?.find((loc) => loc.location_id === reservation.reservation_location_id);
+        const jetskis = reservation.reservation_jetski_list?.map((jetski) => jetski.jetski_registration).join(' - ') || '';
         return `${reservation.reservation_jetski_list.length}x${(new Date(reservation.endTime).getTime() - new Date(reservation.startTime).getTime()) / 3600000}h ${rentalOptions?.find((rentalOption) => rentalOption.rentaloption_id === reservation.rentaloption_id)?.rentaloption_description === 'SAFARI' ? 'safari' : 'regular'} / ${reservation.reservation_location.location_name}  / ${jetskis} / ${reservation.reservationOwner} / ${reservation.totalPrice}€`;
       })
       .join('\n');
@@ -259,12 +223,7 @@ export const ListReservations = () => {
     if (confirmPopover !== null) {
       try {
         await deleteReservation(confirmPopover);
-        setReservationData(
-          (prevData) =>
-            prevData?.filter(
-              (option) => option.reservation_id !== confirmPopover
-            ) || []
-        );
+        setReservationData((prevData) => prevData?.filter((option) => option.reservation_id !== confirmPopover) || []);
         setConfirmPopover(null);
       } catch (error) {
         setError('Error while deleting reservation!');
@@ -279,13 +238,8 @@ export const ListReservations = () => {
   const formatReservationsForFile = () => {
     return sortedReservations
       .map((reservation) => {
-        const location = locationNames?.find(
-          (loc) => loc.location_id === reservation.reservation_location_id
-        );
-        const jetskis =
-          reservation.reservation_jetski_list
-            ?.map((jetski) => jetski.jetski_registration)
-            .join(' - ') || '';
+        const location = locationNames?.find((loc) => loc.location_id === reservation.reservation_location_id);
+        const jetskis = reservation.reservation_jetski_list?.map((jetski) => jetski.jetski_registration).join(' - ') || '';
         const status = getStatusColor(reservation).label;
 
         return `\nOwner: ${reservation.reservationOwner}\nLocation: ${location?.location_name}\nJetskis: ${jetskis}\nStart Time: ${reservation.startTime}\nEnd Time: ${reservation.endTime}\nTotal Price: ${reservation.totalPrice}€\nStatus: ${status}\n\n`;
@@ -336,59 +290,28 @@ export const ListReservations = () => {
           <div className="flex justify-between gap-2">
             <div className="flex items-center">
               <Button onClick={handleLocationClick}>
-                {(locationNames &&
-                  locationNames?.find(
-                    (location) => location.location_id === selectedLocation
-                  )?.location_name) ||
-                  'All locations'}
+                {(locationNames && locationNames?.find((location) => location.location_id === selectedLocation)?.location_name) || 'All locations'}
               </Button>
             </div>
-            <Menu
-              open={Boolean(locationAnchorEl)}
-              anchorEl={locationAnchorEl}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={() => handleLocationSelect(null)}>
-                All locations
-              </MenuItem>
+            <Menu open={Boolean(locationAnchorEl)} anchorEl={locationAnchorEl} onClose={handleClose}>
+              <MenuItem onClick={() => handleLocationSelect(null)}>All locations</MenuItem>
               {locationNames?.map((location) => (
-                <MenuItem
-                  key={location.location_id}
-                  onClick={() => handleLocationSelect(location.location_id)}
-                >
+                <MenuItem key={location.location_id} onClick={() => handleLocationSelect(location.location_id)}>
                   {location.location_name}
                 </MenuItem>
               ))}
             </Menu>
             <div className="flex items-center">
               <Button onClick={handleJetskiClick}>
-                {(jetskiData &&
-                  jetskiData?.find(
-                    (jetski) => jetski.jetski_id === selectedJetski
-                  )?.jetski_registration) ||
-                  'All jetskis'}
+                {(jetskiData && jetskiData?.find((jetski) => jetski.jetski_id === selectedJetski)?.jetski_registration) || 'All jetskis'}
               </Button>
             </div>
-            <Menu
-              open={Boolean(jetskiAnchorEl)}
-              anchorEl={jetskiAnchorEl}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={() => handleJetskiSelect(null)}>
-                All jetskis
-              </MenuItem>
+            <Menu open={Boolean(jetskiAnchorEl)} anchorEl={jetskiAnchorEl} onClose={handleClose}>
+              <MenuItem onClick={() => handleJetskiSelect(null)}>All jetskis</MenuItem>
               {jetskiData?.map((jetski) => (
-                <MenuItem
-                  key={jetski.jetski_id}
-                  onClick={() => handleJetskiSelect(jetski.jetski_id)}
-                >
+                <MenuItem key={jetski.jetski_id} onClick={() => handleJetskiSelect(jetski.jetski_id)}>
                   {jetski.jetski_registration} /{' '}
-                  {
-                    locationNames?.find(
-                      (location) =>
-                        location.location_id === jetski.jetski_location_id
-                    )?.location_name
-                  }
+                  {locationNames?.find((location) => location.location_id === jetski.jetski_location_id)?.location_name}
                 </MenuItem>
               ))}
             </Menu>
@@ -406,83 +329,42 @@ export const ListReservations = () => {
               <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
                   <th className="px-6 py-3">Status</th>
-                  <th
-                    className="px-6 py-3 cursor-pointer"
-                    onClick={() => handleSort('reservation_location_id')}
-                  >
+                  <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('reservation_location_id')}>
                     Location
                   </th>
-                  <th
-                    className="px-6 py-3 cursor-pointer"
-                    onClick={() => handleSort('reservationOwner')}
-                  >
+                  <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('reservationOwner')}>
                     Name
                   </th>
                   <th className="px-6 py-3">Contact</th>
-                  <th
-                    className="px-6 py-3 cursor-pointer"
-                    onClick={() => handleSort('totalPrice')}
-                  >
+                  <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('totalPrice')}>
                     Price
                   </th>
-                  <th
-                    className="px-6 py-3 cursor-pointer"
-                    onClick={() => handleSort('startTime')}
-                  >
+                  <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('startTime')}>
                     Time
                   </th>
                   <th className="px-6 py-3">Jetskis</th>
-                  <th
-                    className="px-6 py-3 cursor-pointer"
-                    onClick={() => handleSort('rentaloption_id')}
-                  >
+                  <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('rentaloption_id')}>
                     Type
                   </th>
-                  {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && (
-                    <th className="px-6 py-3">Actions</th>
-                  )}
+                  {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && <th className="px-6 py-3">Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {sortedReservations?.map((reservation) => {
-                  const location = locationNames?.find(
-                    (loc) =>
-                      loc.location_id === reservation.reservation_location_id
-                  );
+                  const location = locationNames?.find((loc) => loc.location_id === reservation.reservation_location_id);
                   const status = getStatusColor(reservation);
                   return (
-                    <tr
-                      key={reservation.reservation_id}
-                      className="bg-white border-b"
-                    >
+                    <tr key={reservation.reservation_id} className="bg-white border-b">
                       <td className="px-6 py-4">
-                        <span
-                          className={`inline-block w-3 h-3 mr-2 rounded-full ${status.color}`}
-                        ></span>
+                        <span className={`inline-block w-3 h-3 mr-2 rounded-full ${status.color}`}></span>
                         {status.label}
                       </td>
-                      <td className="px-6 py-4">
-                        {location
-                          ? location.location_name
-                          : 'No location found'}
-                      </td>
-                      <td className="px-6 py-4">
-                        {reservation.reservationOwner}
-                      </td>
+                      <td className="px-6 py-4">{location ? location.location_name : 'No location found'}</td>
+                      <td className="px-6 py-4">{reservation.reservationOwner}</td>
                       <td className="px-6 py-4">{reservation.contactNumber}</td>
+                      <td className="px-6 py-4">{(reservation.totalPrice * (1 - reservation.discount / 100)).toFixed(2)} €</td>
                       <td className="px-6 py-4">
-                        {(
-                          reservation.totalPrice *
-                          (1 - reservation.discount / 100)
-                        ).toFixed(2)}{' '}
-                        €
-                      </td>
-                      <td className="px-6 py-4">
-                        {new Date(reservation.startTime).toLocaleTimeString(
-                          [],
-                          { hour: '2-digit', minute: '2-digit', hour12: false }
-                        )}{' '}
-                        -{' '}
+                        {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} -{' '}
                         {new Date(reservation.endTime).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -494,12 +376,7 @@ export const ListReservations = () => {
                           reservation.reservation_jetski_list.map((jetski) => (
                             <div
                               key={jetski.jetski_id}
-                              className={
-                                jetski.jetski_status !== 'AVAILABLE' &&
-                                !reservation.hasItFinished
-                                  ? 'text-red-500'
-                                  : ''
-                              }
+                              className={jetski.jetski_status !== 'AVAILABLE' && !reservation.hasItFinished ? 'text-red-500' : ''}
                             >
                               {jetski.jetski_registration}
                             </div>
@@ -507,95 +384,49 @@ export const ListReservations = () => {
                       </td>
                       <td className="px-6 py-4">
                         {
-                          rentalOptions.find(
-                            (rentalOptions) =>
-                              rentalOptions.rentaloption_id ===
-                              reservation.rentaloption_id
-                          )?.rentaloption_description
+                          rentalOptions.find((rentalOptions) => rentalOptions.rentaloption_id === reservation.rentaloption_id)
+                            ?.rentaloption_description
                         }
                       </td>
-                      {(user?.role === 'ADMIN' ||
-                        (user?.role === 'MODERATOR' &&
-                          reservation.reservation_location_id ===
-                            user.location_id)) && (
+                      {(user?.role === 'ADMIN' || (user?.role === 'MODERATOR' && reservation.reservation_location_id === user.location_id)) && (
                         <td className="px-6 py-4">
                           <div className="flex">
                             {!reservation.hasItFinished ? (
                               <>
                                 <Button
                                   className="mr-2"
-                                  disabled={reservation.reservation_jetski_list.some(
-                                    (jetski) =>
-                                      jetski.jetski_status !== 'AVAILABLE'
-                                  )}
+                                  disabled={reservation.reservation_jetski_list.some((jetski) => jetski.jetski_status !== 'AVAILABLE')}
                                   onClick={() =>
                                     reservation.isCurrentlyRunning
-                                      ? handleEndReservationButton(
-                                          reservation.reservation_id
-                                        )
-                                      : handleStartReservationButton(
-                                          reservation.reservation_id
-                                        )
+                                      ? handleEndReservationButton(reservation.reservation_id)
+                                      : handleStartReservationButton(reservation.reservation_id)
                                   }
                                 >
-                                  {reservation.isCurrentlyRunning
-                                    ? 'End'
-                                    : 'Start'}
+                                  {reservation.isCurrentlyRunning ? 'End' : 'Start'}
                                 </Button>
                                 {!reservation.isCurrentlyRunning && (
                                   <>
-                                    <Button
-                                      className="mr-2"
-                                      variant={'constructive'}
-                                      onClick={() =>
-                                        handleEditButton(
-                                          reservation.reservation_id
-                                        )
-                                      }
-                                    >
+                                    <Button className="mr-2" variant={'constructive'} onClick={() => handleEditButton(reservation.reservation_id)}>
                                       <Pencil1Icon />
                                     </Button>
-                                    <Popover
-                                      open={
-                                        confirmPopover ===
-                                        reservation.reservation_id
-                                      }
-                                      onOpenChange={(open) =>
-                                        !open && cancelDelete()
-                                      }
-                                    >
+                                    <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
                                       <PopoverTrigger asChild>
                                         <Button
                                           className="mr-2"
                                           variant={'destructive'}
-                                          onClick={() =>
-                                            handleDeleteClick(
-                                              reservation.reservation_id
-                                            )
-                                          }
+                                          onClick={() => handleDeleteClick(reservation.reservation_id)}
                                         >
                                           <TrashIcon />
                                         </Button>
                                       </PopoverTrigger>
                                       <PopoverContent className="popover-content p-4 bg-white shadow border border-solid rounded-lg">
-                                        <h3 className="text-lg font-semibold">
-                                          Are you sure?
-                                        </h3>
-                                        <p>
-                                          Do you really want to delete this
-                                          reservation?
-                                        </p>
+                                        <h3 className="text-lg font-semibold">Are you sure?</h3>
+                                        <p>Do you really want to delete this reservation?</p>
                                         <div className="flex justify-end space-x-2 mt-4">
-                                          <Button
-                                            variant="outline"
-                                            onClick={cancelDelete}
-                                          >
+                                          <Button variant="outline" onClick={cancelDelete}>
                                             Cancel
                                           </Button>
-                                          <Button
-                                            variant="destructive"
-                                            onClick={confirmDelete}
-                                          >
+                                          <Button variant="destructive" onClick={confirmDelete}>
                                             Delete
                                           </Button>
                                         </div>
@@ -606,47 +437,20 @@ export const ListReservations = () => {
                               </>
                             ) : (
                               <>
-                                <Popover
-                                  open={
-                                    confirmPopover ===
-                                    reservation.reservation_id
-                                  }
-                                  onOpenChange={(open) =>
-                                    !open && cancelDelete()
-                                  }
-                                >
+                                <Popover open={confirmPopover === reservation.reservation_id} onOpenChange={(open) => !open && cancelDelete()}>
                                   <PopoverTrigger asChild>
-                                    <Button
-                                      className="mr-2"
-                                      variant={'destructive'}
-                                      onClick={() =>
-                                        handleDeleteClick(
-                                          reservation.reservation_id
-                                        )
-                                      }
-                                    >
+                                    <Button className="mr-2" variant={'destructive'} onClick={() => handleDeleteClick(reservation.reservation_id)}>
                                       <TrashIcon />
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent className="popover-content p-4 bg-white shadow border border-solid rounded-lg">
-                                    <h3 className="text-lg font-semibold">
-                                      Are you sure?
-                                    </h3>
-                                    <p>
-                                      Do you really want to delete this
-                                      reservation?
-                                    </p>
+                                    <h3 className="text-lg font-semibold">Are you sure?</h3>
+                                    <p>Do you really want to delete this reservation?</p>
                                     <div className="flex justify-end space-x-2 mt-4">
-                                      <Button
-                                        variant="outline"
-                                        onClick={cancelDelete}
-                                      >
+                                      <Button variant="outline" onClick={cancelDelete}>
                                         Cancel
                                       </Button>
-                                      <Button
-                                        variant="destructive"
-                                        onClick={confirmDelete}
-                                      >
+                                      <Button variant="destructive" onClick={confirmDelete}>
                                         Delete
                                       </Button>
                                     </div>
@@ -664,9 +468,7 @@ export const ListReservations = () => {
             </table>
             {error && (
               <div className="flex justify-center">
-                <div className="text-center text-red-500 bg-red-100 border border-red-400 rounded-md py-2 px-4 mt-4">
-                  {error}
-                </div>
+                <div className="text-center text-red-500 bg-red-100 border border-red-400 rounded-md py-2 px-4 mt-4">{error}</div>
               </div>
             )}
           </div>

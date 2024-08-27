@@ -1,13 +1,9 @@
-"use server";
+'use server';
 
-import { fetchReservationsByDate } from "@/data/reservationData";
-import { DateTime } from "luxon";
+import { getReservationsByDateAsync } from '@/data/reservationData';
 
-export const listReservationsByDate = async (date: Date) => {
-    
-    const adjustedDate = DateTime.fromJSDate(date).plus({ hours: 2 }).toJSDate();
-    
-    const reservationsByDate = await fetchReservationsByDate(adjustedDate);
+export const getReservationsByDate = async (date: Date) => {
+  const reservationsByDate = await getReservationsByDateAsync(date);
 
-    return reservationsByDate;
-}
+  return reservationsByDate;
+};

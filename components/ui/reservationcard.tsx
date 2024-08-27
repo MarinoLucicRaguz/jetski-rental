@@ -1,123 +1,129 @@
-import { getTodayReservationByLocation } from "@/actions/getTodaysReservationsByLocation";
-import { ExtendedReservation } from "@/types";
-import { Jetski, Location, RentalOptions } from "@prisma/client";
-import { useEffect, useState } from "react";
-import { getAllReservationOptions } from "@/actions/listReservationOptions";
-import { Button } from "../ui/button";
-import Modal from "./Modal";
+'use client';
 
-interface ReservationCardProps {
-    location: Location
+import { GetTimetableHours, getReservationInformation } from '@/lib/hoursTimetable';
+import { ExtendedReservation } from '@/types';
+import { Jetski, Location } from '@prisma/client';
+import React from 'react';
+import moment from 'moment';
+
+interface ReservationDashboardTimetable {
+  reservations: ExtendedReservation[];
+  locations: Location[];
+  jetskis: Jetski[];
 }
 
-const ReservationCard: React.FC<ReservationCardProps> = ({ location }) =>{
-    const [reservations, setReservations] = useState<ExtendedReservation[] | null>([]);
-    const [reservationOptions, setReservationOptions] = useState<RentalOptions[]|null>([]);
-    const [error,setError] = useState<string|undefined>("");
-    const [selectedReservation, setSelectedReservation] = useState<ExtendedReservation|null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+const timeslots = GetTimetableHours();
+const interval = 15; // Interval in minutes
 
-    useEffect(()=>{
-        const fetchReservations = async () =>{
-        try{
-            const data = await getTodayReservationByLocation(location.location_id);
-            setReservations(data);
-            const option = await getAllReservationOptions();
-            setReservationOptions(option);
-        } catch (error) {
-            setError("Failed to fetch reservations");
-            console.error("Failed to fetch reservations: ",error);
-        }
+function ReservationCard({ jetskis, reservations, locations }: ReservationDashboardTimetable) {
+  const jetskisByLocation = locations.map((location) => ({
+    locationName: location.location_name,
+    locationId: location.location_id,
+    jetskis: jetskis.filter((jetski) => jetski.jetski_location_id === location.location_id),
+  }));
+
+  const getReservationSpan = (startTime: Date, endTime: Date): number => {
+    const start = moment(startTime);
+    const end = moment(endTime);
+
+    const duration = moment.duration(end.diff(start));
+
+    const totalMinutes = duration.asMinutes();
+
+    return Math.ceil(totalMinutes / interval);
+  };
+
+  const getCellContent = (jetski: Jetski, time: string) => {
+    const timeSlotStart = moment(time, 'HH:mm');
+    const relevantReservations = reservations
+      .filter((reservation) => reservation.reservation_jetski_list.some((rJetski) => rJetski.jetski_id === jetski.jetski_id))
+      .filter((reservation) => {
+        const startTime = moment(reservation.startTime, 'HH:mm');
+        const endTime = moment(reservation.endTime, 'HH:mm');
+        return timeSlotStart.isBetween(startTime, endTime, null, '[)');
+      });
+
+    if (relevantReservations.length > 0) {
+      const reservation = relevantReservations[0];
+      const span = getReservationSpan(reservation.startTime, reservation.endTime);
+      return { reservation, span };
     }
-    fetchReservations()
-    },[location.location_id])
+    return null;
+  };
 
-    const calculateDuration = (startTime: Date, endTime: Date) => {
-        const duration = (new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000;
-        const hours = Math.floor(duration / 3600);
-        const minutes = Math.floor((duration % 3600) / 60);
-        if(minutes==0)
-        {
-            return `${hours} hours`
-        }
-        if(hours==0)
-        {
-            return `${minutes} minutes`
-        }
-        return `${hours}h and ${minutes} minutes`;
-    };
-    
-    const handleOpenModal = (reservation: ExtendedReservation) => {
-        setSelectedReservation(reservation);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () =>{
-        setIsModalOpen(false);
-    }
-
-    const getReservationStatusColor = (reservation: ExtendedReservation) => {
-        const now = new Date();
-        const startTime = new Date(reservation.startTime);
-
-        const hasUnavailableJetski = reservation.reservation_jetski_list?.some((jetski: Jetski) => jetski.jetski_status != "AVAILABLE");
-
-        if (reservation.isCurrentlyRunning){
-            return "bg-green-400"
-        } else if (reservation.hasItFinished){
-            return "bg-gray-400"
-        }  else if (hasUnavailableJetski) {
-            return "bg-red-400";
-        }else if (now < startTime || !reservation.isCurrentlyRunning){
-            return "bg-yellow-400";
-        } else {
-            return "";
-        }
-    };
-
-    return (
-        <div className="p-4 border rounded-lg shadow-md bg-white w-full max-w-3xl ">
-            <h3 className="text-center text-sm font-bold mb-2">{location.location_name}</h3>
-            {error && <p className="text-red-500">{error}</p>}
-            {reservations && reservations.length > 0 ? (
-                <div className="space-y-2 w-full">
-                {reservations.map((reservation) => (
-                    <div key={reservation.reservation_id} className={`border rounded-lg p-4 shadow-sm flex flex-col ${getReservationStatusColor(reservation)}`}>
-                        <div className="flex flex-wrap">
-                            <span className="flex-shrink-0 min-w-max text-sm"><strong>Info:</strong> {reservation.reservation_jetski_list?.length} x Jetski for {calculateDuration(reservation.startTime, reservation.endTime)}</span>
-                        </div>
-                        <div className="flex flex-wrap">
-                            <span className="flex-shrink-0 min-w-max text-sm"><strong>Type: </strong>{reservationOptions
-                                ?.find((rentalOption) => rentalOption.rentaloption_id === reservation.rentaloption_id)
-                                ?.rentaloption_description.toLocaleLowerCase()
-                                .replace(/^\w/, (c) => c.toLocaleUpperCase())}{" "}
-                            rent</span>
-                        </div>
-                        <div className="flex flex-wrap">
-                            <span className="flex-shrink-0 min-w-max text-sm"><strong>Time:</strong> {new Date(reservation.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - {new Date(reservation.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-                        </div>
-                        <div className="flex align-left">
-                            <Button variant="ghost" onClick={()=>handleOpenModal(reservation)}>Show jetskis</Button>
-                        </div>
-                    </div>
+  return (
+    <div className="rounded-lg">
+      <div className="grid grid-cols-1 shadow-lg">
+        {jetskisByLocation.map((group) => (
+          <div key={group.locationId} className="bg-white rounded-md mb-4">
+            <h2 className="text-xl text-center font-bold m-2">{group.locationName} - Raspored</h2>
+            <div className="overflow-x-auto">
+              <table className="table-auto w-full min-w-[600px] sm:min-w-[768px] md:min-w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="px-1 py-2"></th>
+                    {timeslots.map((time) => (
+                      <th key={time} className="px-1 py-1 text-center border-2 border-gray-400">
+                        {time}
+                      </th>
                     ))}
-                </div>
-            ) : (
-                <p>No remaining reservations today.</p>
-            )}
-            {isModalOpen && selectedReservation && (
-                <Modal onClose={handleCloseModal}>
-                    <h2 className="text-lg font-bold mb-2">Jetskis for selected reservation</h2>
-                    <ul className="list-disc pl-5">
-                        {selectedReservation.reservation_jetski_list?.map((jetski) => (
-                            <li key={jetski.jetski_id} className={jetski.jetski_status === "AVAILABLE" ? "text-green-700" : "text-red-700"}>{jetski.jetski_registration}</li>
-                        ))}
-                    </ul>
-                </Modal>
-            )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.jetskis.map((jetski) => {
+                    const cells: JSX.Element[] = [];
+                    let currentTimeIndex = 0;
 
+                    while (currentTimeIndex < timeslots.length) {
+                      const time = timeslots[currentTimeIndex];
+                      const cellContent = getCellContent(jetski, time);
+
+                      if (cellContent) {
+                        const { reservation, span } = cellContent;
+                        let colspan = span;
+
+                        // Adjust colspan if reservation continues to the next slot
+                        while (currentTimeIndex + colspan < timeslots.length && getCellContent(jetski, timeslots[currentTimeIndex + colspan])) {
+                          colspan++;
+                        }
+
+                        cells.push(
+                          <td
+                            key={time}
+                            colSpan={colspan}
+                            className="relative px-1 py-2 border border-gray-300 bg-blue-500 text-white text-center"
+                            style={{ borderRight: '0px', borderBottom: '0px' }}
+                          >
+                            {getReservationInformation(reservation)}
+                          </td>
+                        );
+
+                        currentTimeIndex += colspan; // Skip the slots covered by this reservation
+                      } else {
+                        cells.push(
+                          <td key={time} className="px-1 py-2 border border-gray-300">
+                            {/* Empty cell */}
+                          </td>
+                        );
+                        currentTimeIndex++;
+                      }
+                    }
+
+                    return (
+                      <tr key={jetski.jetski_id}>
+                        <th className="px-1 py-4 border-2 border-gray-400">{jetski.jetski_registration}</th>
+                        {cells}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-      );
-};
-    
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default ReservationCard;

@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { getAllJetskis } from "@/data/jetskiData";
+import { getAllJetskisAsync } from '@/data/jetskiData';
 
-export const listJetski = async()=>{
-    const listJetskis = await getAllJetskis()
+export const GetAllJetskis = async () => {
+  const jetskis = await getAllJetskisAsync();
 
-    return listJetskis
-}
+  return jetskis;
+};

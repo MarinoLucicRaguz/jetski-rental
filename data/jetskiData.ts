@@ -33,7 +33,7 @@ export const getJetskiByName = async (jetski_registration: string) => {
   }
 };
 
-export const getAllJetskis = async () => {
+export const getAllJetskisAsync = async () => {
   try {
     const jetskis = await db.jetski.findMany();
 
@@ -49,12 +49,8 @@ const orderByOptions = [{ jetski_location_id: 'asc' as const }];
 const BUFFER_MINUTES = 5;
 
 export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
-  const adjustedStartTime = new Date(
-    startTime.getTime() - BUFFER_MINUTES * 60 * 1000
-  );
-  const adjustedEndTime = new Date(
-    endTime.getTime() + BUFFER_MINUTES * 60 * 1000
-  );
+  const adjustedStartTime = new Date(startTime.getTime() - BUFFER_MINUTES * 60 * 1000);
+  const adjustedEndTime = new Date(endTime.getTime() + BUFFER_MINUTES * 60 * 1000);
 
   try {
     const availableJetskis = await db.jetski.findMany({
@@ -64,28 +60,16 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
             some: {
               OR: [
                 {
-                  AND: [
-                    { startTime: { lte: adjustedStartTime } },
-                    { endTime: { gt: adjustedStartTime } },
-                  ],
+                  AND: [{ startTime: { lte: adjustedStartTime } }, { endTime: { gt: adjustedStartTime } }],
                 },
                 {
-                  AND: [
-                    { startTime: { lt: adjustedEndTime } },
-                    { endTime: { gte: adjustedEndTime } },
-                  ],
+                  AND: [{ startTime: { lt: adjustedEndTime } }, { endTime: { gte: adjustedEndTime } }],
                 },
                 {
-                  AND: [
-                    { startTime: { gte: adjustedStartTime } },
-                    { startTime: { lt: adjustedEndTime } },
-                  ],
+                  AND: [{ startTime: { gte: adjustedStartTime } }, { startTime: { lt: adjustedEndTime } }],
                 },
                 {
-                  AND: [
-                    { endTime: { gt: adjustedStartTime } },
-                    { endTime: { lte: adjustedEndTime } },
-                  ],
+                  AND: [{ endTime: { gt: adjustedStartTime } }, { endTime: { lte: adjustedEndTime } }],
                 },
               ],
             },

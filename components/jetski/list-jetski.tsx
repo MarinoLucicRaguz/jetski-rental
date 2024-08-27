@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
-import { listJetski } from '@/actions/listJetskis';
+import { GetAllJetskis } from '@/actions/listJetskis';
 import { Jetski, Location, JetskiStatus } from '@prisma/client';
 import { Button } from '../ui/button';
 import { useRouter } from 'next/navigation';
@@ -62,7 +62,7 @@ export const ListJetski = () => {
 
     const fetchJetskis = async () => {
       try {
-        const jetskis = await listJetski();
+        const jetskis = await GetAllJetskis();
         setJetskiData(jetskis);
       } catch (error) {
         setError('Error fetching jetskis');
@@ -78,11 +78,7 @@ export const ListJetski = () => {
       }
     };
 
-    Promise.all([
-      fetchLocations(),
-      fetchJetskis(),
-      fetchCurrentlyRunningJetskis(),
-    ]).then(() => {
+    Promise.all([fetchLocations(), fetchJetskis(), fetchCurrentlyRunningJetskis()]).then(() => {
       setLoadingData(false);
     });
   }, []);
@@ -103,9 +99,7 @@ export const ListJetski = () => {
   const filteredJetskis = useMemo(() => {
     return jetskiData?.filter(
       (jetski) =>
-        (selectedLocation === null ||
-          jetski.jetski_location_id === selectedLocation) &&
-        (!showOnlyAvailable || jetski.jetski_status === 'AVAILABLE')
+        (selectedLocation === null || jetski.jetski_location_id === selectedLocation) && (!showOnlyAvailable || jetski.jetski_status === 'AVAILABLE')
     );
   }, [jetskiData, selectedLocation, showOnlyAvailable]);
 
@@ -142,10 +136,7 @@ export const ListJetski = () => {
             jetski.jetski_id === jetskiId
               ? {
                   ...jetski,
-                  jetski_status:
-                    jetski.jetski_status === 'AVAILABLE'
-                      ? 'NOT_AVAILABLE'
-                      : 'AVAILABLE',
+                  jetski_status: jetski.jetski_status === 'AVAILABLE' ? 'NOT_AVAILABLE' : 'AVAILABLE',
                 }
               : jetski
           ) || []
@@ -160,11 +151,7 @@ export const ListJetski = () => {
       await deleteJetski(jetskiId);
       setJetskiData(
         (prevJetskiData) =>
-          prevJetskiData?.map((jetski) =>
-            jetski.jetski_id === jetskiId
-              ? { ...jetski, jetski_status: 'NOT_IN_FLEET' }
-              : jetski
-          ) || []
+          prevJetskiData?.map((jetski) => (jetski.jetski_id === jetskiId ? { ...jetski, jetski_status: 'NOT_IN_FLEET' } : jetski)) || []
       );
     } catch (error) {
       setError('Error deleting jetski');
@@ -184,10 +171,7 @@ export const ListJetski = () => {
     setAnchorEl(null);
   };
 
-  const getLocationName = (
-    locationId: number | null,
-    locations: Location[] | null
-  ) => {
+  const getLocationName = (locationId: number | null, locations: Location[] | null) => {
     if (locations === null) {
       return 'No location';
     }
@@ -198,94 +182,52 @@ export const ListJetski = () => {
   return (
     <div className="relative w-full h-full">
       {loadingData && (
-        <div
-          className="flex justify-center items-center"
-          style={{ backgroundColor: '#38bdf8' }}
-        >
+        <div className="flex justify-center items-center" style={{ backgroundColor: '#38bdf8' }}>
           <Spinner />
         </div>
       )}
 
-      <div
-        className={`p-10 bg-white rounded-sm ${loadingData ? 'opacity-100' : ''}`}
-      >
+      <div className={`p-10 bg-white rounded-sm ${loadingData ? 'opacity-100' : ''}`}>
         <div className="flex flex-col space-y-4">
-          <div className="text-center text-2xl font-bold uppercase text-black">
-            {showOnlyAvailable ? 'Available jetskis' : 'All jetskis'}
-          </div>
+          <div className="text-center text-2xl font-bold uppercase text-black">{showOnlyAvailable ? 'Available jetskis' : 'All jetskis'}</div>
           <div className="flex justify-between">
             <Button onClick={handleClick}>
-              {selectedLocation
-                ? locationNames?.find(
-                    (location) => location.location_id === selectedLocation
-                  )?.location_name
-                : 'All locations'}
+              {selectedLocation ? locationNames?.find((location) => location.location_id === selectedLocation)?.location_name : 'All locations'}
             </Button>
-            <Menu
-              open={Boolean(anchorEl)}
-              anchorEl={anchorEl}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={() => handleLocationSelect(null)}>
-                All locations
-              </MenuItem>
+            <Menu open={Boolean(anchorEl)} anchorEl={anchorEl} onClose={handleClose}>
+              <MenuItem onClick={() => handleLocationSelect(null)}>All locations</MenuItem>
               {locationNames?.map((location) => (
-                <MenuItem
-                  key={location.location_id}
-                  onClick={() => handleLocationSelect(location.location_id)}
-                >
+                <MenuItem key={location.location_id} onClick={() => handleLocationSelect(location.location_id)}>
                   {location.location_name}
                 </MenuItem>
               ))}
             </Menu>
             <Button onClick={() => setShowOnlyAvailable(!showOnlyAvailable)}>
-              {showOnlyAvailable
-                ? 'Display all jetskis'
-                : 'Display only available jetskis'}
+              {showOnlyAvailable ? 'Display all jetskis' : 'Display only available jetskis'}
             </Button>
           </div>
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => handleSort('jetski_registration')}
-                >
+                <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('jetski_registration')}>
                   Registration
                 </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => handleSort('jetski_model')}
-                >
+                <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('jetski_model')}>
                   Model
                 </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => handleSort('jetski_manufacturingYear')}
-                >
+                <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('jetski_manufacturingYear')}>
                   Year
                 </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => handleSort('jetski_topSpeed')}
-                >
+                <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('jetski_topSpeed')}>
                   Top Speed
                 </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => handleSort('jetski_status')}
-                >
+                <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('jetski_status')}>
                   Status
                 </th>
-                <th
-                  className="px-6 py-3 cursor-pointer"
-                  onClick={() => handleSort('jetski_location_id')}
-                >
+                <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('jetski_location_id')}>
                   Location
                 </th>
-                {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && (
-                  <th className="px-6 py-3">Actions</th>
-                )}
+                {(user?.role === 'ADMIN' || user?.role === 'MODERATOR') && <th className="px-6 py-3">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -293,55 +235,22 @@ export const ListJetski = () => {
                 <tr key={jetski.jetski_id} className="bg-white border-b">
                   <td className="px-6 py-4">{jetski.jetski_registration}</td>
                   <td className="px-6 py-4">{jetski.jetski_model}</td>
-                  <td className="px-6 py-4">
-                    {jetski.jetski_manufacturingYear}
-                  </td>
+                  <td className="px-6 py-4">{jetski.jetski_manufacturingYear}</td>
                   <td className="px-6 py-4">{jetski.jetski_topSpeed}</td>
-                  <td className="px-6 py-4">
-                    {convertStatusToText(jetski.jetski_status)}
-                  </td>
-                  <td className="px-6 py-4">
-                    {getLocationName(jetski.jetski_location_id, locationNames)}
-                  </td>
-                  {(user?.role === 'ADMIN' ||
-                    (user?.role === 'MODERATOR' &&
-                      jetski.jetski_location_id === user.location_id)) && (
+                  <td className="px-6 py-4">{convertStatusToText(jetski.jetski_status)}</td>
+                  <td className="px-6 py-4">{getLocationName(jetski.jetski_location_id, locationNames)}</td>
+                  {(user?.role === 'ADMIN' || (user?.role === 'MODERATOR' && jetski.jetski_location_id === user.location_id)) && (
                     <td className="px-6 py-4">
                       {jetski.jetski_status !== 'NOT_IN_FLEET' ? (
-                        runningJetski?.find(
-                          (j) => j.jetski_id === jetski.jetski_id
-                        ) ? (
-                          <span>
-                            Jetski is currently running. We can&#39;t do any
-                            actions to it.
-                          </span>
+                        runningJetski?.find((j) => j.jetski_id === jetski.jetski_id) ? (
+                          <span>Jetski is currently running. We can&#39;t do any actions to it.</span>
                         ) : (
                           <>
-                            <Button
-                              onClick={() =>
-                                handleEditJetskiClick(jetski.jetski_id)
-                              }
-                            >
-                              Edit
+                            <Button onClick={() => handleEditJetskiClick(jetski.jetski_id)}>Edit</Button>
+                            <Button className="ml-2" variant="yellow" onClick={() => handleJetskiStatusClick(jetski.jetski_id)}>
+                              {jetski.jetski_status === 'AVAILABLE' ? 'Send for repair' : 'Return from repair'}
                             </Button>
-                            <Button
-                              className="ml-2"
-                              variant="yellow"
-                              onClick={() =>
-                                handleJetskiStatusClick(jetski.jetski_id)
-                              }
-                            >
-                              {jetski.jetski_status === 'AVAILABLE'
-                                ? 'Send for repair'
-                                : 'Return from repair'}
-                            </Button>
-                            <Button
-                              className="ml-2"
-                              variant="destructive"
-                              onClick={() =>
-                                handleJetskiRemoveClick(jetski.jetski_id)
-                              }
-                            >
+                            <Button className="ml-2" variant="destructive" onClick={() => handleJetskiRemoveClick(jetski.jetski_id)}>
                               Remove
                             </Button>
                           </>
