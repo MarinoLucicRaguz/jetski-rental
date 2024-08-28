@@ -35,7 +35,7 @@ export const getReservationInformation = (reservation: ExtendedReservation | und
     formattedDuration += `${hours > 0 ? ' ' : ''}${minutes}min`;
   }
 
-  return `${moment(reservation.startTime).format('HH:mm')}-${moment(reservation.endTime).format('HH:mm')} ${reservation.reservation_jetski_list.length}x ${formattedDuration} ${reservation.reservation_location.location_name}`;
+  return `${moment(reservation.startTime).format('HH:mm')}-${moment(reservation.endTime).format('HH:mm')} ${reservation.reservation_jetski_list.length}x${formattedDuration} ${reservation.reservation_location.location_name}`;
 };
 
 export const isReservationContained = (reservation: ExtendedReservation, slot: string) => {
