@@ -1,6 +1,6 @@
 'use client';
 
-import { GetTimetableHours, getReservationInformation } from '@/lib/hoursTimetable';
+import { GetTimetableHours, getReservationColor, getReservationInformation } from '@/lib/hoursTimetable';
 import { ExtendedReservation } from '@/types';
 import { Jetski, Location } from '@prisma/client';
 import React from 'react';
@@ -45,7 +45,6 @@ function ReservationCard({ jetskis, reservations, locations }: ReservationDashbo
       const coveredDuration = moment.duration(coveredEnd.diff(coveredStart));
       const coveredMinutes = coveredDuration.asMinutes();
       const colspan = Math.ceil(coveredMinutes / interval);
-      console.log(`Reservation ${reservation.reservation_id} covers ${coveredMinutes} minutes of the slot. Colspan: ${colspan}`);
       return { reservation, colspan };
     }
     return null;
@@ -89,7 +88,7 @@ function ReservationCard({ jetskis, reservations, locations }: ReservationDashbo
                             <td
                               key={time}
                               colSpan={existing.colspan}
-                              className="relative px-1 py-2 border border-gray-300 bg-blue-500 text-white text-center"
+                              className={`relative px-1 py-2 border border-gray-300 ${getReservationColor(reservation)} text-white text-center`}
                               style={{ borderRight: '0px', borderBottom: '0px' }}
                             >
                               {getReservationInformation(reservation)}
@@ -101,7 +100,7 @@ function ReservationCard({ jetskis, reservations, locations }: ReservationDashbo
                             <td
                               key={time}
                               colSpan={colspan}
-                              className="relative px-1 py-2 border border-gray-300 bg-blue-500 text-white text-center"
+                              className={`relative px-1 py-2 border border-gray-300 ${getReservationColor(reservation)} text-white text-center`}
                               style={{ borderRight: '0px', borderBottom: '0px' }}
                             >
                               {getReservationInformation(reservation)}

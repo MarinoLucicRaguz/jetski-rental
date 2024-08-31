@@ -4,19 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Jetski, Location, RentalOptions } from '@prisma/client';
 import { getAllLocations } from '@/actions/getAllLocations';
 import Spinner from '../ui/spinner';
-import AvailabilityFormModal from '../modal/availabilityForm';
-import { Button } from '../ui/button';
 import ReservationCard from '@/components/ui/reservationcard';
-import { Menu, MenuItem } from '@mui/material';
-import { listJetskisByLocation } from '@/actions/listJetskisByLocation';
-import JetskiReservationCard from '../ui/jetskireservationcard';
 import { getReservationsByDate } from '@/actions/listReservationsForDate';
 import { ExtendedReservation } from '@/types';
 import { ERROR_MESSAGE } from '@/types/message';
-import { DrawingPinIcon } from '@radix-ui/react-icons';
 import { getAllRentalOptions } from '@/actions/listReservationOptions';
 import { GetTimetableHours } from '@/lib/hoursTimetable';
 import { GetAllJetskis } from '@/actions/listJetskis';
+import LocationMenu from '../ui/dropdownSelectors/dropdownLocationMenu';
 
 export const DashboardPage = () => {
   const [reservations, setReservations] = useState<ExtendedReservation[]>([]);
@@ -24,6 +19,8 @@ export const DashboardPage = () => {
   const [jetskis, setJetskis] = useState<Jetski[]>([]);
   const [rentalOptions, setRentalOptions] = useState<RentalOptions[]>([]);
   const [timetableSlots, setTimetableSlots] = useState<string[]>([]);
+
+  const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -60,33 +57,18 @@ export const DashboardPage = () => {
     getData();
   }, []);
 
-  console.log(reservations);
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
+  const handleSelectedLocation = (locationId: number | null) => {
+    setSelectedLocationId(locationId);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-  };
+  const filteredLocations = selectedLocationId ? locations.filter((location) => location.location_id === selectedLocationId) : locations;
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex-grow flex justify-center bg-sky-500 p-1">
-        <div className="mt-5">
-          {!isDataLoading ? (
-            <ReservationCard locations={locations} jetskis={jetskis} reservations={reservations} />
-          ) : (
-            <Spinner /> // Show a loading spinner or some placeholder content
-          )}
+    <div>
+      <LocationMenu locations={locations} onLocationSelect={handleSelectedLocation} />
+      <div className="flex flex-col h-screen">
+        <div className="flex-grow flex justify-center bg-sky-500 p-6 mt-5">
+          <div>{!isDataLoading ? <ReservationCard locations={filteredLocations} jetskis={jetskis} reservations={reservations} /> : <Spinner />}</div>
         </div>
       </div>
     </div>
