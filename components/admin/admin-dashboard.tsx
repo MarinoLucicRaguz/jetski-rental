@@ -28,9 +28,7 @@ const convertUserRole = (userRole: UserRole): string => {
   }
 };
 
-type SortKey =
-  | keyof Pick<User, 'name' | 'email' | 'user_role' | 'user_location_id'>
-  | 'location';
+type SortKey = keyof Pick<User, 'name' | 'email' | 'user_role' | 'user_location_id'> | 'location';
 
 const AdminDashboard = () => {
   const user = useCurrentUser();
@@ -103,77 +101,40 @@ const AdminDashboard = () => {
   const sortedUsers = [...users].sort((a, b) => {
     let result = 0;
     if (sortKey === 'location') {
-      const locationA =
-        locations?.find(
-          (location) => location.location_id === a.user_location_id
-        )?.location_name || '';
-      const locationB =
-        locations?.find(
-          (location) => location.location_id === b.user_location_id
-        )?.location_name || '';
+      const locationA = locations?.find((location) => location.location_id === a.user_location_id)?.location_name || '';
+      const locationB = locations?.find((location) => location.location_id === b.user_location_id)?.location_name || '';
       result = locationA.localeCompare(locationB);
     } else {
-      result = (a[sortKey] || '')
-        .toString()
-        .localeCompare((b[sortKey] || '').toString());
+      result = (a[sortKey] || '').toString().localeCompare((b[sortKey] || '').toString());
     }
     return sortOrder === 'asc' ? result : -result;
   });
 
   if (user && user.role !== 'ADMIN') {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
+    return <>{showError && <ErrorPopup message="You need to be an administrator to view this page." onClose={() => setShowError(false)} />}</>;
   }
 
   return (
-    <CardWrapper
-      className="w-full"
-      headerLabel="Admin dashboard"
-      backButtonLabel="Go back to dashboard"
-      backButtonHref="/dashboard"
-    >
+    <CardWrapper headerLabel="Admin dashboard" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
       <div>
-        <Button
-          className="p-3 mb-2"
-          onClick={() => router.push('/admindashboard/createuser')}
-        >
+        <Button className="p-3 mb-2" onClick={() => router.push('/admindashboard/createuser')}>
           Create new user
         </Button>
       </div>
       <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs text-gray-700 uppercase bg-gray-100 rounded-sm">
           <tr>
-            <th
-              className="px-6 py-3 cursor-pointer"
-              onClick={() => handleSort('name')}
-            >
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('name')}>
               Name
             </th>
-            <th
-              className="px-6 py-3 cursor-pointer"
-              onClick={() => handleSort('email')}
-            >
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('email')}>
               Email
             </th>
             <th className="px-6 py-3">Contact</th>
-            <th
-              className="px-6 py-3 cursor-pointer"
-              onClick={() => handleSort('user_role')}
-            >
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('user_role')}>
               Role
             </th>
-            <th
-              className="px-6 py-3 cursor-pointer"
-              onClick={() => handleSort('location')}
-            >
+            <th className="px-6 py-3 cursor-pointer" onClick={() => handleSort('location')}>
               Location
             </th>
             <th className="px-6 py-3">Actions</th>
@@ -188,23 +149,13 @@ const AdminDashboard = () => {
                 <td className="px-6 py-3">{user.contactNumber}</td>
                 <td className="px-6 py-3">{convertUserRole(user.user_role)}</td>
                 <td className="px-6 py-3">
-                  {locations?.find(
-                    (location) => location.location_id === user.user_location_id
-                  )?.location_name || 'No location'}
+                  {locations?.find((location) => location.location_id === user.user_location_id)?.location_name || 'No location'}
                 </td>
                 <td className="px-6 py-3 flex space-x-2">
-                  <Button
-                    className="ml-2"
-                    onClick={() => handleEditUser(user.user_id)}
-                    variant="default"
-                  >
+                  <Button className="ml-2" onClick={() => handleEditUser(user.user_id)} variant="default">
                     Edit
                   </Button>
-                  <Button
-                    variant="destructive"
-                    className="ml-2"
-                    onClick={() => handleDeleteUser(user.user_id)}
-                  >
+                  <Button variant="destructive" className="ml-2" onClick={() => handleDeleteUser(user.user_id)}>
                     Delete
                   </Button>
                 </td>

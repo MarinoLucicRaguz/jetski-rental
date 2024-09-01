@@ -123,8 +123,8 @@ export const ListJetski = () => {
     return sorted;
   }, [jetskiData, sortBy, sortDirection, selectedLocation, showOnlyAvailable]);
 
-  const handleEditJetskiClick = (jetskiId: number) => {
-    router.push(`/jetski/${jetskiId}/editjetski`);
+  const handleEditJetskiClick = (vehicleId: number) => {
+    router.push(`/vehicle/${vehicleId}/editvehicle`);
   };
 
   const handleJetskiStatusClick = async (jetskiId: number) => {

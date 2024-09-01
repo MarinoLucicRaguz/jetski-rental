@@ -1,9 +1,7 @@
-import { ListLocation } from "@/components/jetski/list-locations";
+import { ListLocation } from '@/components/vehicle/list-locations';
 
 const ListLocationsPage = () => {
-    return (
-        <ListLocation/>
-    )
-}
+  return <ListLocation />;
+};
 
 export default ListLocationsPage;

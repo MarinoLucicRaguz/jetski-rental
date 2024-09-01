@@ -8,7 +8,7 @@ import { CardWrapper } from '../auth/card-wrapper';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { getAllJetskis } from '@/actions/listJetskis';
+import { GetAllJetskis } from '@/actions/listJetskis';
 import { getUsers } from '@/actions/getUsers';
 import LocationDetailsModal from '../modal/locationDetails';
 import { FormError } from '../form-error';
@@ -41,7 +41,7 @@ export const ListLocation = () => {
 
         const data = await getAllLocations();
         setLocationData(data);
-        const jetskis = await getAllJetskis();
+        const jetskis = await GetAllJetskis();
         setJetskiData(jetskis);
         const users = await getUsers();
         setUserData(users);

@@ -1,8 +1,6 @@
-import { ListReservations } from "@/components/jetski/list-reservations";
+import { ListReservations } from '@/components/vehicle/list-reservations';
 const ListReservationsPage = () => {
-    return (
-        <ListReservations/>
-    )
-}
+  return <ListReservations />;
+};
 
 export default ListReservationsPage;

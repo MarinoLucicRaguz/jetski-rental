@@ -1,9 +1,7 @@
-import { LocationForm } from "@/components/jetski/create-location";
+import { LocationForm } from '@/components/vehicle/create-location';
 
 const LocationPage = () => {
-    return (
-        <LocationForm/>
-    )
-}
+  return <LocationForm />;
+};
 
 export default LocationPage;

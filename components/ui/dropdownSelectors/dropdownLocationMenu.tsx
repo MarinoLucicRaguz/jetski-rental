@@ -7,9 +7,10 @@ import { Location } from '@prisma/client';
 interface LocationMenuProps {
   locations: Location[];
   onLocationSelect: (locationId: number | null) => void;
+  includeAllLocations?: boolean;
 }
 
-export default function LocationMenu({ locations, onLocationSelect }: LocationMenuProps) {
+export default function LocationMenu({ locations, onLocationSelect, includeAllLocations = true }: LocationMenuProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const open = Boolean(anchorEl);
@@ -36,18 +37,19 @@ export default function LocationMenu({ locations, onLocationSelect }: LocationMe
     <header>
       <Button className="absolute right-5 top-5" variant="secondary" onClick={handleClickListItem}>
         <DrawingPinIcon className="mr-2" />
-        Odaberi lokaciju
+        {selectedIndex !== null ? locations[selectedIndex].location_name : 'Odaberi lokaciju'}
       </Button>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem
-          key="all-locations"
-          selected={selectedIndex === null}
-          onClick={(event) => handleMenuItemClick(event, null)}
-          style={{ width: '163px' }}
-        >
-          Sve lokacije
-        </MenuItem>
-
+        {includeAllLocations && (
+          <MenuItem
+            key="all-locations"
+            selected={selectedIndex === null}
+            onClick={(event) => handleMenuItemClick(event, null)}
+            style={{ width: '163px' }}
+          >
+            Sve lokacije
+          </MenuItem>
+        )}
         {locations.map((location, index) => (
           <MenuItem
             key={location.location_id}

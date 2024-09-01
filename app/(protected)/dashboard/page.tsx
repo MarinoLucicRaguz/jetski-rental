@@ -1,9 +1,7 @@
-import { DashboardPage } from "@/components/jetski/dashboard";
+import { DashboardPage } from '@/components/vehicle/dashboard';
 
 const DashboardPageExport = () => {
-    return (
-        <DashboardPage/>
-    )
-}
+  return <DashboardPage />;
+};
 
 export default DashboardPageExport;

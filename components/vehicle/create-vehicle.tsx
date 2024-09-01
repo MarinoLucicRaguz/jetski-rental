@@ -7,14 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useTransition, useEffect } from 'react';
 import { JetskiSchema } from '@/schemas';
 import { Input } from '../ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 import { CardWrapper } from '@/components/auth/card-wrapper';
 import { Button } from '../ui/button';
@@ -22,12 +15,12 @@ import { FormError } from '../form-error';
 import { FormSuccess } from '../form-success';
 import { createJetski } from '@/actions/createJetski';
 import { getAllLocations } from '@/actions/getAllLocations';
-import { Location, User } from '@prisma/client';
+import { Location } from '@prisma/client';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import ErrorPopup from '../ui/errorpopup';
 import { useRouter } from 'next/navigation';
 
-export const JetskiForm = () => {
+export const VehicleForm = () => {
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
@@ -75,16 +68,7 @@ export const JetskiForm = () => {
   }, [user, router]);
 
   if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
+    return <>{showError && <ErrorPopup message="You need to be an administrator to view this page." onClose={() => setShowError(false)} />}</>;
   }
 
   const onSubmit = async (values: z.infer<typeof JetskiSchema>) => {
@@ -112,11 +96,7 @@ export const JetskiForm = () => {
   };
 
   return (
-    <CardWrapper
-      headerLabel="Add a Jet Ski"
-      backButtonLabel="Go back to dashboard"
-      backButtonHref="/dashboard"
-    >
+    <CardWrapper className="w-[400px]" headerLabel="Dodaj plovilo" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
@@ -125,13 +105,9 @@ export const JetskiForm = () => {
               name="jetski_registration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Registration</FormLabel>
+                  <FormLabel>Registracija</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="ST-12345"
-                    />
+                    <Input {...field} disabled={isPending} placeholder="DB-123456" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,9 +120,7 @@ export const JetskiForm = () => {
               name="jetski_location_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="border-solid sans-serif text-bold">
-                    Location:
-                  </FormLabel>
+                  <FormLabel className="border-solid sans-serif text-bold">Lokacija plovila:</FormLabel>
                   <FormControl className="rounded-sm text-center bg-black text-white border-solid ml-80 w-40 p-2">
                     <select
                       {...form.register('jetski_location_id', {
@@ -159,19 +133,11 @@ export const JetskiForm = () => {
                       </option>
                       {user && user.location_id && user.role !== 'ADMIN' ? (
                         <option key={user.location_id} value={user.location_id}>
-                          {locations
-                            .find(
-                              (location) =>
-                                location.location_id === user.location_id
-                            )
-                            ?.location_name.toUpperCase()}
+                          {locations.find((location) => location.location_id === user.location_id)?.location_name.toUpperCase()}
                         </option>
                       ) : (
                         locations.map((location) => (
-                          <option
-                            key={location.location_id}
-                            value={location.location_id}
-                          >
+                          <option key={location.location_id} value={location.location_id}>
                             {location.location_name.toUpperCase()}
                           </option>
                         ))
@@ -191,11 +157,7 @@ export const JetskiForm = () => {
                 <FormItem>
                   <FormLabel>Model</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="Yamaha Waverunner"
-                    />
+                    <Input {...field} disabled={isPending} placeholder="Yamaha Waverunner" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -210,30 +172,7 @@ export const JetskiForm = () => {
                 <FormItem>
                   <FormLabel>Top speed</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="50 mph"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="space y-6">
-            <FormField
-              control={form.control}
-              name="jetski_kW"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>kW</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="85 kW"
-                    />
+                    <Input {...field} disabled={isPending} placeholder="50 mph" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

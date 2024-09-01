@@ -1,9 +1,7 @@
-import { ListRentalOptions } from "@/components/jetski/list-rentaloptions";
+import { ListRentalOptions } from '@/components/vehicle/list-rentaloptions';
 
 const ListRentalOptionsPage = () => {
-    return (
-        <ListRentalOptions/>
-    )
-}
+  return <ListRentalOptions />;
+};
 
 export default ListRentalOptionsPage;

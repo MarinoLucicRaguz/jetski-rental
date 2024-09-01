@@ -1,17 +1,15 @@
-"use client"
+'use client';
 
-import { EditReservationOptionForm } from "@/components/jetski/edit-rental-options";
-import { useParams } from "next/navigation";
+import { EditReservationOptionForm } from '@/components/vehicle/edit-rental-options';
+import { useParams } from 'next/navigation';
 
 const EditJetSkiRentalOptions = () => {
-    const { rentaloptionId } = useParams(); 
+  const { rentaloptionId } = useParams();
 
-    const parsedrentalOptionId = Array.isArray(rentaloptionId) ? parseInt(rentaloptionId[0], 10) : parseInt(rentaloptionId, 10);
-    console.log(parsedrentalOptionId)
+  const parsedrentalOptionId = Array.isArray(rentaloptionId) ? parseInt(rentaloptionId[0], 10) : parseInt(rentaloptionId, 10);
+  console.log(parsedrentalOptionId);
 
-    return (
-        <EditReservationOptionForm rentalOptionId={parsedrentalOptionId}/>
-    )
-}
+  return <EditReservationOptionForm rentalOptionId={parsedrentalOptionId} />;
+};
 
 export default EditJetSkiRentalOptions;

@@ -1,9 +1,7 @@
-import SettingsPage from "@/components/jetski/settings";
+import SettingsPage from '@/components/vehicle/settings';
 
 const SettingsPageExport = () => {
-    return (
-        <SettingsPage/>
-    )
-}
+  return <SettingsPage />;
+};
 
 export default SettingsPageExport;
