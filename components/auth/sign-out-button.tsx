@@ -19,11 +19,7 @@ const SignOutButton: React.FC<SignOutButtonProps> = ({ className }) => {
   };
 
   return (
-    <Button
-      className={`mb-2 mt-2 w-60 ${className}`}
-      onClick={handleSignOut}
-      variant="secondary"
-    >
+    <Button className={`mb-2 mt-2 w-60 ${className}`} onClick={handleSignOut} variant="secondary">
       <ArrowRightIcon className="mr-2" />
       Odjavi se
     </Button>

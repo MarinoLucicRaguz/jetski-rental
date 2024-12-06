@@ -11,9 +11,7 @@ interface NavMenuDrawerProps {
   userRole: string;
 }
 
-export default function NavMenuDrawer({
-  userRole,
-}: NavMenuDrawerProps): JSX.Element {
+export default function NavMenuDrawer({ userRole }: NavMenuDrawerProps): JSX.Element {
   const [open, setOpen] = React.useState(false);
 
   const toggleDrawer = (newOpen: boolean) => () => {
@@ -21,11 +19,7 @@ export default function NavMenuDrawer({
   };
 
   const DrawerList = (
-    <Box
-      sx={{ width: 300, overflow: 'hidden' }}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-    >
+    <Box sx={{ width: { xs: '100vw', sm: '300px' }, overflow: 'hidden' }} role="presentation" onClick={toggleDrawer(false)}>
       <List>
         <div className="flex flex-row items-center justify-center border-b-4 border-sky-900 p-1">
           <HamburgerMenuIcon />

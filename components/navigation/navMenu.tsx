@@ -17,11 +17,7 @@ const NavMenu = ({ userRole }: NavMenuProps) => {
         <div className="mb-2 w-full border-b-4 border-sky-900"></div>
         {menuItems.map(({ Component, props }, index) => (
           <Component key={index}>
-            <Button
-              className="mb-2 w-60"
-              type="submit"
-              variant={props?.variant}
-            >
+            <Button className="mb-2 w-60" type="submit" variant={props?.variant}>
               {props?.icon}
               {props?.text}
             </Button>

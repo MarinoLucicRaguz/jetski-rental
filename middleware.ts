@@ -9,8 +9,11 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
+  if (!isLoggedIn && nextUrl.pathname === '/') {
+    return Response.redirect(new URL('/auth/login', req.url));
+  }
+
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
   if (isApiAuthRoute) {
@@ -24,11 +27,11 @@ export default auth((req) => {
     return undefined;
   }
 
-  if (!isLoggedIn && !isPublicRoute) {
+  if (!isLoggedIn) {
     return Response.redirect(new URL('/auth/login', nextUrl));
   }
 
-  const userRole = req.auth?.user?.role;
+  // const userRole = req.auth?.user?.role;
   // const roleRequired = roleBasedRoutes[nextUrl.pathname]
 
   // routes.js
