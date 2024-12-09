@@ -29,7 +29,7 @@ export const VehicleForm = () => {
       locationId: 0,
       model: '',
       topSpeed: '',
-      manufacturingYear: 0,
+      manufacturingYear: 2024,
     },
   });
 
