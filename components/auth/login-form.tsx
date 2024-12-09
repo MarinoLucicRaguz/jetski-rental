@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useTransition } from 'react';
 import { LoginSchema } from '@/schemas';
-import { Input } from '../ui/input';
+import { Input } from '../atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '../ui/button';
 import { FormError } from '../form-error';

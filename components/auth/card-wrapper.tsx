@@ -18,7 +18,7 @@ export const CardWrapper = ({
   headerLabel,
   backButtonLabel,
   backButtonHref,
-  className = 'shadow-md xs:w-[500px] sm:w-[600px] md:w-[800px] lg:w-[1400px]',
+  className = 'shadow-md xs:w-[350px] sm:w-[600px] md:w-[800px] lg:w-[1400px]',
 }: CardWrapperProps) => {
   const router = useRouter();
 
@@ -34,7 +34,7 @@ export const CardWrapper = ({
       <CardContent>{children}</CardContent>
       <CardFooter className="flex justify-center">
         <Button variant="ghost" onClick={handleGoBack}>
-          Go back
+          Nazad
         </Button>
       </CardFooter>
     </Card>

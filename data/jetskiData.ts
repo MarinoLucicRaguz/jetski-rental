@@ -20,11 +20,11 @@ export const getJetskiByLocationIdAsync = async (locationId: number) => {
   }
 };
 
-export const getJetskiByName = async (jetski_registration: string) => {
+export const GetJetskiByRegistration = async (registration: string) => {
   try {
     const jetSki = await db.jetski.findUnique({
       where: {
-        jetski_registration,
+        registration,
       },
     });
     return jetSki;

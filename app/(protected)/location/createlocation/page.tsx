@@ -1,4 +1,4 @@
-import { LocationForm } from '@/components/vehicle/create-location';
+import { LocationForm } from '@/components/page-components/locations/create-location';
 
 const LocationPage = () => {
   return <LocationForm />;

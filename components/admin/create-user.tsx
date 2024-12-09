@@ -5,15 +5,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useTransition } from 'react';
 import { CreateUserSchema } from '@/schemas';
-import { Input } from '../ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Input } from '../atoms/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
 import { Button } from '../ui/button';
 import { FormError } from '../form-error';
@@ -80,16 +73,7 @@ export const CreateUserPage = () => {
   });
 
   if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
+    return <>{showError && <ErrorPopup message="You need to be an administrator to view this page." onClose={() => setShowError(false)} />}</>;
   }
 
   const handlePhoneChange = (value: string) => {
@@ -128,11 +112,7 @@ export const CreateUserPage = () => {
   };
 
   return (
-    <CardWrapper
-      headerLabel="Create User"
-      backButtonLabel="Go back to user list"
-      backButtonHref="/user/listuser"
-    >
+    <CardWrapper headerLabel="Create User" backButtonLabel="Go back to user list" backButtonHref="/user/listuser">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 flex-row justify-between">
@@ -143,12 +123,7 @@ export const CreateUserPage = () => {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="Name"
-                      value={field.value || ''}
-                    />
+                    <Input {...field} disabled={isPending} placeholder="Name" value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -161,13 +136,7 @@ export const CreateUserPage = () => {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="Email"
-                      value={field.value || ''}
-                      type="email"
-                    />
+                    <Input {...field} disabled={isPending} placeholder="Email" value={field.value || ''} type="email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -180,12 +149,7 @@ export const CreateUserPage = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder="Password"
-                      type="password"
-                    />
+                    <Input {...field} disabled={isPending} placeholder="Password" type="password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -249,22 +213,13 @@ export const CreateUserPage = () => {
                     <select
                       {...field}
                       disabled={isPending}
-                      value={
-                        field.value !== null
-                          ? field.value && field.value.toString()
-                          : ''
-                      }
-                      onChange={(e) =>
-                        field.onChange(Number(e.target.value) || null)
-                      }
+                      value={field.value !== null ? field.value && field.value.toString() : ''}
+                      onChange={(e) => field.onChange(Number(e.target.value) || null)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-opacity-50 focus:border-blue-300 focus:ring-blue-200"
                     >
                       <option value="">No location</option>
                       {locationData.map((location) => (
-                        <option
-                          key={location.location_id}
-                          value={location.location_id.toString()}
-                        >
+                        <option key={location.location_id} value={location.location_id.toString()}>
                           {location.location_name}
                         </option>
                       ))}

@@ -5,15 +5,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useTransition } from 'react';
 import { EditUserSchema } from '@/schemas';
-import { Input } from '../ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Input } from '../atoms/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
 import { Button } from '../ui/button';
 import { FormError } from '../form-error';
@@ -98,16 +91,7 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
   }, [userId, startTransition, form]);
 
   if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
+    return <>{showError && <ErrorPopup message="You need to be an administrator to view this page." onClose={() => setShowError(false)} />}</>;
   }
 
   const handlePhoneChange = (value: string) => {
@@ -136,11 +120,7 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
   };
 
   return (
-    <CardWrapper
-      headerLabel="Edit User"
-      backButtonLabel="Go back to user list"
-      backButtonHref="/user/listuser"
-    >
+    <CardWrapper headerLabel="Edit User" backButtonLabel="Go back to user list" backButtonHref="/user/listuser">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 flex-row justify-between">
@@ -151,12 +131,7 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder={userData?.name || ''}
-                      value={field.value || ''}
-                    />
+                    <Input {...field} disabled={isPending} placeholder={userData?.name || ''} value={field.value || ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,13 +144,7 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder={userData?.email || ''}
-                      value={field.value || ''}
-                      type="email"
-                    />
+                    <Input {...field} disabled={isPending} placeholder={userData?.email || ''} value={field.value || ''} type="email" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -238,22 +207,13 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
                     <select
                       {...field}
                       disabled={isPending}
-                      value={
-                        field.value !== null
-                          ? field.value && field.value.toString()
-                          : ''
-                      }
-                      onChange={(e) =>
-                        field.onChange(Number(e.target.value) || null)
-                      }
+                      value={field.value !== null ? field.value && field.value.toString() : ''}
+                      onChange={(e) => field.onChange(Number(e.target.value) || null)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-opacity-50 focus:border-blue-300 focus:ring-blue-200"
                     >
                       <option value="">No location</option>
                       {locationData.map((location) => (
-                        <option
-                          key={location.location_id}
-                          value={location.location_id.toString()}
-                        >
+                        <option key={location.location_id} value={location.location_id.toString()}>
                           {location.location_name}
                         </option>
                       ))}

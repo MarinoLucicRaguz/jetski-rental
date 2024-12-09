@@ -1,11 +1,12 @@
 import NextAuth from 'next-auth';
 import authConfig from '@/auth.config';
+import { getToken } from 'next-auth/jwt';
 
-import { DEFAULT_LOGIN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes } from '@/routes';
+import { DEFAULT_LOGIN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes, routesByRole } from '@/routes';
 
 const { auth } = NextAuth(authConfig);
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
@@ -31,23 +32,15 @@ export default auth((req) => {
     return Response.redirect(new URL('/auth/login', nextUrl));
   }
 
-  // const userRole = req.auth?.user?.role;
-  // const roleRequired = roleBasedRoutes[nextUrl.pathname]
+  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
 
-  // routes.js
-  //ovo ide u routes.ts
-  // export const apiAuthPrefix = "/api/auth";
-  // export const authRoutes = ["/auth/login", "/auth/register"];
-  // export const publicRoutes = ["/", "/about", "/contact"];
-  // export const DEFAULT_LOGIN_REDIRECT = "/dashboard";
-
-  // export const roleBasedRoutes = {
-  //     "/admin": "admin",       // Only admins can access this route
-  //     "/dashboard": "user",    // General users can access this route
-  //     // Add more routes and roles as needed
-  // };
-
-  //https://chatgpt.com/c/5b01133c-c115-4024-a0b0-77f2e93360b9
+  if (token) {
+    const isUserAuthorized = routesByRole[token.role as keyof typeof routesByRole].includes(nextUrl.pathname);
+    if (!isUserAuthorized) {
+      return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+    }
+    return undefined;
+  }
 
   return undefined;
 });

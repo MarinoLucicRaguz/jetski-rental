@@ -27,3 +27,25 @@ export const apiAuthPrefix = '/api/auth';
  */
 
 export const DEFAULT_LOGIN_REDIRECT = '/dashboard';
+
+export const guestRoutes = ['/dashboard', '/settings'];
+const workerRoutes = ['/vehicle/listvehicle', '/location/listlocation', '/reservation/listreservation'];
+const modRoutes = [
+  '/vehicle/createvehicle',
+  '/location/createlocation',
+  '/reservation/createreservation',
+  '/rentaloptions/createrentaloption',
+  '/rentaloptions/listrentaloptions',
+];
+const adminRoutes = ['/admindashboard'];
+
+const workerAccessibleRoutes = [...guestRoutes, ...workerRoutes];
+const modAccessibleRoutes = [...workerAccessibleRoutes, ...modRoutes];
+const adminAccessibleRoutes = [...modAccessibleRoutes, ...adminRoutes];
+
+export const routesByRole = {
+  ADMIN: [...adminAccessibleRoutes],
+  MODERATOR: [...modAccessibleRoutes],
+  USER: [...workerAccessibleRoutes],
+  GUEST: [...guestRoutes],
+};

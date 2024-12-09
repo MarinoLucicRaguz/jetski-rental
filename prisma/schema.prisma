@@ -33,16 +33,19 @@ model User {
 }
 
 model Jetski {
-  jetski_id                Int           @id @default(autoincrement())
-  jetski_registration      String        @unique
-  jetski_model             String
-  jetski_topSpeed          String
-  jetski_kW                String
-  jetski_manufacturingYear String
-  jetski_status            JetskiStatus  @default(AVAILABLE)
-  jetski_location_id       Int?
-  jetski_location          Location?     @relation(fields: [jetski_location_id], references: [location_id])
-  jetski_reservations      Reservation[] @relation("JetskiToReservation")
+  id                Int           @id @default(autoincrement())
+  registration      String        @unique
+  model             String
+  topSpeed          String
+  manufacturingYear Int
+  enginePower       Int?
+  peopleCapacity    Int?
+  fuelCapacity      Decimal?      
+  fuelConsumption   Decimal?
+  status            JetskiStatus  @default(AVAILABLE)
+  locationId        Int?
+  location          Location?     @relation(fields: [locationId], references: [location_id])
+  reservations      Reservation[] @relation("JetskiToReservation")
 }
 
 model Reservation {

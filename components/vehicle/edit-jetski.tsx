@@ -5,15 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useTransition } from 'react';
 import { JetskiSchema } from '@/schemas';
-import { Input } from '../ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Input } from '../atoms/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 import { CardWrapper } from '@/components/auth/card-wrapper';
 import { Button } from '../ui/button';
@@ -32,9 +25,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
   const [jetskiData, setJetskiData] = useState<Jetski>();
-  const [locationData, setLocationData] = useState<
-    { location_id: string; location_name: string }[]
-  >([]);
+  const [locationData, setLocationData] = useState<{ location_id: string; location_name: string }[]>([]);
 
   const [showError, setShowError] = useState(false);
   const router = useRouter();
@@ -53,12 +44,12 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
   const form = useForm<z.infer<typeof JetskiSchema>>({
     resolver: zodResolver(JetskiSchema),
     defaultValues: {
-      jetski_registration: jetskiData?.jetski_registration,
-      jetski_location_id: jetskiData?.jetski_location_id || null,
-      jetski_model: jetskiData?.jetski_model,
-      jetski_topSpeed: jetskiData?.jetski_topSpeed,
+      registration: jetskiData?.jetski_registration,
+      locationId: jetskiData?.jetski_location_id || null,
+      model: jetskiData?.jetski_model,
+      topSpeed: jetskiData?.jetski_topSpeed,
       jetski_kW: jetskiData?.jetski_kW,
-      jetski_manufacturingYear: jetskiData?.jetski_manufacturingYear,
+      manufacturingYear: jetskiData?.jetski_manufacturingYear,
     },
   });
 
@@ -72,14 +63,8 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
           form.setValue('jetski_model', data.jetski_model);
           form.setValue('jetski_topSpeed', data.jetski_topSpeed);
           form.setValue('jetski_kW', data.jetski_kW);
-          form.setValue(
-            'jetski_manufacturingYear',
-            data.jetski_manufacturingYear
-          );
-          form.setValue(
-            'jetski_location_id',
-            data.jetski_location_id ? data.jetski_location_id : null
-          );
+          form.setValue('jetski_manufacturingYear', data.jetski_manufacturingYear);
+          form.setValue('jetski_location_id', data.jetski_location_id ? data.jetski_location_id : null);
         }
       } catch (error) {
         console.error('Error fetching location name:', error);
@@ -113,23 +98,14 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
   }, [startTransition]);
 
   if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
-    return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
-    );
+    return <>{showError && <ErrorPopup message="You need to be an administrator to view this page." onClose={() => setShowError(false)} />}</>;
   }
 
   const onSubmit = async (values: z.infer<typeof JetskiSchema>) => {
     setError('');
     setSuccess('');
 
-    values.jetski_registration = values.jetski_registration.toUpperCase();
+    values.registration = values.registration.toUpperCase();
     try {
       const data = await editJetski(jetskiId, values);
       setError(data.error || '');
@@ -140,11 +116,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
   };
 
   return (
-    <CardWrapper
-      headerLabel="Edit Jetski"
-      backButtonLabel="Go back to jetski list"
-      backButtonHref="/jetski/listjetski"
-    >
+    <CardWrapper headerLabel="Edit Jetski" backButtonLabel="Go back to jetski list" backButtonHref="/jetski/listjetski">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4 flex-row justify-between">
@@ -155,11 +127,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
                 <FormItem>
                   <FormLabel>Registration Name</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder={jetskiData?.jetski_registration}
-                    />
+                    <Input {...field} disabled={isPending} placeholder={jetskiData?.jetski_registration} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -170,9 +138,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
               name="jetski_location_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="border-solid sans-serif text-bold ">
-                    Location:
-                  </FormLabel>
+                  <FormLabel className="border-solid sans-serif text-bold ">Location:</FormLabel>
                   <FormControl className="rounded-sm text-center bg-black text-white border-solid ml-80 w-40 p-2">
                     <select
                       {...field}
@@ -180,17 +146,12 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
                       value={field.value === null ? '' : field.value.toString()}
                       onChange={(e) => {
                         const value = e.target.value;
-                        field.onChange(
-                          value === '' ? null : parseInt(value, 10)
-                        );
+                        field.onChange(value === '' ? null : parseInt(value, 10));
                       }}
                     >
                       <option value="">No location</option>
                       {locationData.map((location) => (
-                        <option
-                          key={location.location_id}
-                          value={location.location_id.toString()}
-                        >
+                        <option key={location.location_id} value={location.location_id.toString()}>
                           {location.location_name.toUpperCase()}
                         </option>
                       ))}
@@ -208,11 +169,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
                 <FormItem>
                   <FormLabel>Model</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder={jetskiData?.jetski_model}
-                    />
+                    <Input {...field} disabled={isPending} placeholder={jetskiData?.jetski_model} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -225,11 +182,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
                 <FormItem>
                   <FormLabel>Top Speed</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder={jetskiData?.jetski_topSpeed.toString()}
-                    />
+                    <Input {...field} disabled={isPending} placeholder={jetskiData?.jetski_topSpeed.toString()} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -242,11 +195,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
                 <FormItem>
                   <FormLabel>kW</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder={jetskiData?.jetski_kW.toString()}
-                    />
+                    <Input {...field} disabled={isPending} placeholder={jetskiData?.jetski_kW.toString()} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -259,11 +208,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
                 <FormItem>
                   <FormLabel>Manufacturing Year</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      disabled={isPending}
-                      placeholder={jetskiData?.jetski_manufacturingYear.toString()}
-                    />
+                    <Input {...field} disabled={isPending} placeholder={jetskiData?.jetski_manufacturingYear.toString()} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -272,11 +217,7 @@ export const EditJetskiForm = ({ jetskiId }: { jetskiId: number }) => {
           </div>
           <FormError message={error} />
           <FormSuccess message={success} />
-          <Button
-            type="submit"
-            className="flex w-full margin-right-5"
-            disabled={isPending}
-          >
+          <Button type="submit" className="flex w-full margin-right-5" disabled={isPending}>
             Save
           </Button>
         </form>

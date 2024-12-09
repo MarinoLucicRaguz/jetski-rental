@@ -6,14 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { useEffect, useState, useTransition } from 'react';
 import { JetskiReservationSchema } from '@/schemas';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
 import { Button } from '../ui/button';
 import { format, add } from 'date-fns';
@@ -30,7 +23,7 @@ import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { getAvailableReservationOptions } from '@/actions/listAvailableRentalOptions';
 import { PhoneInput } from 'react-international-phone';
-import { Input } from '../ui/input';
+import { Input } from '../atoms/input';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import ErrorPopup from '../ui/errorpopup';
@@ -42,9 +35,7 @@ export const JetSkiReservationForm = () => {
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
-  const [rentalOptions, setRentalOptions] = useState<RentalOptions[] | null>(
-    []
-  );
+  const [rentalOptions, setRentalOptions] = useState<RentalOptions[] | null>([]);
   const [selectedRentalOption, setRentalOption] = useState<RentalOptions>();
 
   const [phone, setPhone] = useState('');
@@ -58,9 +49,7 @@ export const JetSkiReservationForm = () => {
   const [availableJetskis, setAvailableJetskis] = useState<Jetski[]>([]);
   const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
 
-  const [availableLocations, setAvailableLocations] = useState<
-    Location[] | null
-  >([]);
+  const [availableLocations, setAvailableLocations] = useState<Location[] | null>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location>();
 
   const [showError, setShowError] = useState(false);
@@ -145,10 +134,7 @@ export const JetSkiReservationForm = () => {
   }, [discount]);
 
   useEffect(() => {
-    let jetskiAmplifier =
-      selectedRentalOption?.rentaloption_description === 'SAFARI'
-        ? selectedJetski.length - 1
-        : selectedJetski.length;
+    let jetskiAmplifier = selectedRentalOption?.rentaloption_description === 'SAFARI' ? selectedJetski.length - 1 : selectedJetski.length;
 
     if (jetskiAmplifier <= 0) {
       jetskiAmplifier = 1;
@@ -172,14 +158,7 @@ export const JetSkiReservationForm = () => {
 
   if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
     return (
-      <>
-        {showError && (
-          <ErrorPopup
-            message="You need to be an administrator or manager to view this page."
-            onClose={() => setShowError(false)}
-          />
-        )}
-      </>
+      <>{showError && <ErrorPopup message="You need to be an administrator or manager to view this page." onClose={() => setShowError(false)} />}</>
     );
   }
   const debounceTimeChange = debounce((handler, value) => handler(value), 300);
@@ -212,17 +191,13 @@ export const JetSkiReservationForm = () => {
       setStartTime(updatedStartTime);
       updateEndTime(updatedStartTime);
     } else {
-      console.log(
-        'Rent date is not set or invalid time. Please select the rent date first.'
-      );
+      console.log('Rent date is not set or invalid time. Please select the rent date first.');
     }
   };
 
   const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
     setSelectedJetski((prevSelectedJetski) =>
-      isChecked
-        ? [...prevSelectedJetski, jetski]
-        : prevSelectedJetski.filter((j) => j.jetski_id !== jetski.jetski_id)
+      isChecked ? [...prevSelectedJetski, jetski] : prevSelectedJetski.filter((j) => j.jetski_id !== jetski.jetski_id)
     );
   };
 
@@ -238,9 +213,7 @@ export const JetSkiReservationForm = () => {
 
   const onSubmit = async (values: z.infer<typeof JetskiReservationSchema>) => {
     console.log('Form submitted with values:', values);
-    const updatedRentDate = DateTime.fromJSDate(values.rentDate)
-      .plus({ hours: 3 })
-      .toJSDate();
+    const updatedRentDate = DateTime.fromJSDate(values.rentDate).plus({ hours: 3 }).toJSDate();
 
     values.rentDate = updatedRentDate;
     console.log('Updated values with modified rentDate:', values);
@@ -267,11 +240,7 @@ export const JetSkiReservationForm = () => {
   };
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <CardWrapper
-        headerLabel="Add a reservation"
-        backButtonLabel="Go back to dashboard"
-        backButtonHref="/dashboard"
-      >
+      <CardWrapper headerLabel="Add a reservation" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 ">
             <FormField
@@ -284,11 +253,7 @@ export const JetSkiReservationForm = () => {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button variant={'outline'}>
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
+                          {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -301,9 +266,7 @@ export const JetSkiReservationForm = () => {
                           field.onChange(date);
                           if (date) handleRentDateTimeChange(date);
                         }}
-                        disabled={(date) =>
-                          date < new Date(new Date().toDateString())
-                        }
+                        disabled={(date) => date < new Date(new Date().toDateString())}
                       />
                     </PopoverContent>
                   </Popover>
@@ -336,38 +299,21 @@ export const JetSkiReservationForm = () => {
               )}
             />
             <div>
-              <input
-                type="hidden"
-                {...form.register('startTime')}
-                value={startTime instanceof Date ? startTime.toISOString() : ''}
-              />
+              <input type="hidden" {...form.register('startTime')} value={startTime instanceof Date ? startTime.toISOString() : ''} />
               <FormField
                 name="reservation_location_id"
                 render={({ field }) => (
                   <FormItem className="flex justify-between">
-                    <FormLabel className="text-lg font-bold">
-                      Location of reservation:
-                    </FormLabel>
+                    <FormLabel className="text-lg font-bold">Location of reservation:</FormLabel>
                     <FormControl className="w-60 bg-black text-white rounded-sm text-center border-solid p-1">
                       <select
-                        value={
-                          selectedLocation ? selectedLocation.location_id : ''
-                        }
+                        value={selectedLocation ? selectedLocation.location_id : ''}
                         onChange={(event) => {
                           const selectedLocationId = event.target.value;
                           if (availableLocations) {
-                            const selectedLocation = availableLocations.find(
-                              (location) =>
-                                location.location_id.toString() ===
-                                selectedLocationId
-                            );
+                            const selectedLocation = availableLocations.find((location) => location.location_id.toString() === selectedLocationId);
                             setSelectedLocation(selectedLocation);
-                            form.setValue(
-                              'reservation_location_id',
-                              selectedLocationId !== ''
-                                ? Number(selectedLocationId)
-                                : 0
-                            );
+                            form.setValue('reservation_location_id', selectedLocationId !== '' ? Number(selectedLocationId) : 0);
                             console.log(selectedLocationId);
                           }
                         }}
@@ -375,19 +321,12 @@ export const JetSkiReservationForm = () => {
                         <option value="">Select a location!</option>
                         {user && user.role !== 'ADMIN' && user?.location_id ? (
                           <option value={user.location_id}>
-                            {availableLocations &&
-                              availableLocations.find(
-                                (location) =>
-                                  location.location_id === user.location_id
-                              )?.location_name}
+                            {availableLocations && availableLocations.find((location) => location.location_id === user.location_id)?.location_name}
                           </option>
                         ) : (
                           availableLocations &&
                           availableLocations.map((location) => (
-                            <option
-                              key={location.location_id}
-                              value={location.location_id}
-                            >
+                            <option key={location.location_id} value={location.location_id}>
                               {location.location_name}
                             </option>
                           ))
@@ -405,9 +344,7 @@ export const JetSkiReservationForm = () => {
                   value={selectedRentalOption?.rentaloption_id || ''}
                   onChange={(event) => {
                     const selectedId = parseInt(event.target.value);
-                    const selectedOption = rentalOptions?.find(
-                      (option) => option.rentaloption_id === selectedId
-                    );
+                    const selectedOption = rentalOptions?.find((option) => option.rentaloption_id === selectedId);
                     setRentalOption(selectedOption || undefined);
                     form.setValue('rentaloption_id', selectedId);
                   }}
@@ -415,34 +352,18 @@ export const JetSkiReservationForm = () => {
                 >
                   <option value="">Select a rental option!</option>
                   {rentalOptions?.map((option) => (
-                    <option
-                      key={option.rentaloption_id}
-                      value={option.rentaloption_id.toString()}
-                    >
-                      {option.rentaloption_description} - {option.duration}{' '}
-                      minutes - {option.rentalprice} €
+                    <option key={option.rentaloption_id} value={option.rentaloption_id.toString()}>
+                      {option.rentaloption_description} - {option.duration} minutes - {option.rentalprice} €
                     </option>
                   ))}
                 </select>
               </FormControl>
             </div>
-            <input
-              type="hidden"
-              {...form.register('rentaloption_id')}
-              value={selectedRentalOption?.rentaloption_id}
-            />
+            <input type="hidden" {...form.register('rentaloption_id')} value={selectedRentalOption?.rentaloption_id} />
             <div className="flex justify-between">
               <strong>Reservation until:</strong>
-              {endTime instanceof Date && (
-                <span className="bg-black text-white w-40 text-center">
-                  {format(endTime, 'HH:mm')}
-                </span>
-              )}
-              <input
-                type="hidden"
-                {...form.register('endTime')}
-                value={endTime instanceof Date ? endTime.toISOString() : ''}
-              />
+              {endTime instanceof Date && <span className="bg-black text-white w-40 text-center">{format(endTime, 'HH:mm')}</span>}
+              <input type="hidden" {...form.register('endTime')} value={endTime instanceof Date ? endTime.toISOString() : ''} />
             </div>
             <div>
               <strong>Choose jetskis:</strong>
@@ -456,30 +377,18 @@ export const JetSkiReservationForm = () => {
                           fontFamily: 'TimesNewRoman',
                         }}
                       >
-                        <input
-                          type="checkbox"
-                          onChange={(e) =>
-                            handleCheckboxChange(jetski, e.target.checked)
-                          }
-                        />
+                        <input type="checkbox" onChange={(e) => handleCheckboxChange(jetski, e.target.checked)} />
                         {' ' +
                           jetski.jetski_registration +
                           ' - ' +
-                          (availableLocations?.find(
-                            (loc) =>
-                              loc.location_id === jetski.jetski_location_id
-                          )?.location_name || 'No location')}
+                          (availableLocations?.find((loc) => loc.location_id === jetski.jetski_location_id)?.location_name || 'No location')}
                       </label>
                     </div>
                   ))}
                 </div>
               </FormControl>
             </div>
-            <input
-              type="hidden"
-              {...form.register('reservation_jetski_list')}
-              value={JSON.stringify(selectedJetski)}
-            />
+            <input type="hidden" {...form.register('reservation_jetski_list')} value={JSON.stringify(selectedJetski)} />
             <div>
               <FormField
                 control={form.control}
@@ -488,11 +397,7 @@ export const JetSkiReservationForm = () => {
                   <FormItem>
                     <strong>Reservation owner</strong>
                     <FormControl>
-                      <Input
-                        {...field}
-                        disabled={isPending}
-                        placeholder="Owner of reservation"
-                      />
+                      <Input {...field} disabled={isPending} placeholder="Owner of reservation" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -517,26 +422,16 @@ export const JetSkiReservationForm = () => {
                       value={phone}
                       className={error ? 'border-red-500' : ''}
                     />
-                    {error && (
-                      <span className="text-red-500">{error.message}</span>
-                    )}
+                    {error && <span className="text-red-500">{error.message}</span>}
                   </div>
                 )}
               />
             </div>
-            <input
-              type="hidden"
-              {...form.register('contactNumber')}
-              value={phone}
-            />
+            <input type="hidden" {...form.register('contactNumber')} value={phone} />
             <div className="flex justify-between">
               <strong>Discount:</strong>
               <FormControl className="w-20 bg-black text-white rounded-sm text-center border-solid p-1">
-                <select
-                  value={discount}
-                  onChange={(e) => setDiscount(parseInt(e.target.value))}
-                  className="form-control"
-                >
+                <select value={discount} onChange={(e) => setDiscount(parseInt(e.target.value))} className="form-control">
                   {[0, 5, 10, 15, 20].map((value) => (
                     <option key={value} value={value}>
                       {value}%
@@ -545,11 +440,7 @@ export const JetSkiReservationForm = () => {
                 </select>
               </FormControl>
             </div>
-            <input
-              type="hidden"
-              {...form.register('discount')}
-              value={discount}
-            />
+            <input type="hidden" {...form.register('discount')} value={discount} />
             <div className="flex justify-between">
               <strong>Total Price:</strong>
               <span>{(totalPrice * (1 - discount / 100)).toFixed(2)} €</span>

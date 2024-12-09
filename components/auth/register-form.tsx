@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RegisterSchema } from '@/schemas';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/form-error';
