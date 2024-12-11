@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { getAuthenticatedUsers } from "@/data/userData";
+import { getAuthenticatedUsers } from '@/repo/userData';
 
-export const getAuthUsers = async()=>{
-    const users = await getAuthenticatedUsers()
+export const getAuthUsers = async () => {
+  const users = await getAuthenticatedUsers();
 
-    return users;
-}
+  return users;
+};

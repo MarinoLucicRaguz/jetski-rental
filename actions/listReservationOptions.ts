@@ -1,6 +1,6 @@
 'use server';
 
-import { getAllRentalOptionsAsync } from '@/data/rentalOptionData';
+import { getAllRentalOptionsAsync } from '@/repo/rentaloption';
 
 export const getAllRentalOptions = async () => {
   const listReservationOptions = await getAllRentalOptionsAsync();

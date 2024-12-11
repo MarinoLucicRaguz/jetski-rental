@@ -1,9 +1,9 @@
 'use server';
 
-import { getAllLocationsAsync } from '@/data/locationData';
+import { GetLocationAsync } from '@/repo/location';
 
 export const getAllLocations = async () => {
-  const locations = await getAllLocationsAsync();
+  const locations = await GetLocationAsync();
 
   return locations;
 };

@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { getModerators } from "@/data/userData";
+import { GetUsersWithAdditionalRights } from '@/repo/userData';
 
-export const getModUsers = async()=>{
-    const users = await getModerators()
+export const getModUsers = async () => {
+  const users = await GetUsersWithAdditionalRights();
 
-    return users;
-}
+  return users;
+};

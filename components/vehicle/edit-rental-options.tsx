@@ -12,7 +12,7 @@ import { CardWrapper } from '@/components/auth/card-wrapper';
 import { Button } from '../ui/button';
 import { FormError } from '../form-error';
 import { FormSuccess } from '../form-success';
-import { createReservationOption } from '@/actions/createReservationOption';
+import { createReservationOption } from '@/actions/rentaloptionActions/createReservationOption';
 import { RentalOptions } from '@prisma/client';
 import { getRentalOption } from '@/actions/getRentalOption';
 import { editReservationOption } from '@/actions/editReservationOption';

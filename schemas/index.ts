@@ -101,15 +101,15 @@ export const JetskiSchema = z.object({
 });
 
 export const LocationSchema = z.object({
-  location_name: z
+  name: z
     .string()
     .min(1, {
-      message: 'Location name is required!',
+      message: 'Molim vas unesite ime lokacije.',
     })
     .max(30, {
-      message: 'Maximum length is 30 characters!',
+      message: 'Maksimalan broj znakova je 30.',
     }),
-  user_id: z.string().nullable(),
+  managerId: z.string().nullable(),
 });
 
 const toUTC = (date: Date) => DateTime.fromJSDate(date).toUTC().toJSDate();

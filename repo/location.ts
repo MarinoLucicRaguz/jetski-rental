@@ -1,20 +1,19 @@
 import { db } from '@/lib/db';
 
-export const getAllLocationsAsync = async () => {
+export const GetLocationAsync = async () => {
   try {
     const locations = await db.location.findMany();
     return locations;
   } catch (error) {
-    console.log(error);
     return null;
   }
 };
 
-export const getLocationById = async (location_id: number) => {
+export const GetLocationByIdAsync = async (id: number) => {
   try {
     const location = await db.location.findUnique({
       where: {
-        location_id,
+        id,
       },
     });
     return location;
@@ -23,24 +22,24 @@ export const getLocationById = async (location_id: number) => {
   }
 };
 
-export const getLocationNameById = async (location_id: number) => {
+export const GetLocationNameByIdAsync = async (id: number) => {
   try {
     const location = await db.location.findUnique({
       where: {
-        location_id,
+        id,
       },
     });
-    return location?.location_name;
+    return location?.name;
   } catch {
     return null;
   }
 };
 
-export const getLocationByName = async (location_name: string) => {
+export const GetLocationByNameAsync = async (name: string) => {
   try {
     const location = await db.location.findUnique({
       where: {
-        location_name,
+        name,
       },
     });
     return location;

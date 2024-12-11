@@ -9,7 +9,7 @@ import { getAllLocations } from '@/actions/getAllLocations';
 import { Menu, MenuItem } from '@mui/material';
 import Spinner from '../ui/spinner';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { deleteJetski } from '@/actions/deleteJetski';
+import { deleteJetski } from '@/actions/vehicleActions/deleteJetski';
 import { getCurrentlyRunningJetskis } from '@/actions/getCurrentlyRunningJetkis';
 
 function convertStatusToText(currentStatus: JetskiStatus) {

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, useTransition } from 'react';
 import { editLocation } from '@/actions/editLocation';
-import { pullLocationById } from '@/actions/getLocation';
+import { GetLocationById } from '@/actions/locationActions/getLocation';
 import { LocationSchema } from '@/schemas';
 import { Input } from '../atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -46,7 +46,7 @@ export const EditLocationForm = ({ locationId }: { locationId: number }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [pulledLocationData, users] = await Promise.all([pullLocationById(locationId), getModUsers()]);
+        const [pulledLocationData, users] = await Promise.all([GetLocationById(locationId), getModUsers()]);
         setLocationData(pulledLocationData);
         if (users) {
           setUsers(users);

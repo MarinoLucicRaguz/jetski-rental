@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { getRentalOptionById } from "@/data/rentalOptionData";
+import { GetRentalOptionByIdAsync } from '@/repo/rentaloption';
 
-export const getRentalOption = async(rentalOptionId: number)=>{
-    const rentalOption = await getRentalOptionById(rentalOptionId)
+export const getRentalOption = async (rentalOptionId: number) => {
+  const rentalOption = await GetRentalOptionByIdAsync(rentalOptionId);
 
-    return rentalOption
-}
+  return rentalOption;
+};

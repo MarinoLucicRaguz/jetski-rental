@@ -8,16 +8,12 @@ import { Button } from '../ui/button';
 interface CardWrapperProps {
   children: React.ReactNode;
   headerLabel: string;
-  backButtonLabel?: string;
-  backButtonHref?: string;
   className?: string;
 }
 
 export const CardWrapper = ({
   children,
   headerLabel,
-  backButtonLabel,
-  backButtonHref,
   className = 'shadow-md xs:w-[350px] sm:w-[600px] md:w-[800px] lg:w-[1400px]',
 }: CardWrapperProps) => {
   const router = useRouter();

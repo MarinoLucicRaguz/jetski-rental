@@ -1,10 +1,9 @@
-"use server";
+'use server';
 
-import { getUserByEmail } from "@/data/userData";
+import { getUserByEmail } from '@/repo/userData';
 
+export const actionGetUserByEmail = async (email: string) => {
+  const user = await getUserByEmail(email);
 
-export const actionGetUserByEmail = async(email: string)=>{
-    const user = await getUserByEmail(email)
-
-    return user;
-}
+  return user;
+};

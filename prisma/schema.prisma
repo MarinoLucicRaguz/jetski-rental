@@ -9,14 +9,19 @@ datasource db {
 }
 
 model Location {
-  location_id          Int           @id @default(autoincrement())
-  location_name        String        @unique
-  location_manager_id  String?       @unique
-  isActive             Boolean?      @default(true)
-  jetski_location_list Jetski[]
-  location_manager     User?         @relation("ManagedLocation", fields: [location_manager_id], references: [user_id])
-  reservations_list    Reservation[]
-  user_location_list   User[]        @relation("UserLocation")
+  id            Int           @id @default(autoincrement()) @map("location_id")
+  name          String        @unique @map("location_name")
+  managerId     String?       @unique @map("location_manager_id")
+  isActive      Boolean?      @default(true)
+  address       String?
+  city          String?
+  state         String?
+  country       String?
+  zipCode       String?
+  jetskis       Jetski[]
+  manager       User?         @relation("ManagedLocation", fields: [managerId], references: [user_id])
+  reservations  Reservation[]
+  users         User[]        @relation("UserLocation")
 }
 
 model User {
@@ -29,7 +34,7 @@ model User {
   user_role        UserRole   @default(GUEST)
   user_location_id Int?
   managed_location Location?  @relation("ManagedLocation")
-  user_location    Location?  @relation("UserLocation", fields: [user_location_id], references: [location_id])
+  user_location    Location?  @relation("UserLocation", fields: [user_location_id], references: [id])
 }
 
 model Jetski {
@@ -44,7 +49,7 @@ model Jetski {
   fuelConsumption   Decimal?
   status            JetskiStatus  @default(AVAILABLE)
   locationId        Int?
-  location          Location?     @relation(fields: [locationId], references: [location_id])
+  location          Location?     @relation(fields: [locationId], references: [id])
   reservations      Reservation[] @relation("JetskiToReservation")
 }
 
@@ -61,7 +66,7 @@ model Reservation {
   hasItFinished           Boolean? @default(false)
   rentaloption_id         Int      @default(0)
   reservation_location_id Int
-  reservation_location    Location @relation(fields: [reservation_location_id], references: [location_id])
+  reservation_location    Location @relation(fields: [reservation_location_id], references: [id])
   reservation_jetski_list Jetski[] @relation("JetskiToReservation")
 }
 

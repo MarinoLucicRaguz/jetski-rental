@@ -1,10 +1,9 @@
-"use server";
+'use server';
 
-import { getAllRentalOptionsThatAreAvailable } from "@/data/rentalOptionData";
+import { getAllRentalOptionsThatAreAvailable } from '@/repo/rentaloption';
 
+export const getAvailableReservationOptions = async () => {
+  const listReservationOptions = await getAllRentalOptionsThatAreAvailable();
 
-export const getAvailableReservationOptions = async()=>{
-    const listReservationOptions = await getAllRentalOptionsThatAreAvailable()
-
-    return listReservationOptions
-}
+  return listReservationOptions;
+};

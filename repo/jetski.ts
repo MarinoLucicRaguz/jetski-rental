@@ -1,18 +1,18 @@
 import { db } from '@/lib/db';
 
-export const getJetskiById = async (jetski_id: number) => {
+export const GetJetskiByIdAsync = async (id: number) => {
   try {
-    const jetSki = await db.jetski.findUnique({ where: { jetski_id } });
+    const jetSki = await db.jetski.findUnique({ where: { id } });
     return jetSki;
   } catch {
     return null;
   }
 };
 
-export const getJetskiByLocationIdAsync = async (locationId: number) => {
+export const GetJetskiByLocationIdAsync = async (locationId: number) => {
   try {
     const jetSki = await db.jetski.findMany({
-      where: { jetski_location_id: locationId },
+      where: { locationId },
     });
     return jetSki;
   } catch {
@@ -20,7 +20,7 @@ export const getJetskiByLocationIdAsync = async (locationId: number) => {
   }
 };
 
-export const GetJetskiByRegistration = async (registration: string) => {
+export const GetJetskiByRegistrationAsync = async (registration: string) => {
   try {
     const jetSki = await db.jetski.findUnique({
       where: {
@@ -33,13 +33,11 @@ export const GetJetskiByRegistration = async (registration: string) => {
   }
 };
 
-export const getAllJetskisAsync = async () => {
+export const GetAllJetskisAsync = async () => {
   try {
     const jetskis = await db.jetski.findMany();
-
     return jetskis;
   } catch (error) {
-    console.log(error);
     return null;
   }
 };

@@ -1,8 +1,8 @@
-"use server";
-import { checkWhichJetskisAreCurrentlyRunning } from "@/data/reservationData";
+'use server';
+import { checkWhichJetskisAreCurrentlyRunning } from '@/repo/reservationData';
 
-export const getCurrentlyRunningJetskis = async()=>{
-    const jetskis = await checkWhichJetskisAreCurrentlyRunning();
+export const getCurrentlyRunningJetskis = async () => {
+  const jetskis = await checkWhichJetskisAreCurrentlyRunning();
 
-    return jetskis;
-}
+  return jetskis;
+};

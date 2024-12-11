@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getAllRentalOptions } from '@/actions/listReservationOptions';
-import { deleteRentalOption } from '@/actions/deleteRentalOption';
+import { deleteRentalOption } from '@/actions/rentaloptionActions/deleteRentalOption';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { Button } from '../ui/button';
 import { useRouter } from 'next/navigation';

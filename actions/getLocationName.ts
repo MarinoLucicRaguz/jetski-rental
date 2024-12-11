@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { getLocationNameById } from "@/data/locationData";
+import { GetLocationNameByIdAsync } from '@/repo/location';
 
-export const getLocationName = async(locationId: number)=>{
-    const location_name = await getLocationNameById(locationId);
+export const getLocationName = async (locationId: number) => {
+  const location_name = await GetLocationNameByIdAsync(locationId);
 
-    return location_name;
-}
+  return location_name;
+};

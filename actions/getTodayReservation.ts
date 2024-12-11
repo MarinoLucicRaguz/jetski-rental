@@ -1,9 +1,9 @@
-"use server";
+'use server';
 
-import { fetchTodayReservation } from "@/data/reservationData";
+import { fetchTodayReservation } from '@/repo/reservationData';
 
-export const getTodayReservationData = async() =>{
-    const reservationData = await fetchTodayReservation()
+export const getTodayReservationData = async () => {
+  const reservationData = await fetchTodayReservation();
 
-    return reservationData;
-}
+  return reservationData;
+};

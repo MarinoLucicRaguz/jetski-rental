@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { getAllLocations } from '@/actions/getAllLocations';
-import { deleteLocation } from '@/actions/deleteLocation';
+import { deleteLocation } from '@/actions/locationActions/deleteLocation';
 import { Location, Jetski, User } from '@prisma/client';
 import { CardWrapper } from '../auth/card-wrapper';
 import { useRouter } from 'next/navigation';

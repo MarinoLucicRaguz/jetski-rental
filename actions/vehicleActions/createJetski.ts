@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import * as z from 'zod';
 
 import { JetskiSchema } from '@/schemas';
-import { GetJetskiByRegistration } from '@/data/jetskiData';
+import { GetJetskiByRegistrationAsync } from '@/repo/jetski';
 
 export const createJetski = async (values: z.infer<typeof JetskiSchema>) => {
   const validatedFields = JetskiSchema.safeParse(values);
@@ -14,7 +14,7 @@ export const createJetski = async (values: z.infer<typeof JetskiSchema>) => {
 
   const { registration, locationId, topSpeed, manufacturingYear, model } = validatedFields.data;
 
-  const existingJetski = await GetJetskiByRegistration(registration);
+  const existingJetski = await GetJetskiByRegistrationAsync(registration);
 
   if (existingJetski) {
     return { error: 'Jetski s tom registracijom već postoji.', success: undefined };

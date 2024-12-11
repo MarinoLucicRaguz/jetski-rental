@@ -1,10 +1,9 @@
-"use server";
+'use server';
 
-import { getReservationByLocationForToday } from "@/data/reservationData";
+import { getReservationByLocationForToday } from '@/repo/reservationData';
 
+export const getTodayReservationByLocation = async (location_id: number) => {
+  const reservationData = await getReservationByLocationForToday(location_id);
 
-export const getTodayReservationByLocation = async( location_id: number)=>{
-    const reservationData = await getReservationByLocationForToday(location_id)
-
-    return reservationData;
-}
+  return reservationData;
+};

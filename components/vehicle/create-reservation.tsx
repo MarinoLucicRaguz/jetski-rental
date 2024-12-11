@@ -14,7 +14,7 @@ import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { Jetski, Location, RentalOptions } from '@prisma/client';
-import { createReservation } from '@/actions/createReservation';
+import { createReservation } from '@/actions/reservationActions/createReservation';
 import { listAvailableJetskis } from '@/actions/listAvailableJetskis';
 import { getAllLocations } from '@/actions/getAllLocations';
 import { FormError } from '../form-error';

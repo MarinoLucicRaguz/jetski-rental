@@ -11,7 +11,7 @@ import { CardWrapper } from '@/components/auth/card-wrapper';
 import { Button } from '../../ui/button';
 import { FormError } from '../../form-error';
 import { FormSuccess } from '../../form-success';
-import { createJetski } from '@/actions/createJetski';
+import { createJetski } from '@/actions/vehicleActions/createJetski';
 import { getAllLocations } from '@/actions/getAllLocations';
 import { Location } from '@prisma/client';
 import { Select } from '@/components/atoms/select';
@@ -52,26 +52,19 @@ export const VehicleForm = () => {
     setError('');
     setSuccess('');
 
-    try {
-      const data = await createJetski(values);
-      console.log(data);
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setSuccess(data.success);
-      }
-    } catch (error) {
-      console.error('Error creating jetski:', error);
-    }
+    startTransition(() => {
+      createJetski(values).then((data) => {
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setSuccess(data.success);
+        }
+      });
+    });
   };
 
   return (
-    <CardWrapper
-      className="shadow-md xs:w-[350px] sm:w-[500px]"
-      headerLabel="Dodaj plovilo"
-      backButtonLabel="Go back to dashboard"
-      backButtonHref="/dashboard"
-    >
+    <CardWrapper className="shadow-md xs:w-[350px] sm:w-[500px]" headerLabel="Dodaj plovilo">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
@@ -98,11 +91,13 @@ export const VehicleForm = () => {
                 <FormControl className="w-full rounded-md border border-input bg-transparent p-2 text-sm shadow-sm">
                   <Select
                     {...field}
+                    allowUndefined={false}
                     value={Number(field.value)}
+                    disabled={isPending}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     options={locations.map((location) => ({
-                      id: location.location_id,
-                      label: location.location_name,
+                      id: location.id,
+                      label: location.name,
                     }))}
                   />
                 </FormControl>

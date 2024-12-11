@@ -29,7 +29,7 @@ export const getAllRentalOptionsThatAreAvailable = async () => {
   }
 };
 
-export const getRentalOptionById = async (id: number) => {
+export const GetRentalOptionByIdAsync = async (id: number) => {
   try {
     const rentalOption = await db.rentalOptions.findUnique({
       where: {
