@@ -54,7 +54,7 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
     const availableJetskis = await db.jetski.findMany({
       where: {
         NOT: {
-          jetski_reservations: {
+          reservations: {
             some: {
               OR: [
                 {
@@ -73,10 +73,10 @@ export const getAvailableJetskis = async (startTime: Date, endTime: Date) => {
             },
           },
         },
-        jetski_status: 'AVAILABLE',
+        status: 'AVAILABLE',
       },
       orderBy: {
-        jetski_id: 'asc',
+        id: 'asc',
       },
     });
 

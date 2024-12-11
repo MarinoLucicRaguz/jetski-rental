@@ -70,17 +70,17 @@ model Reservation {
   reservation_jetski_list Jetski[] @relation("JetskiToReservation")
 }
 
-model RentalOptions {
-  rentaloption_id          Int     @id @default(autoincrement())
-  rentaloption_description String
-  duration                 Int
-  rentalprice              Float
-  isAvailable              Boolean @default(true)
+model RentalOption {
+  id                Int     @id @default(autoincrement())
+  description       RentalOptionType
+  duration          Int
+  price             Float
+  status            Boolean @default(true)
 }
 
 enum RentalOptionType {
-  SAFARI
   REGULAR_TOUR
+  SAFARI
 }
 
 enum JetskiStatus {

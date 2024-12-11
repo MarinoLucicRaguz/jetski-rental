@@ -1,7 +1,8 @@
 import * as z from 'zod';
 import parsePhoneNumberFromString from 'libphonenumber-js';
-import { UserRole, UserStatus } from '@prisma/client';
+import { RentalOptionType, UserRole, UserStatus } from '@prisma/client';
 import { DateTime } from 'luxon';
+import { Description } from '@radix-ui/react-dialog';
 
 const zPhone = z.string().refine(
   (value) => {
@@ -154,17 +155,11 @@ export const EditReservationSchema = z.object({
 });
 
 export const ReservationOptionSchema = z.object({
-  rentaloption_description: z.string().min(3, {
-    message: 'Please provide a small description.',
+  description: z.nativeEnum(RentalOptionType),
+  duration: z.coerce.number({ message: 'Molim vas unesite broj za duljinu trajanja.' }).int().gt(0, {
+    message: 'Duljina trajanja mora biti veća od 0 minuta.',
   }),
-  duration: z.string(),
-  rentalprice: z.string().refine(
-    (value) => {
-      const regex = /^\d{1,3}(,\d{3})*(\.\d+)?\s(?:€|\$|£|HRK)$/;
-      return regex.test(value);
-    },
-    {
-      message: 'Rental price must be a valid numeric amount followed by a space and currency symbol (€, $, £, or HRK).',
-    }
-  ),
+  price: z.coerce.number({ message: 'Molim vas unesite samo broj za cijenu (€).' }).int().gt(0, {
+    message: 'Cijena mora biti veća od 0 €',
+  }),
 });

@@ -88,10 +88,7 @@ export const LocationForm = () => {
                       allowUndefined={true}
                       undefinedText="Nema upravitelja"
                       className="w-full border border-gray-300 rounded-sm"
-                      onChange={(e) => {
-                        console.log(e.target.value);
-                        field.onChange(e.target.value);
-                      }}
+                      onChange={(e) => field.onChange(e.target.value)}
                       options={managers.map((manager) => ({
                         id: manager.user_id,
                         label: manager.name ?? '',

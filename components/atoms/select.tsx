@@ -12,9 +12,9 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ className, options, value, allowUndefined, undefinedText, ...props }, ref) => {
   return (
     <div>
-      <select className={cn(className)} ref={ref} {...props} value={value}>
+      <select className={cn(className)} ref={ref} {...props} value={value ?? (allowUndefined ? undefined : 0)}>
         {!allowUndefined ? (
-          <option disabled hidden value={0}>
+          <option value={0} hidden>
             Odaberite opciju
           </option>
         ) : (

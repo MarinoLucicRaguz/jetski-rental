@@ -1,10 +1,10 @@
 import { db } from '@/lib/db';
 
-const orderByOptions = [{ rentaloption_description: 'asc' as const }, { duration: 'asc' as const }];
+const orderByOptions = [{ description: 'asc' as const }, { duration: 'asc' as const }];
 
-export const getAllRentalOptionsAsync = async () => {
+export const GetAllRentalOptionsAsync = async () => {
   try {
-    const allRentalOptions = await db.rentalOptions.findMany({
+    const allRentalOptions = await db.rentalOption.findMany({
       orderBy: orderByOptions,
     });
     return allRentalOptions;
@@ -14,11 +14,11 @@ export const getAllRentalOptionsAsync = async () => {
   }
 };
 
-export const getAllRentalOptionsThatAreAvailable = async () => {
+export const GetActiveRentalOptionsAsync = async () => {
   try {
-    const allRentalOptions = await db.rentalOptions.findMany({
+    const allRentalOptions = await db.rentalOption.findMany({
       where: {
-        isAvailable: true,
+        status: true,
       },
       orderBy: orderByOptions,
     });
@@ -31,9 +31,9 @@ export const getAllRentalOptionsThatAreAvailable = async () => {
 
 export const GetRentalOptionByIdAsync = async (id: number) => {
   try {
-    const rentalOption = await db.rentalOptions.findUnique({
+    const rentalOption = await db.rentalOption.findUnique({
       where: {
-        rentaloption_id: id,
+        id,
       },
     });
     return rentalOption;
@@ -43,14 +43,14 @@ export const GetRentalOptionByIdAsync = async (id: number) => {
   }
 };
 
-export const disableRentalOption = async (id: number) => {
+export const DisableRentalOptionAsync = async (id: number) => {
   try {
-    const rentalOption = await db.rentalOptions.update({
+    const rentalOption = await db.rentalOption.update({
       where: {
-        rentaloption_id: id,
+        id,
       },
       data: {
-        isAvailable: false,
+        status: false,
       },
     });
     return rentalOption;
@@ -60,29 +60,16 @@ export const disableRentalOption = async (id: number) => {
   }
 };
 
-export const getRentalOptionByDuration = async (duration: number) => {
+export const GetRentalOptionByDurationAsync = async (duration: number) => {
   try {
-    const rentalOptions = await db.rentalOptions.findMany({
+    const rentalOptions = await db.rentalOption.findMany({
       where: {
         duration,
       },
       orderBy: orderByOptions,
     });
+    console.log(rentalOptions);
     return rentalOptions;
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-};
-
-export const doesDurationExist = async (duration: number) => {
-  try {
-    const doesItExist = await db.rentalOptions.findMany({
-      where: {
-        duration,
-      },
-    });
-    return doesItExist.length > 0;
   } catch (error) {
     console.log(error);
     return null;

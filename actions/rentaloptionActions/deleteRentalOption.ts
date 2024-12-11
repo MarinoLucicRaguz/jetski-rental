@@ -4,29 +4,20 @@ import { GetRentalOptionByIdAsync } from '@/repo/rentaloption';
 import { findReservationUsingRentalOption } from '@/repo/reservationData';
 import { db } from '@/lib/db';
 
-export const deleteRentalOption = async (rentalOptionId: number) => {
-  const existingRentalOption = await GetRentalOptionByIdAsync(rentalOptionId);
+export const deleteRentalOption = async (id: number) => {
+  const [existingRentalOption, reservationUsingOption] = await Promise.all([GetRentalOptionByIdAsync(id), findReservationUsingRentalOption(id)]);
 
-  const reservationWhereItIsUsed = await findReservationUsingRentalOption(rentalOptionId);
-
-  if (reservationWhereItIsUsed) {
-    return { error: 'This rental option is currently used. Please first remove it from all reservations first.' };
-  }
-
-  if (!existingRentalOption) {
-    return { error: 'Rental option with this ID does not exist!' };
-  }
+  if (!existingRentalOption) return { error: 'Pogreška prilikom deaktivacije. Molimo vas osvježite stranicu.' };
+  if (reservationUsingOption)
+    return { error: 'Ova opcija najma se koristi u rezervacijama. Molimo vas da je prvo uklonite iz preostalih rezervacija.' };
 
   try {
-    const updatedIsAvailable = !existingRentalOption.isAvailable;
-
-    await db.rentalOptions.update({
-      where: { rentaloption_id: rentalOptionId },
-      data: { isAvailable: updatedIsAvailable },
+    await db.rentalOption.update({
+      where: { id },
+      data: { status: !existingRentalOption.status },
     });
-
-    return { success: 'Rental option has been deleted successfully!' };
-  } catch (error) {
-    return { error: 'Failed to delete rental option!' };
+    return { success: 'Uspješno ste deaktivirali opciju najma.' };
+  } catch {
+    return { error: 'Pogreška prilikom deaktivacije.' };
   }
 };

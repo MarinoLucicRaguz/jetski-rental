@@ -67,7 +67,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
       where: {
         reservation_jetski_list: {
           some: {
-            jetski_id: jetski.jetski_id,
+            id: jetski.jetski_id,
           },
         },
         NOT: [{ endTime: { lte: newStartTime } }, { startTime: { gte: endTime } }],
