@@ -37,13 +37,13 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
   const now = DateTime.now();
   const endDateTime = DateTime.fromJSDate(new Date(endTime));
 
-  const rentalOption = await db.rentalOptions.findUnique({ where: { rentaloption_id } });
+  const rentalOption = await db.rentalOption.findUnique({ where: { id: rentaloption_id } });
 
-  if (rentalOption?.rentaloption_description === 'SAFARI' && reservation_jetski_list.length < 2) {
+  if (rentalOption?.description === 'SAFARI' && reservation_jetski_list.length < 2) {
     return { error: 'Safari tour needs minimum two jetskis. One for guide and one for the guest.' };
   }
 
-  if (rentalOption?.rentaloption_description === 'REGULAR' && reservation_jetski_list.length < 1) {
+  if (rentalOption?.description === 'REGULAR_TOUR' && reservation_jetski_list.length < 1) {
     return { error: 'Regular tour needs minimum one jetski.' };
   }
 
@@ -56,7 +56,7 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
   }
 
   const locationExists = await db.location.findUnique({
-    where: { location_id: reservation_location_id },
+    where: { id: reservation_location_id },
   });
   if (!locationExists) {
     return { error: 'The specified location does not exist.' };
@@ -91,10 +91,10 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
         totalPrice,
         discount,
         reservation_location: {
-          connect: { location_id: reservation_location_id },
+          connect: { id: reservation_location_id },
         },
         reservation_jetski_list: {
-          connect: reservation_jetski_list.map((jetski) => ({ jetski_id: jetski.jetski_id })),
+          connect: reservation_jetski_list.map((jetski) => ({ jetski_id: jetski.id })),
         },
         rentaloption_id,
       },

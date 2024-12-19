@@ -13,7 +13,7 @@ import { format, add } from 'date-fns';
 import { Calendar } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { Jetski, Location, RentalOptions } from '@prisma/client';
+import { Jetski, Location, RentalOption } from '@prisma/client';
 import { createReservation } from '@/actions/reservationActions/createReservation';
 import { listAvailableJetskis } from '@/actions/listAvailableJetskis';
 import { getAllLocations } from '@/actions/getAllLocations';
@@ -35,8 +35,8 @@ export const JetSkiReservationForm = () => {
   const [error, setError] = useState<string | undefined>('');
   const [success, setSuccess] = useState<string | undefined>('');
   const [isPending, startTransition] = useTransition();
-  const [rentalOptions, setRentalOptions] = useState<RentalOptions[] | null>([]);
-  const [selectedRentalOption, setRentalOption] = useState<RentalOptions>();
+  const [rentalOptions, setRentalOptions] = useState<RentalOption[] | null>([]);
+  const [selectedRentalOption, setRentalOption] = useState<RentalOption>();
 
   const [phone, setPhone] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -63,11 +63,11 @@ export const JetSkiReservationForm = () => {
       rentDate: rentDate,
       startTime: startTime,
       endTime: endTime,
-      reservation_location_id: selectedLocation?.location_id,
+      reservation_location_id: selectedLocation?.id,
       reservation_jetski_list: selectedJetski,
       contactNumber: phone,
       totalPrice: totalPrice,
-      rentaloption_id: selectedRentalOption?.rentaloption_id,
+      rentaloption_id: selectedRentalOption?.id,
       discount: discount,
     },
   });
@@ -134,14 +134,14 @@ export const JetSkiReservationForm = () => {
   }, [discount]);
 
   useEffect(() => {
-    let jetskiAmplifier = selectedRentalOption?.rentaloption_description === 'SAFARI' ? selectedJetski.length - 1 : selectedJetski.length;
+    let jetskiAmplifier = selectedRentalOption?.description === 'SAFARI' ? selectedJetski.length - 1 : selectedJetski.length;
 
     if (jetskiAmplifier <= 0) {
       jetskiAmplifier = 1;
     }
 
     if (selectedRentalOption) {
-      const basePrice = selectedRentalOption.rentalprice * jetskiAmplifier;
+      const basePrice = selectedRentalOption.price * jetskiAmplifier;
       setTotalPrice(basePrice);
       form.setValue('totalPrice', basePrice);
     }
@@ -196,9 +196,7 @@ export const JetSkiReservationForm = () => {
   };
 
   const handleCheckboxChange = (jetski: Jetski, isChecked: boolean) => {
-    setSelectedJetski((prevSelectedJetski) =>
-      isChecked ? [...prevSelectedJetski, jetski] : prevSelectedJetski.filter((j) => j.jetski_id !== jetski.jetski_id)
-    );
+    setSelectedJetski((prevSelectedJetski) => (isChecked ? [...prevSelectedJetski, jetski] : prevSelectedJetski.filter((j) => j.id !== jetski.id)));
   };
 
   const updateEndTime = (startDateTime: Date) => {
@@ -240,7 +238,7 @@ export const JetSkiReservationForm = () => {
   };
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <CardWrapper headerLabel="Add a reservation" backButtonLabel="Go back to dashboard" backButtonHref="/dashboard">
+      <CardWrapper headerLabel="Add a reservation">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 ">
             <FormField
@@ -307,11 +305,11 @@ export const JetSkiReservationForm = () => {
                     <FormLabel className="text-lg font-bold">Location of reservation:</FormLabel>
                     <FormControl className="w-60 bg-black text-white rounded-sm text-center border-solid p-1">
                       <select
-                        value={selectedLocation ? selectedLocation.location_id : ''}
+                        value={selectedLocation ? selectedLocation.id : ''}
                         onChange={(event) => {
                           const selectedLocationId = event.target.value;
                           if (availableLocations) {
-                            const selectedLocation = availableLocations.find((location) => location.location_id.toString() === selectedLocationId);
+                            const selectedLocation = availableLocations.find((location) => location.id.toString() === selectedLocationId);
                             setSelectedLocation(selectedLocation);
                             form.setValue('reservation_location_id', selectedLocationId !== '' ? Number(selectedLocationId) : 0);
                             console.log(selectedLocationId);
@@ -321,13 +319,13 @@ export const JetSkiReservationForm = () => {
                         <option value="">Select a location!</option>
                         {user && user.role !== 'ADMIN' && user?.location_id ? (
                           <option value={user.location_id}>
-                            {availableLocations && availableLocations.find((location) => location.location_id === user.location_id)?.location_name}
+                            {availableLocations && availableLocations.find((location) => location.id === user.location_id)?.name}
                           </option>
                         ) : (
                           availableLocations &&
                           availableLocations.map((location) => (
-                            <option key={location.location_id} value={location.location_id}>
-                              {location.location_name}
+                            <option key={location.id} value={location.id}>
+                              {location.name}
                             </option>
                           ))
                         )}
@@ -341,10 +339,10 @@ export const JetSkiReservationForm = () => {
               <strong>Rental option: </strong>
               <FormControl className="w-80 bg-black text-white rounded-sm text-center border-solid p-1">
                 <select
-                  value={selectedRentalOption?.rentaloption_id || ''}
+                  value={selectedRentalOption?.id || ''}
                   onChange={(event) => {
                     const selectedId = parseInt(event.target.value);
-                    const selectedOption = rentalOptions?.find((option) => option.rentaloption_id === selectedId);
+                    const selectedOption = rentalOptions?.find((option) => option.id === selectedId);
                     setRentalOption(selectedOption || undefined);
                     form.setValue('rentaloption_id', selectedId);
                   }}
@@ -352,14 +350,14 @@ export const JetSkiReservationForm = () => {
                 >
                   <option value="">Select a rental option!</option>
                   {rentalOptions?.map((option) => (
-                    <option key={option.rentaloption_id} value={option.rentaloption_id.toString()}>
-                      {option.rentaloption_description} - {option.duration} minutes - {option.rentalprice} €
+                    <option key={option.id} value={option.id.toString()}>
+                      {option.description} - {option.duration} minutes - {option.price} €
                     </option>
                   ))}
                 </select>
               </FormControl>
             </div>
-            <input type="hidden" {...form.register('rentaloption_id')} value={selectedRentalOption?.rentaloption_id} />
+            <input type="hidden" {...form.register('rentaloption_id')} value={selectedRentalOption?.id} />
             <div className="flex justify-between">
               <strong>Reservation until:</strong>
               {endTime instanceof Date && <span className="bg-black text-white w-40 text-center">{format(endTime, 'HH:mm')}</span>}
@@ -370,7 +368,7 @@ export const JetSkiReservationForm = () => {
               <FormControl className="rounded-sm border-solid p-1 flex-col justify-between">
                 <div>
                   {availableJetskis.map((jetski) => (
-                    <div key={jetski.jetski_id} className="block">
+                    <div key={jetski.id} className="block">
                       <label
                         style={{
                           fontWeight: 'bold',
@@ -378,10 +376,7 @@ export const JetSkiReservationForm = () => {
                         }}
                       >
                         <input type="checkbox" onChange={(e) => handleCheckboxChange(jetski, e.target.checked)} />
-                        {' ' +
-                          jetski.jetski_registration +
-                          ' - ' +
-                          (availableLocations?.find((loc) => loc.location_id === jetski.jetski_location_id)?.location_name || 'No location')}
+                        {' ' + jetski.registration + ' - ' + (availableLocations?.find((loc) => loc.id === jetski.locationId)?.name || 'No location')}
                       </label>
                     </div>
                   ))}
