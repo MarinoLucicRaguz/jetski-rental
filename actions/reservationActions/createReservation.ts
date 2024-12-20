@@ -16,12 +16,12 @@ export const createReservation = async (values: z.infer<typeof JetskiReservation
     rentDate,
     startTime,
     endTime,
-    reservation_jetski_list,
-    reservation_location_id,
-    reservationOwner,
+    jetskis: reservation_jetski_list,
+    locationId: reservation_location_id,
+    ownerName: reservationOwner,
     contactNumber,
     totalPrice,
-    rentaloption_id,
+    rentalOptionId: rentaloption_id,
     discount,
   } = validatedFields.data;
 

@@ -10,8 +10,8 @@ import { getUsers } from '@/actions/getUsers';
 import { FormError } from '../form-error';
 import { FormSuccess } from '../form-success';
 import { deleteUser } from '@/actions/deleteUser';
-import { Button } from '../ui/button';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { Button } from '../atoms/button';
+import { GetLocations } from '@/actions/getAllLocations';
 
 const convertUserRole = (userRole: UserRole): string => {
   switch (userRole) {
@@ -48,7 +48,7 @@ const AdminDashboard = () => {
         if (users) {
           setUsers(users);
         }
-        const locations = await getAllLocations();
+        const locations = await GetLocations();
         setLocations(locations);
       } catch (error) {
         setError('Error while fetching users.');

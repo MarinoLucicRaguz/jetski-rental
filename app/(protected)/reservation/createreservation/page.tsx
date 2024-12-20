@@ -1,4 +1,4 @@
-import { JetSkiReservationForm } from '@/components/vehicle/create-reservation';
+import { JetSkiReservationForm } from '@/components/page-components/reservations/create-reservation';
 
 const JetSkiReservation = () => {
   return <JetSkiReservationForm />;

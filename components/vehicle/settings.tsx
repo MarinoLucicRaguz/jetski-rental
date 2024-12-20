@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useCurrentUser } from "@/hooks/use-current-user";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { updateUserDetails } from "@/actions/updateUser";
-import { CardWrapper } from "../auth/card-wrapper";
-import { FormError } from "../form-error";
-import { FormSuccess } from "../form-success";
-import { TextField } from "@mui/material";
+import { useEffect, useState } from 'react';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/atoms/button';
+import { updateUserDetails } from '@/actions/updateUser';
+import { CardWrapper } from '../auth/card-wrapper';
+import { FormError } from '../form-error';
+import { FormSuccess } from '../form-success';
+import { TextField } from '@mui/material';
 import 'react-international-phone/style.css';
-import { PhoneInput } from "react-international-phone";
-import { actionGetUserByEmail } from "@/actions/getUserByEmail";
+import { PhoneInput } from 'react-international-phone';
+import { actionGetUserByEmail } from '@/actions/getUserByEmail';
 
 const SettingsPage = () => {
   const user = useCurrentUser();
-  const [name, setName] = useState(user?.name || "");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [name, setName] = useState(user?.name || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -36,7 +36,7 @@ const SettingsPage = () => {
           }
         }
       } catch (error) {
-        console.error("Error fetching user details:", error);
+        console.error('Error fetching user details:', error);
       }
     };
 
@@ -45,12 +45,12 @@ const SettingsPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
 
     try {
       if (!user?.email) {
-        throw new Error("User email not found");
+        throw new Error('User email not found');
       }
 
       const updateData: any = {
@@ -70,10 +70,10 @@ const SettingsPage = () => {
         throw new Error(response.error);
       }
 
-      setSuccess("Details updated successfully.");
+      setSuccess('Details updated successfully.');
       router.refresh();
     } catch (err) {
-      setError("Failed to update details: " +  err);
+      setError('Failed to update details: ' + err);
     }
   };
 
@@ -82,14 +82,7 @@ const SettingsPage = () => {
       <div>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <TextField
-              label="Name"
-              variant="outlined"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              fullWidth
-              required
-            />
+            <TextField label="Name" variant="outlined" value={name} onChange={(e) => setName(e.target.value)} fullWidth required />
           </div>
           <div className="mb-4">
             <PhoneInput
@@ -99,7 +92,7 @@ const SettingsPage = () => {
                 setPhone(value);
               }}
               value={phone}
-              className={error ? "border-red-500" : ""}
+              className={error ? 'border-red-500' : ''}
             />
           </div>
           <div className="mb-4">

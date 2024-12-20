@@ -2,10 +2,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { GetAllJetskis } from '@/actions/listJetskis';
 import { Jetski, Location, JetskiStatus } from '@prisma/client';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import { useRouter } from 'next/navigation';
 import { updateJetskiStatus } from '@/actions/updateJetskiStatus';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetLocations } from '@/actions/getAllLocations';
 import { Menu, MenuItem } from '@mui/material';
 import Spinner from '../ui/spinner';
 import { useCurrentUser } from '@/hooks/use-current-user';
@@ -53,7 +53,7 @@ export const ListJetski = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const locations = await getAllLocations();
+        const locations = await GetLocations();
         setLocationNames(locations);
       } catch (error) {
         setError('Error fetching locations');

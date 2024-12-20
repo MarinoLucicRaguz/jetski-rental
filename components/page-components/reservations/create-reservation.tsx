@@ -3,33 +3,31 @@
 import * as z from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
 import { useEffect, useState, useTransition } from 'react';
 import { JetskiReservationSchema } from '@/schemas';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
-import { Button } from '../ui/button';
+import { Button } from '../../atoms/button';
 import { format, add } from 'date-fns';
-import { Calendar } from '../ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../../atoms/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { Jetski, Location, RentalOption } from '@prisma/client';
 import { createReservation } from '@/actions/reservationActions/createReservation';
 import { listAvailableJetskis } from '@/actions/listAvailableJetskis';
-import { getAllLocations } from '@/actions/getAllLocations';
-import { FormError } from '../form-error';
-import { FormSuccess } from '../form-success';
+import { GetLocations } from '@/actions/getAllLocations';
+import { FormError } from '../../form-error';
+import { FormSuccess } from '../../form-success';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
-import { getAvailableReservationOptions } from '@/actions/listAvailableRentalOptions';
+import { GetActiveRentalOptions } from '@/actions/listAvailableRentalOptions';
 import { PhoneInput } from 'react-international-phone';
-import { Input } from '../atoms/input';
-import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import ErrorPopup from '../ui/errorpopup';
+import { Input } from '../../atoms/input';
 import { debounce } from 'lodash';
 import 'react-international-phone/style.css';
 import { DateTime } from 'luxon';
+import { DateChooser } from '@/components/molecules/dateSelect';
+import { Select } from '@/components/atoms/select';
 
 export const JetSkiReservationForm = () => {
   const [error, setError] = useState<string | undefined>('');
@@ -37,25 +35,16 @@ export const JetSkiReservationForm = () => {
   const [isPending, startTransition] = useTransition();
   const [rentalOptions, setRentalOptions] = useState<RentalOption[] | null>([]);
   const [selectedRentalOption, setRentalOption] = useState<RentalOption>();
-
   const [phone, setPhone] = useState('');
   const [discount, setDiscount] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
-
   const [rentDate, setRentDate] = useState<Date>();
   const [startTime, setStartTime] = useState<Date>();
   const [endTime, setEndTime] = useState<Date>();
-
   const [availableJetskis, setAvailableJetskis] = useState<Jetski[]>([]);
   const [selectedJetski, setSelectedJetski] = useState<Jetski[]>([]);
-
-  const [availableLocations, setAvailableLocations] = useState<Location[] | null>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location>();
-
-  const [showError, setShowError] = useState(false);
-  const router = useRouter();
-
-  const user = useCurrentUser();
 
   const form = useForm<z.infer<typeof JetskiReservationSchema>>({
     resolver: zodResolver(JetskiReservationSchema),
@@ -63,11 +52,11 @@ export const JetSkiReservationForm = () => {
       rentDate: rentDate,
       startTime: startTime,
       endTime: endTime,
-      reservation_location_id: selectedLocation?.id,
-      reservation_jetski_list: selectedJetski,
+      locationId: selectedLocation?.id,
+      jetskis: selectedJetski,
       contactNumber: phone,
       totalPrice: totalPrice,
-      rentaloption_id: selectedRentalOption?.id,
+      rentalOptionId: selectedRentalOption?.id,
       discount: discount,
     },
   });
@@ -75,19 +64,18 @@ export const JetSkiReservationForm = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const rentalData = await getAvailableReservationOptions();
+        const [rentalData, locationData] = await Promise.all([GetActiveRentalOptions(), GetLocations()]);
         setRentalOptions(rentalData);
-        const locationData = await getAllLocations();
-        setAvailableLocations(locationData);
+        if (locationData) setLocations(locationData);
       } catch (error) {
-        setError('Error fetching rental data');
+        setError('Greška prilikom dohvaćanja podataka.');
       }
     };
     fetchData();
   }, []);
 
   useEffect(() => {
-    form.setValue('reservation_jetski_list', selectedJetski);
+    form.setValue('jetskis', selectedJetski);
   }, [selectedJetski, form]);
 
   useEffect(() => {
@@ -147,20 +135,6 @@ export const JetSkiReservationForm = () => {
     }
   }, [selectedRentalOption, selectedJetski]);
 
-  useEffect(() => {
-    if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
-      setShowError(true);
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 3000);
-    }
-  }, [user, router]);
-
-  if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
-    return (
-      <>{showError && <ErrorPopup message="You need to be an administrator or manager to view this page." onClose={() => setShowError(false)} />}</>
-    );
-  }
   const debounceTimeChange = debounce((handler, value) => handler(value), 300);
 
   const handleRentDateTimeChange = (selectedRentDate: Date) => {
@@ -238,36 +212,22 @@ export const JetSkiReservationForm = () => {
   };
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <CardWrapper headerLabel="Add a reservation">
+      <CardWrapper headerLabel="Nova rezervacija" className="shadow-md xs:w-[350px] sm:w-[500px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 ">
             <FormField
               control={form.control}
               name="rentDate"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date of reservation</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button variant={'outline'}>
-                          {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          if (date) handleRentDateTimeChange(date);
-                        }}
-                        disabled={(date) => date < new Date(new Date().toDateString())}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <FormItem>
+                  <DateChooser
+                    label="Datum rezervacije"
+                    selectedDate={field.value}
+                    onDateChange={(date) => {
+                      field.onChange(date);
+                      if (date) handleRentDateTimeChange(date);
+                    }}
+                  />
                 </FormItem>
               )}
             />
@@ -298,43 +258,30 @@ export const JetSkiReservationForm = () => {
             />
             <div>
               <input type="hidden" {...form.register('startTime')} value={startTime instanceof Date ? startTime.toISOString() : ''} />
-              <FormField
-                name="reservation_location_id"
-                render={({ field }) => (
-                  <FormItem className="flex justify-between">
-                    <FormLabel className="text-lg font-bold">Location of reservation:</FormLabel>
-                    <FormControl className="w-60 bg-black text-white rounded-sm text-center border-solid p-1">
-                      <select
-                        value={selectedLocation ? selectedLocation.id : ''}
-                        onChange={(event) => {
-                          const selectedLocationId = event.target.value;
-                          if (availableLocations) {
-                            const selectedLocation = availableLocations.find((location) => location.id.toString() === selectedLocationId);
-                            setSelectedLocation(selectedLocation);
-                            form.setValue('reservation_location_id', selectedLocationId !== '' ? Number(selectedLocationId) : 0);
-                            console.log(selectedLocationId);
-                          }
-                        }}
-                      >
-                        <option value="">Select a location!</option>
-                        {user && user.role !== 'ADMIN' && user?.location_id ? (
-                          <option value={user.location_id}>
-                            {availableLocations && availableLocations.find((location) => location.id === user.location_id)?.name}
-                          </option>
-                        ) : (
-                          availableLocations &&
-                          availableLocations.map((location) => (
-                            <option key={location.id} value={location.id}>
-                              {location.name}
-                            </option>
-                          ))
-                        )}
-                      </select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
             </div>
+            <FormField
+              control={form.control}
+              name="locationId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="border-solid sans-serif text-bold">Lokacija rezervacije:</FormLabel>
+                  <FormControl className="w-full rounded-md border border-input bg-transparent p-2 text-sm shadow-sm">
+                    <Select
+                      {...field}
+                      allowUndefined={false}
+                      value={Number(field.value)}
+                      disabled={isPending}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      options={locations.map((location) => ({
+                        id: location.id,
+                        label: location.name,
+                      }))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="justify-between flex">
               <strong>Rental option: </strong>
               <FormControl className="w-80 bg-black text-white rounded-sm text-center border-solid p-1">
@@ -376,7 +323,7 @@ export const JetSkiReservationForm = () => {
                         }}
                       >
                         <input type="checkbox" onChange={(e) => handleCheckboxChange(jetski, e.target.checked)} />
-                        {' ' + jetski.registration + ' - ' + (availableLocations?.find((loc) => loc.id === jetski.locationId)?.name || 'No location')}
+                        {' ' + jetski.registration + ' - ' + (locations?.find((loc) => loc.id === jetski.locationId)?.name || 'No location')}
                       </label>
                     </div>
                   ))}

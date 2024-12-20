@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { CardWrapper } from '../auth/card-wrapper';
 import { getReservationsByDate } from '@/actions/listReservationsForDate';
 import { Popover, PopoverTrigger, PopoverContent } from '@radix-ui/react-popover';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import { CalendarIcon, TrashIcon, ClipboardCopyIcon, Pencil1Icon, DownloadIcon } from '@radix-ui/react-icons';
-import { Calendar } from '../ui/calendar';
+import { Calendar } from '../atoms/calendar';
 import { format } from 'date-fns';
 import { Jetski, Location, RentalOptions, Reservation } from '@prisma/client';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetLocations } from '@/actions/getAllLocations';
 import { Menu, MenuItem } from '@mui/material';
 import { deleteReservation } from '@/actions/deleteReservation';
 import { useRouter } from 'next/navigation';
@@ -61,7 +61,7 @@ export const ListReservations = () => {
   useEffect(() => {
     const fetchLocationAndOptionsData = async () => {
       try {
-        const locationData = await getAllLocations();
+        const locationData = await GetLocations();
         setLocationNames(locationData);
 
         const rentaloptions = await getAllRentalOptions();

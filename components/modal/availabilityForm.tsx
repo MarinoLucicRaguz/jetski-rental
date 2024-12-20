@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import { FormItem, FormLabel, FormControl } from '../ui/form';
-import { Button } from '../ui/button';
-import { Calendar } from '../ui/calendar';
+import { Button } from '../atoms/button';
+import { Calendar } from '../atoms/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { RentalOptions, Location } from '@prisma/client';
-import { getAvailableReservationOptions } from '@/actions/listAvailableRentalOptions';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetActiveRentalOptions } from '@/actions/listAvailableRentalOptions';
+import { GetLocations } from '@/actions/getAllLocations';
 import { calculateAvailability } from '@/actions/calculateAvailability';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import * as z from 'zod';
@@ -29,9 +29,7 @@ interface AvailabilityFormModalProps {
   onClose: () => void;
 }
 
-const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
-  onClose,
-}) => {
+const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({ onClose }) => {
   const methods = useForm<AvailabilityFormValues>({
     resolver: zodResolver(AvailabilitySchema),
   });
@@ -47,10 +45,10 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const options = await getAvailableReservationOptions();
+        const options = await GetActiveRentalOptions();
         if (options) setRentalOptions(options);
 
-        const locationData = await getAllLocations();
+        const locationData = await GetLocations();
         if (locationData) setLocations(locationData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -78,13 +76,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
         //   // slots = await calculateAvailability(dayStartTime, dayEndTime, data.jetskiCount, data.rentalOption, timezoneOffset, data.location.location_id);
         // }
         // else{
-        slots = await calculateAvailability(
-          dayStartTime,
-          dayEndTime,
-          data.jetskiCount,
-          data.rentalOption,
-          timezoneOffset
-        );
+        slots = await calculateAvailability(dayStartTime, dayEndTime, data.jetskiCount, data.rentalOption, timezoneOffset);
         // }
         setCheckedAvailability(true);
         setAvailableSlots(slots.slice(0, 5));
@@ -105,16 +97,12 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
           control={control}
           render={({ field }) => (
             <FormItem className="flex justify-between">
-              <FormLabel className="flex items-center font-bold">
-                Date:
-              </FormLabel>
+              <FormLabel className="flex items-center font-bold">Date:</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button variant="outline">
-                      {field.value
-                        ? field.value.toDateString()
-                        : 'Select a date'}
+                      {field.value ? field.value.toDateString() : 'Select a date'}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
                   </FormControl>
@@ -137,18 +125,13 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
                           })
                           .toDate();
 
-                        console.log(
-                          'Odabrani datum na FE kod availiability forme: ',
-                          utcDate
-                        );
+                        console.log('Odabrani datum na FE kod availiability forme: ', utcDate);
                         field.onChange(utcDate);
                       } else {
                         field.onChange(null);
                       }
                     }}
-                    disabled={(date) =>
-                      date < new Date(new Date().toDateString())
-                    }
+                    disabled={(date) => date < new Date(new Date().toDateString())}
                   />
                 </PopoverContent>
               </Popover>
@@ -161,9 +144,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
             control={control}
             render={({ field }) => (
               <FormItem className="flex justify-between gap-2">
-                <FormLabel className="flex items-center font-bold">
-                  Number of Jetskis:
-                </FormLabel>
+                <FormLabel className="flex items-center font-bold">Number of Jetskis:</FormLabel>
                 <FormControl>
                   <input
                     type="number"
@@ -182,29 +163,20 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
           control={control}
           render={({ field }) => (
             <FormItem className="flex justify-between gap-2">
-              <FormLabel className="flex items-center font-bold">
-                Rental Option:{' '}
-              </FormLabel>
+              <FormLabel className="flex items-center font-bold">Rental Option: </FormLabel>
               <FormControl className="rounded-sm p-1">
                 <select
                   value={field.value?.rentaloption_id || ''}
                   onChange={(e) => {
-                    const selectedOption = rentalOptions.find(
-                      (option) =>
-                        option.rentaloption_id === parseInt(e.target.value)
-                    );
+                    const selectedOption = rentalOptions.find((option) => option.rentaloption_id === parseInt(e.target.value));
                     field.onChange(selectedOption);
                   }}
                   className="shadow-[1px_1px_3px_rgba(0,0,0,0.5)] bg-black text-white"
                 >
                   <option value="">Select an option</option>
                   {rentalOptions.map((option) => (
-                    <option
-                      key={option.rentaloption_id}
-                      value={option.rentaloption_id}
-                    >
-                      {option.rentaloption_description} rent / {option.duration}{' '}
-                      minutes
+                    <option key={option.rentaloption_id} value={option.rentaloption_id}>
+                      {option.rentaloption_description} rent / {option.duration} minutes
                     </option>
                   ))}
                 </select>
@@ -212,10 +184,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
             </FormItem>
           )}
         />
-        <form
-          className="flex flex-col gap-1"
-          onSubmit={handleSubmit(handleCheckAvailability)}
-        >
+        <form className="flex flex-col gap-1" onSubmit={handleSubmit(handleCheckAvailability)}>
           <div className="flex items-center">
             <label className="font-bold text-sm" htmlFor="includeLocation">
               Check availability per location
@@ -234,9 +203,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
               control={control}
               render={({ field }) => (
                 <FormItem className="flex justify-between ">
-                  <FormLabel className="flex items-center font-bold">
-                    Location:{' '}
-                  </FormLabel>
+                  <FormLabel className="flex items-center font-bold">Location: </FormLabel>
                   <FormControl className="rounded sm p-1">
                     <select
                       value={field.value?.location_id || ''}
@@ -245,10 +212,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
                         if (selectedLocationId === 0) {
                           field.onChange(null);
                         } else {
-                          const selectedLocation = locations.find(
-                            (location) =>
-                              location.location_id === selectedLocationId
-                          );
+                          const selectedLocation = locations.find((location) => location.location_id === selectedLocationId);
                           field.onChange(selectedLocation);
                         }
                       }}
@@ -256,10 +220,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
                     >
                       <option value="0">All locations</option>
                       {locations.map((location) => (
-                        <option
-                          key={location.location_id}
-                          value={location.location_id}
-                        >
+                        <option key={location.location_id} value={location.location_id}>
                           {location.location_name}
                         </option>
                       ))}
@@ -277,17 +238,12 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
               <h3 className="text-lg font-semibold mb-2">Available Slots</h3>
               <ul className="space-y-2">
                 {availableSlots.map((slot, index) => (
-                  <li
-                    key={index}
-                    className="p-2 bg-white rounded-md shadow-sm border border-gray-200"
-                  >
+                  <li key={index} className="p-2 bg-white rounded-md shadow-sm border border-gray-200">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">
                         {slot.start_time} - {slot.end_time}
                       </span>
-                      <span className="text-sm text-gray-500">
-                        Available Jetskis: {slot.available_jetskis}
-                      </span>
+                      <span className="text-sm text-gray-500">Available Jetskis: {slot.available_jetskis}</span>
                     </div>
                   </li>
                 ))}
@@ -295,9 +251,7 @@ const AvailabilityFormModal: React.FC<AvailabilityFormModalProps> = ({
             </div>
           </div>
         )}
-        {availableSlots.length == 0 && checkedAvailability && (
-          <p>There are no available slots for selected options.</p>
-        )}
+        {availableSlots.length == 0 && checkedAvailability && <p>There are no available slots for selected options.</p>}
       </FormProvider>
     </Modal>
   );

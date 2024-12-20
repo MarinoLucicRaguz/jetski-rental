@@ -8,11 +8,11 @@ import { JetskiSchema } from '@/schemas';
 import { Input } from '../../atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
-import { Button } from '../../ui/button';
+import { Button } from '../../atoms/button';
 import { FormError } from '../../form-error';
 import { FormSuccess } from '../../form-success';
 import { createJetski } from '@/actions/vehicleActions/createJetski';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetLocations } from '@/actions/getAllLocations';
 import { Location } from '@prisma/client';
 import { Select } from '@/components/atoms/select';
 
@@ -36,7 +36,7 @@ export const VehicleForm = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const data = await getAllLocations();
+        const data = await GetLocations();
         if (data !== null) {
           setLocations(data);
         }

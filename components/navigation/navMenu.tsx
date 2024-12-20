@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import SignOutButton from '../auth/sign-out-button';
 import navMenuMapper from '@/lib/navMenuMapper';
 

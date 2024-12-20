@@ -9,7 +9,7 @@ import { ReservationOptionSchema } from '@/schemas';
 import { Input } from '../atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import { FormError } from '../form-error';
 import { FormSuccess } from '../form-success';
 import { createReservationOption } from '@/actions/rentaloptionActions/createReservationOption';

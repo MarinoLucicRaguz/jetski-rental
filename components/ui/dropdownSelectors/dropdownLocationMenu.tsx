@@ -1,5 +1,5 @@
 import { DrawingPinIcon } from '@radix-ui/react-icons';
-import { Button } from '../button';
+import { Button } from '../../atoms/button';
 import { useState } from 'react';
 import { Menu, MenuItem } from '@mui/material';
 import { Location } from '@prisma/client';

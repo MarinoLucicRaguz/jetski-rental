@@ -8,7 +8,7 @@ import { LocationSchema } from '@/schemas';
 import { Input } from '@/components/atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/atoms/button';
 import { FormError } from '@/components/form-error';
 import { FormSuccess } from '@/components/form-success';
 import { createLocation } from '@/actions/locationActions/createLocation';

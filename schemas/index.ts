@@ -1,8 +1,6 @@
 import * as z from 'zod';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import { RentalOptionType, UserRole, UserStatus } from '@prisma/client';
-import { DateTime } from 'luxon';
-import { Description } from '@radix-ui/react-dialog';
 
 const zPhone = z.string().refine(
   (value) => {
@@ -113,45 +111,40 @@ export const LocationSchema = z.object({
   managerId: z.string().nullable(),
 });
 
-const toUTC = (date: Date) => DateTime.fromJSDate(date).toUTC().toJSDate();
-
-const todayUTC = toUTC(new Date());
-todayUTC.setHours(0, 0, 0, 0);
-console.log('Server Date (UTC):', new Date().toISOString());
+const now = new Date();
+now.setSeconds(0, 0);
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 export const JetskiReservationSchema = z.object({
-  rentDate: z.date().refine((date) => date >= todayUTC, {
-    message: "Rent date can't be in past!",
+  rentDate: z.date().refine((date) => date >= today, {
+    message: 'Odabrani datum ne može biti u prošlosti.',
   }),
-  startTime: z.date().refine((date) => date >= todayUTC, {
-    message: 'Start time cannot be in the past!',
-  }),
+  startTime: z.date().refine(
+    (startTime) => {
+      const startTimeDate = new Date(startTime);
+      if (startTimeDate < today) return false;
+      if (startTimeDate.toDateString() === now.toDateString()) {
+        return startTimeDate >= now;
+      }
+      return true;
+    },
+    {
+      message: 'Početno vrijeme ne može biti u prošlosti.',
+    }
+  ),
   endTime: z.date(),
-  reservation_location_id: z.number(),
-  reservation_jetski_list: z.array(z.any()),
-  reservationOwner: z.string().regex(/^[a-zA-Z\s-]+$/, 'Name must contain only letters and space.'),
+  locationId: z.number(),
+  jetskis: z.array(z.any()),
+  ownerName: z.string().regex(/^[a-zA-Z\s-]+$/, 'Molim vas unesite pravilno ime na čije glasi rezervacija.'),
   contactNumber: zPhone,
   totalPrice: z.number(),
-  rentaloption_id: z.number(),
+  rentalOptionId: z.number(),
   discount: z.number(),
 });
 
-export const EditReservationSchema = z.object({
-  reservation_id: z.number(),
-  rentDate: z.date().refine((date) => date >= todayUTC, {
-    message: "Rent date can't be in past!",
-  }),
-  startTime: z.date().refine((date) => date >= todayUTC, {
-    message: 'Start time cannot be in the past!',
-  }),
-  endTime: z.date(),
-  reservation_location_id: z.number(),
-  reservation_jetski_list: z.array(z.any()),
-  reservationOwner: z.string().regex(/^[a-zA-Z\s-]+$/, 'Name must contain only letters and space.'),
-  contactNumber: zPhone,
-  totalPrice: z.number(),
-  rentaloption_id: z.number(),
-  discount: z.number(),
+export const EditReservationSchema = JetskiReservationSchema.extend({
+  id: z.number(),
 });
 
 export const ReservationOptionSchema = z.object({

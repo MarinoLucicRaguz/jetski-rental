@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetLocations } from '@/actions/getAllLocations';
 import { deleteLocation } from '@/actions/locationActions/deleteLocation';
 import { Location, Jetski, User } from '@prisma/client';
 import { CardWrapper } from '../auth/card-wrapper';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/atoms/button';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { GetAllJetskis } from '@/actions/listJetskis';
 import { getUsers } from '@/actions/getUsers';
@@ -39,7 +39,7 @@ export const ListLocation = () => {
           setError('');
         });
 
-        const data = await getAllLocations();
+        const data = await GetLocations();
         setLocationData(data);
         const jetskis = await GetAllJetskis();
         setJetskiData(jetskis);

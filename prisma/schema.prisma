@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Location {
-  id            Int           @id @default(autoincrement()) @map("location_id")
+  id            Int           @id @default(autoincrement())
   name          String        @unique @map("location_name")
   managerId     String?       @unique @map("location_manager_id")
   isActive      Boolean?      @default(true)
@@ -54,20 +54,19 @@ model Jetski {
 }
 
 model Reservation {
-  reservation_id          Int      @id @default(autoincrement())
+  id                      Int      @id @default(autoincrement())
   startTime               DateTime
   endTime                 DateTime
   createdAt               DateTime @default(now())
-  reservationOwner        String
-  contactNumber           String
+  ownerName               String?
+  contactNumber           String?
   totalPrice              Float
   discount                Float
-  isCurrentlyRunning      Boolean? @default(false)
-  hasItFinished           Boolean? @default(false)
-  rentaloption_id         Int      @default(0)
-  reservation_location_id Int
-  reservation_location    Location @relation(fields: [reservation_location_id], references: [id])
-  reservation_jetski_list Jetski[] @relation("JetskiToReservation")
+  status                  ReservationStatus @default(PLANNED)
+  rentalOptionId          Int
+  locationId              Int
+  location                Location @relation(fields: [locationId], references: [id])
+  jetskis                 Jetski[] @relation("JetskiToReservation")
 }
 
 model RentalOption {
@@ -99,4 +98,11 @@ enum UserRole {
   MODERATOR
   USER
   GUEST
+}
+
+enum ReservationStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }

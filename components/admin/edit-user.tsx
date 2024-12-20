@@ -8,13 +8,13 @@ import { EditUserSchema } from '@/schemas';
 import { Input } from '../atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import { FormError } from '../form-error';
 import { FormSuccess } from '../form-success';
 import { User, Location } from '@prisma/client';
 import { editUser } from '@/actions/editUser';
 import { actionGetUserById } from '@/actions/getUserById';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetLocations } from '@/actions/getAllLocations';
 import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import ErrorPopup from '../ui/errorpopup';
@@ -77,7 +77,7 @@ export const EditUserPage = ({ userId }: { userId: string }) => {
           setError('');
         });
 
-        const locations = await getAllLocations();
+        const locations = await GetLocations();
         if (locations) {
           setLocationData(locations);
         }

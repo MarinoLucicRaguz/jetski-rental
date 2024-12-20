@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { signOutUser } from '@/actions/signOutAction';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 
 interface SignOutButtonProps {

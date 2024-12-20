@@ -11,7 +11,7 @@ import { createReservationOption } from '@/actions/rentaloptionActions/createRes
 import { Input } from '@/components/atoms/input';
 import { FormError } from '@/components/form-error';
 import { FormSuccess } from '@/components/form-success';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/atoms/button';
 import { Select } from '@/components/atoms/select';
 import { RentalOptionType } from '@prisma/client';
 

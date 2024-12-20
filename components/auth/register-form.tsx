@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { RegisterSchema } from '@/schemas';
 import { Input } from '@/components/atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/atoms/button';
 import { FormError } from '@/components/form-error';
 import { FormSuccess } from '@/components/form-success';
 import { register } from '@/actions/register';

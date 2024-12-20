@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card';
 import { Header } from './header';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 
 interface CardWrapperProps {
   children: React.ReactNode;

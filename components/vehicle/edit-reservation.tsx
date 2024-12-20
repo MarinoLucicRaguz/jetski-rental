@@ -7,19 +7,19 @@ import { useEffect, useState, useTransition } from 'react';
 import { EditReservationSchema, JetskiReservationSchema } from '@/schemas';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CardWrapper } from '@/components/auth/card-wrapper';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import { format, add } from 'date-fns';
-import { Calendar } from '../ui/calendar';
+import { Calendar } from '../atoms/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { Jetski, Location, RentalOptions, Reservation } from '@prisma/client';
 import { listAvailableJetskis } from '@/actions/listAvailableJetskis';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetLocations } from '@/actions/getAllLocations';
 import { FormError } from '../form-error';
 import { FormSuccess } from '../form-success';
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
-import { getAvailableReservationOptions } from '@/actions/listAvailableRentalOptions';
+import { GetActiveRentalOptions } from '@/actions/listAvailableRentalOptions';
 import { PhoneInput } from 'react-international-phone';
 import { getReservationData } from '@/actions/getReservationData';
 import 'react-international-phone/style.css';
@@ -72,11 +72,11 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
       rentDate: rentDate,
       startTime: startTime,
       endTime: endTime,
-      reservation_location_id: selectedLocation?.location_id,
-      reservation_jetski_list: selectedJetski,
+      locationId: selectedLocation?.location_id,
+      jetskis: selectedJetski,
       contactNumber: phone,
       totalPrice: totalPrice,
-      rentaloption_id: selectedRentalOption?.rentaloption_id,
+      rentalOptionId: selectedRentalOption?.rentaloption_id,
     },
   });
 
@@ -84,8 +84,8 @@ export const EditJetSkiReservationForm = ({ reservationId }: { reservationId: nu
     const fetchData = async () => {
       try {
         const [rentalData, locationData, currentReservationData] = await Promise.all([
-          getAvailableReservationOptions(),
-          getAllLocations(),
+          GetActiveRentalOptions(),
+          GetLocations(),
           getReservationData(reservationId),
         ]);
 

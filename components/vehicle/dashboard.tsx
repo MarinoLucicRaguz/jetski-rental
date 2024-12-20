@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Jetski, Location, RentalOptions } from '@prisma/client';
-import { getAllLocations } from '@/actions/getAllLocations';
+import { GetLocations } from '@/actions/getAllLocations';
 import Spinner from '../ui/spinner';
 import ReservationCard from '@/components/ui/reservationcard';
 import { getReservationsByDate } from '@/actions/listReservationsForDate';
@@ -31,7 +31,7 @@ export const DashboardPage = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const locationsData = await getAllLocations();
+        const locationsData = await GetLocations();
         console.log(currentDate);
         const reservationsData = await getReservationsByDate(currentDate);
         const rentalOptionsData = await getAllRentalOptions();

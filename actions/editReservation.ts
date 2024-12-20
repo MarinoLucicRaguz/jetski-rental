@@ -1,120 +1,118 @@
-"use server";
-import { db } from "@/lib/db";
-import * as z from "zod";
-import { EditReservationSchema } from "@/schemas";
-import { DateTime } from "luxon";
+'use server';
+import { db } from '@/lib/db';
+import * as z from 'zod';
+import { EditReservationSchema } from '@/schemas';
+import { DateTime } from 'luxon';
 
 export const editReservation = async (values: z.infer<typeof EditReservationSchema>) => {
-    const validatedFields = EditReservationSchema.safeParse(values);
+  const validatedFields = EditReservationSchema.safeParse(values);
 
-    if (!validatedFields.success) {
-        return { error: "Invalid fields" };
+  if (!validatedFields.success) {
+    return { error: 'Invalid fields' };
+  }
+
+  const {
+    reservation_id,
+    startTime,
+    endTime,
+    jetskis: reservation_jetski_list,
+    locationId: reservation_location_id,
+    ownerName: reservationOwner,
+    contactNumber,
+    totalPrice,
+    rentalOptionId: rentaloption_id,
+    discount,
+  } = validatedFields.data;
+
+  const rentalOption = await db.rentalOptions.findUnique({ where: { rentaloption_id } });
+  if (rentalOption?.rentaloption_description === 'SAFARI' && reservation_jetski_list.length < 2) {
+    return { error: 'Safari tour needs minimum two jetskis. One for guide and one for the guest.' };
+  }
+
+  if (rentalOption?.rentaloption_description === 'REGULAR' && reservation_jetski_list.length < 1) {
+    return { error: 'Regular tour needs minimum one jetski.' };
+  }
+
+  const now = DateTime.now();
+  const startDateTime = DateTime.fromJSDate(new Date(startTime));
+  const endDateTime = DateTime.fromJSDate(new Date(endTime));
+
+  // Check if the start time is in the past
+  if (startDateTime < now) {
+    return { error: 'You have selected a starting time that has already passed!' };
+  }
+
+  // Ensure endTime is after startTime
+  if (startDateTime >= endDateTime) {
+    return { error: 'End time must be after start time.' };
+  }
+
+  // Validate location exists
+  const locationExists = await db.location.findUnique({
+    where: { location_id: reservation_location_id },
+  });
+  if (!locationExists) {
+    return { error: 'The specified location does not exist.' };
+  }
+
+  // Check jet ski availability
+  const jetskiAvailabilityChecks = reservation_jetski_list.map(async (jetski) => {
+    const jetskiStatus = await db.jetski.findUnique({
+      where: { jetski_id: jetski.jetski_id },
+      select: { jetski_status: true },
+    });
+
+    if (jetskiStatus?.jetski_status !== 'AVAILABLE') {
+      return false;
     }
+    const reservations = await db.reservation.findMany({
+      where: {
+        reservation_jetski_list: {
+          some: {
+            jetski_id: jetski.jetski_id,
+          },
+        },
+        AND: [
+          { startTime: { lt: endTime } },
+          { endTime: { gt: startTime } },
+          { reservation_id: { not: reservation_id } }, // Exclude the current reservation
+        ],
+      },
+    });
 
-    const {
-        reservation_id,
+    return reservations.length === 0;
+  });
+
+  const results = await Promise.all(jetskiAvailabilityChecks);
+  if (results.some((isAvailable) => !isAvailable)) {
+    return { error: 'One or more jetskis are not available in the chosen time slot.' };
+  }
+
+  try {
+    const reservation = await db.reservation.update({
+      where: { reservation_id },
+      data: {
         startTime,
         endTime,
-        reservation_jetski_list,
-        reservation_location_id,
         reservationOwner,
         contactNumber,
         totalPrice,
-        rentaloption_id,
-        discount
-    } = validatedFields.data;
-    
-    const rentalOption = await db.rentalOptions.findUnique({where: {rentaloption_id}});
-    if(rentalOption?.rentaloption_description === "SAFARI" && reservation_jetski_list.length < 2)
-        {
-            return {error: "Safari tour needs minimum two jetskis. One for guide and one for the guest."};
-        }
-    
-        if(rentalOption?.rentaloption_description === "REGULAR" && reservation_jetski_list.length < 1)
-            {
-                return {error: "Regular tour needs minimum one jetski."};
-            }
-    
-    const now = DateTime.now();
-    const startDateTime = DateTime.fromJSDate(new Date(startTime));
-    const endDateTime = DateTime.fromJSDate(new Date(endTime));
-
-    // Check if the start time is in the past
-    if (startDateTime < now) {
-        return { error: "You have selected a starting time that has already passed!" };
-    }
-
-    // Ensure endTime is after startTime
-    if (startDateTime >= endDateTime) {
-        return { error: "End time must be after start time." };
-    }
-
-    // Validate location exists
-    const locationExists = await db.location.findUnique({
-        where: { location_id: reservation_location_id },
-    });
-    if (!locationExists) {
-        return { error: "The specified location does not exist." };
-    }
-
-    // Check jet ski availability
-    const jetskiAvailabilityChecks = reservation_jetski_list.map(async jetski => {
-        const jetskiStatus = await db.jetski.findUnique({
-            where: { jetski_id: jetski.jetski_id },
-            select: { jetski_status: true },
-        });
-
-        if (jetskiStatus?.jetski_status !== "AVAILABLE") {
-            return false;
-        }
-        const reservations = await db.reservation.findMany({
-            where: {
-                reservation_jetski_list: {
-                    some: {
-                        jetski_id: jetski.jetski_id,
-                    },
-                },
-                AND: [
-                    { startTime: { lt: endTime } },
-                    { endTime: { gt: startTime } },
-                    { reservation_id: { not: reservation_id } } // Exclude the current reservation
-                ],
-            },
-        });
-
-        return reservations.length === 0;
+        discount,
+        reservation_location: {
+          connect: { location_id: reservation_location_id },
+        },
+        reservation_jetski_list: {
+          set: reservation_jetski_list.map((jetski) => ({ jetski_id: jetski.jetski_id })),
+        },
+        rentaloption_id: rentaloption_id,
+      },
     });
 
-    const results = await Promise.all(jetskiAvailabilityChecks);
-    if (results.some(isAvailable => !isAvailable)) {
-        return { error: "One or more jetskis are not available in the chosen time slot." };
-    }
-
-    try {
-        const reservation = await db.reservation.update({
-            where: { reservation_id },
-            data: {
-                startTime,
-                endTime,
-                reservationOwner,
-                contactNumber,
-                totalPrice,
-                discount,
-                reservation_location: {
-                    connect: { location_id: reservation_location_id },
-                },
-                reservation_jetski_list: {
-                    set: reservation_jetski_list.map(jetski => ({ jetski_id: jetski.jetski_id })),
-                },
-                rentaloption_id: rentaloption_id,
-                },
-        });
-
-        return {
-            success: "Reservation has been updated successfully!"
-        };
-    } catch (error) {
-        console.error("Error updating reservation:", error);
-        return { error: "An error occurred while updating the reservation." };
-    }
+    return {
+      success: 'Reservation has been updated successfully!',
+    };
+  } catch (error) {
+    console.error('Error updating reservation:', error);
+    return { error: 'An error occurred while updating the reservation.' };
+  }
 };

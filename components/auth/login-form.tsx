@@ -7,7 +7,7 @@ import { useState, useTransition } from 'react';
 import { LoginSchema } from '@/schemas';
 import { Input } from '../atoms/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Button } from '../ui/button';
+import { Button } from '../atoms/button';
 import { FormError } from '../form-error';
 import { FormSuccess } from '../form-success';
 import { login } from '@/actions/login';

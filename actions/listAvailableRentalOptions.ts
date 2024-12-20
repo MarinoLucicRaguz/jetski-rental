@@ -2,7 +2,7 @@
 
 import { GetActiveRentalOptionsAsync } from '@/repo/rentaloption';
 
-export const getAvailableReservationOptions = async () => {
+export const GetActiveRentalOptions = async () => {
   const listReservationOptions = await GetActiveRentalOptionsAsync();
 
   return listReservationOptions;
